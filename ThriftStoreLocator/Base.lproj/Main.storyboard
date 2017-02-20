@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="11762" systemVersion="16D32" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="lNl-rF-Prb">
+    <device id="retina4_7" orientation="portrait">
+        <adaptation id="fullscreen"/>
+    </device>
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="11757"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <scenes>
+        <!--Main View Controller-->
+        <scene sceneID="CBJ-gc-p7s">
+            <objects>
+                <tableViewController id="lZs-eC-LOT" customClass="MainViewController" customModule="ThriftStoreLocator" customModuleProvider="target" sceneMemberID="viewController">
+                    <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="28" sectionFooterHeight="28" id="o0m-dF-gHw">
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                        <prototypes>
+                            <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" selectionStyle="default" indentationWidth="10" reuseIdentifier="mainCell" textLabel="Ro1-Z0-qHt" style="IBUITableViewCellStyleDefault" id="VRz-is-6NI">
+                                <rect key="frame" x="0.0" y="28" width="375" height="44"/>
+                                <autoresizingMask key="autoresizingMask"/>
+                                <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="VRz-is-6NI" id="cAU-no-UVQ">
+                                    <rect key="frame" x="0.0" y="0.0" width="375" height="43"/>
+                                    <autoresizingMask key="autoresizingMask"/>
+                                    <subviews>
+                                        <label opaque="NO" multipleTouchEnabled="YES" contentMode="left" text="Title" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="Ro1-Z0-qHt">
+                                            <rect key="frame" x="15" y="0.0" width="345" height="43"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                            <nil key="textColor"/>
+                                            <nil key="highlightedColor"/>
+                                        </label>
+                                    </subviews>
+                                </tableViewCellContentView>
+                                <connections>
+                                    <segue destination="TxH-0m-ahh" kind="show" identifier="showStoreDetail" id="tcI-82-MLg"/>
+                                </connections>
+                            </tableViewCell>
+                        </prototypes>
+                        <connections>
+                            <outlet property="dataSource" destination="lZs-eC-LOT" id="MFI-Sf-8az"/>
+                            <outlet property="delegate" destination="lZs-eC-LOT" id="jj8-mp-SgP"/>
+                        </connections>
+                    </tableView>
+                    <navigationItem key="navigationItem" id="Uje-1e-Jpo"/>
+                </tableViewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="moE-qJ-nJR" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="2468" y="175.86206896551727"/>
+        </scene>
+        <!--Store Detail-->
+        <scene sceneID="aCs-Qf-bSk">
+            <objects>
+                <viewController id="jFg-Ll-mtg" customClass="DetailViewController" customModule="ThriftStoreLocator" customModuleProvider="target" sceneMemberID="viewController">
+                    <layoutGuides>
+                        <viewControllerLayoutGuide type="top" id="jAZ-wZ-52X"/>
+                        <viewControllerLayoutGuide type="bottom" id="uOr-aT-3Bt"/>
+                    </layoutGuides>
+                    <view key="view" contentMode="scaleToFill" id="6ez-tQ-cNd">
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                    </view>
+                    <navigationItem key="navigationItem" title="Store Detail" id="Q5j-Ur-hOx"/>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="si3-y5-Ga0" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="5372" y="-83"/>
+        </scene>
+        <!--Store Map-->
+        <scene sceneID="2KE-8f-7SH">
+            <objects>
+                <viewController id="7T5-51-zY2" customClass="MapViewController" customModule="ThriftStoreLocator" customModuleProvider="target" sceneMemberID="viewController">
+                    <layoutGuides>
+                        <viewControllerLayoutGuide type="top" id="X18-Ic-piO"/>
+                        <viewControllerLayoutGuide type="bottom" id="SJm-2H-gBT"/>
+                    </layoutGuides>
+                    <view key="view" contentMode="scaleToFill" id="6g6-YY-kiV">
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                    </view>
+                    <navigationItem key="navigationItem" title="Store Map" id="ITw-wz-zMd"/>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="FQp-sy-0vn" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="5358" y="579"/>
+        </scene>
+        <!--Navigation Controller-->
+        <scene sceneID="8MH-HM-dwf">
+            <objects>
+                <navigationController automaticallyAdjustsScrollViewInsets="NO" id="lNl-rF-Prb" sceneMemberID="viewController">
+                    <toolbarItems/>
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" id="3k3-r6-bQD">
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="44"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                    </navigationBar>
+                    <nil name="viewControllers"/>
+                    <connections>
+                        <segue destination="lZs-eC-LOT" kind="relationship" relationship="rootViewController" id="gdU-JX-QUl"/>
+                    </connections>
+                </navigationController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="2To-Jz-Zjv" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="1528.8" y="175.86206896551727"/>
+        </scene>
+        <!--Detail-->
+        <scene sceneID="OcF-LY-FPX">
+            <objects>
+                <navigationController automaticallyAdjustsScrollViewInsets="NO" id="pBk-jg-rsY" sceneMemberID="viewController">
+                    <tabBarItem key="tabBarItem" title="Detail" id="sgH-Rr-ntp"/>
+                    <toolbarItems/>
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" id="7cZ-iD-LYs">
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="44"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                    </navigationBar>
+                    <nil name="viewControllers"/>
+                    <connections>
+                        <segue destination="jFg-Ll-mtg" kind="relationship" relationship="rootViewController" id="pqx-Tc-y4K"/>
+                    </connections>
+                </navigationController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="Lgt-2M-0mx" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="4433" y="-83"/>
+        </scene>
+        <!--Map-->
+        <scene sceneID="sZR-Ng-0sV">
+            <objects>
+                <navigationController automaticallyAdjustsScrollViewInsets="NO" id="2hs-Va-Gun" sceneMemberID="viewController">
+                    <tabBarItem key="tabBarItem" title="Map" id="0a6-ja-seC"/>
+                    <toolbarItems/>
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" id="2Pb-1d-rZY">
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="44"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                    </navigationBar>
+                    <nil name="viewControllers"/>
+                    <connections>
+                        <segue destination="7T5-51-zY2" kind="relationship" relationship="rootViewController" id="kWP-jH-hCg"/>
+                    </connections>
+                </navigationController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="WbG-Nn-GjI" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="4444" y="586"/>
+        </scene>
+        <!--Tab Bar Controller-->
+        <scene sceneID="p0b-Od-yGq">
+            <objects>
+                <tabBarController automaticallyAdjustsScrollViewInsets="NO" id="TxH-0m-ahh" sceneMemberID="viewController">
+                    <toolbarItems/>
+                    <tabBar key="tabBar" contentMode="scaleToFill" id="idM-6J-fLY">
+                        <autoresizingMask key="autoresizingMask"/>
+                        <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                    </tabBar>
+                    <connections>
+                        <segue destination="pBk-jg-rsY" kind="relationship" relationship="viewControllers" id="Y9C-gL-UYH"/>
+                        <segue destination="2hs-Va-Gun" kind="relationship" relationship="viewControllers" id="rIn-OX-P8n"/>
+                    </connections>
+                </tabBarController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="el6-zQ-15h" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="3367" y="177"/>
+        </scene>
+    </scenes>
+</document>
