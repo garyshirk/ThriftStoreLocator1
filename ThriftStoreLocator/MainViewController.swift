@@ -47,6 +47,29 @@ class MainViewController: UITableViewController {
 
         return cell
     }
+    
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        
+        if segue.identifier == "showStoreDetail" {
+            if let indexPath = self.tableView.indexPathForSelectedRow {
+                
+                let selectedStore = dataArray[indexPath.row]
+                
+                print("Selected Store: \(selectedStore)")
+                
+                let tabBarController = segue.destination as! UITabBarController
+                tabBarController.navigationItem.title = selectedStore
+                
+                let detailNavigationController = tabBarController.viewControllers!.first as! UINavigationController
+                let detailViewController = detailNavigationController.viewControllers.first as! DetailViewController
+                detailViewController.labelString = selectedStore + " in Detail view"
+                
+                let mapNavigationController = tabBarController.viewControllers?[1] as! UINavigationController
+                let mapViewController = mapNavigationController.viewControllers.first as! MapViewController
+                mapViewController.labelString = selectedStore + " in Map view"
+            }
+        }
+    }
 
     /*
     // Override to support conditional editing of the table view.

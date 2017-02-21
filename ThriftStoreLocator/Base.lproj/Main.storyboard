@@ -55,7 +55,7 @@
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="moE-qJ-nJR" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="2468" y="175.86206896551727"/>
+            <point key="canvasLocation" x="2276" y="179"/>
         </scene>
         <!--Menu-->
         <scene sceneID="EMu-bw-aga">
@@ -152,13 +152,25 @@
                     <view key="view" contentMode="scaleToFill" id="6ez-tQ-cNd">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Label" textAlignment="natural" lineBreakMode="wordWrap" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Z75-7R-E4T">
+                                <rect key="frame" x="27" y="86" width="257" height="86"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <color key="textColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                        </subviews>
                         <color key="backgroundColor" red="0.92549020049999997" green="0.23529411850000001" blue="0.1019607857" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                     </view>
                     <navigationItem key="navigationItem" title="Store Detail" id="Q5j-Ur-hOx"/>
+                    <connections>
+                        <outlet property="label" destination="Z75-7R-E4T" id="6yR-IV-o5S"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="si3-y5-Ga0" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="5372" y="-83"/>
+            <point key="canvasLocation" x="5372" y="-83.208395802098963"/>
         </scene>
         <!--Store Map-->
         <scene sceneID="2KE-8f-7SH">
@@ -171,13 +183,25 @@
                     <view key="view" contentMode="scaleToFill" id="6g6-YY-kiV">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Label" textAlignment="natural" lineBreakMode="wordWrap" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="hzG-cg-P1l">
+                                <rect key="frame" x="30" y="99" width="240" height="86"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <color key="textColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                        </subviews>
                         <color key="backgroundColor" red="0.21960784489999999" green="0.0078431377190000002" blue="0.85490196939999996" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                     </view>
                     <navigationItem key="navigationItem" title="Store Map" id="ITw-wz-zMd"/>
+                    <connections>
+                        <outlet property="mapLabel" destination="hzG-cg-P1l" id="1Gu-bQ-mF8"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="FQp-sy-0vn" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="5849" y="615"/>
+            <point key="canvasLocation" x="5848.8000000000002" y="614.84257871064472"/>
         </scene>
         <!--Navigation Controller-->
         <scene sceneID="8MH-HM-dwf">
