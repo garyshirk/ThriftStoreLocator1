@@ -18,6 +18,7 @@
 		E1724D291E5B7E2500E71909 /* MapViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1724D281E5B7E2500E71909 /* MapViewController.swift */; };
 		E173E9891E5BA850001FF201 /* DrawerTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E173E9881E5BA850001FF201 /* DrawerTableViewController.swift */; };
 		E173E98B1E5BAAC6001FF201 /* SettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E173E98A1E5BAAC6001FF201 /* SettingsViewController.swift */; };
+		E173E98D1E5BBA34001FF201 /* AboutViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E173E98C1E5BBA34001FF201 /* AboutViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -36,6 +37,7 @@
 		E1724D281E5B7E2500E71909 /* MapViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MapViewController.swift; sourceTree = "<group>"; };
 		E173E9881E5BA850001FF201 /* DrawerTableViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DrawerTableViewController.swift; sourceTree = "<group>"; };
 		E173E98A1E5BAAC6001FF201 /* SettingsViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SettingsViewController.swift; sourceTree = "<group>"; };
+		E173E98C1E5BBA34001FF201 /* AboutViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = AboutViewController.swift; path = ../AboutViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -86,6 +88,7 @@
 				E1724D261E5B7BAC00E71909 /* DetailViewController.swift */,
 				E1724D281E5B7E2500E71909 /* MapViewController.swift */,
 				E173E98A1E5BAAC6001FF201 /* SettingsViewController.swift */,
+				E173E98C1E5BBA34001FF201 /* AboutViewController.swift */,
 				E1724D131E5B732F00E71909 /* Main.storyboard */,
 				E1724D191E5B732F00E71909 /* Assets.xcassets */,
 				E1724D1B1E5B732F00E71909 /* LaunchScreen.storyboard */,
@@ -233,6 +236,7 @@
 				E173E9891E5BA850001FF201 /* DrawerTableViewController.swift in Sources */,
 				E1724D251E5B741000E71909 /* MainViewController.swift in Sources */,
 				E1724D291E5B7E2500E71909 /* MapViewController.swift in Sources */,
+				E173E98D1E5BBA34001FF201 /* AboutViewController.swift in Sources */,
 				E1724D271E5B7BAC00E71909 /* DetailViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
