@@ -8,7 +8,7 @@
 
 import UIKit
 
-class DrawerTableViewController: UITableViewController {
+class MenuTableViewController: UITableViewController {
     
     var menuItems:[String] = ["Settings", "About"]
 
@@ -22,7 +22,27 @@ class DrawerTableViewController: UITableViewController {
         // self.navigationItem.rightBarButtonItem = self.editButtonItem()
         
         self.navigationItem.title = "Menu"
+        
+        // Do not show empty tableView cells
+        tableView.tableFooterView = UIView()
     }
+    
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        
+        // this will be non-nil if a blur effect is applied
+        guard tableView.backgroundView == nil else {
+            return
+        }
+        
+        // Set up a background image in menu
+        let imageView = UIImageView(image: UIImage(named: "saturn"))
+        imageView.contentMode = .scaleAspectFit
+        imageView.backgroundColor = UIColor.black.withAlphaComponent(0.2)
+        tableView.backgroundView = imageView
+    }
+
 
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()

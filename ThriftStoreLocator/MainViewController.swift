@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import SideMenu
 
 class MainViewController: UITableViewController {
     
@@ -20,6 +21,13 @@ class MainViewController: UITableViewController {
 
         // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
         // self.navigationItem.rightBarButtonItem = self.editButtonItem()
+        
+        // Prevent menu status bar from fading to black
+        SideMenuManager.menuFadeStatusBar = false
+        
+        SideMenuManager.menuAnimationTransformScaleFactor = 1
+        SideMenuManager.menuAnimationBackgroundColor = UIColor(patternImage: UIImage(named: "stars")!)
+        
     }
 
     override func didReceiveMemoryWarning() {
