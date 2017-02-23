@@ -11,11 +11,17 @@ import SideMenu
 
 class MainViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UISearchResultsUpdating {
     
-    var stores: [String] = ["Goodwill", "Salvation Army", "Savers"]
+    var stores: [String] = ["Goodwill", "Salvation Army", "Savers", "Thrift on Main", "Sparrows Nest"]
     var searchedStores: [String] = []
+    var selectedStore: String!
     var resultsController: UITableViewController!
     var searchController: UISearchController!
     
+    // Total hack here: When store is selected from search results tableview, I set the selected store
+    // in didSelect method, then programmatically perform a segue. But if user selects cell from 
+    // regular tableview, then segue is automatically connected via storyboard and don't have a way
+    // to know if prepareForSegue whether to set store from searched tableview or regular tableview
+    var isSearchCellSelected: Bool = false
     
     @IBOutlet weak var tableView: UITableView!
     
@@ -39,16 +45,23 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         
         // Search configuration
         resultsController = UITableViewController(style: .plain)
-        resultsController.tableView.register(UITableViewCell.self, forCellReuseIdentifier: "mainCell")
+        resultsController.tableView.register(UITableViewCell.self, forCellReuseIdentifier: "searchedStoreCell")
         resultsController.tableView.dataSource = self
         resultsController.tableView.delegate = self
         searchController = UISearchController(searchResultsController: resultsController)
         searchController.hidesNavigationBarDuringPresentation = true
         searchController.searchResultsUpdater = self
         self.tableView.tableHeaderView = searchController.searchBar
+        
+        /*
+            The current view controller will present a search controller over its main view.
+            Setting the definesPresentationContext property to true will indicate that the view controller’s
+            view will be covered each time the search controller is shown over it.
+            This will allow to avoid unknown behaviour
+        */
         self.definesPresentationContext = true
         
-        makeGetCall()
+        //makeGetCall()
         
     }
     
@@ -152,58 +165,89 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     //        task.resume()
     //    }
 
-
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
-    }
+    // MARK = Search Results Updating
     
-    @available(iOS 8.0, *)
-    public func updateSearchResults(for searchController: UISearchController) {
+    func updateSearchResults(for searchController: UISearchController) {
+        searchedStores.removeAll()
+        for store in stores {
+            if store.localizedCaseInsensitiveContains(searchController.searchBar.text!) {
+                searchedStores.append(store)
+                self.resultsController.tableView.reloadData()
+            }
+        }
         
     }
-
+    
     // MARK: - Table view data source
 
     func numberOfSections(in tableView: UITableView) -> Int {
-        // #warning Incomplete implementation, return the number of sections
+        
         return 1
     }
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        // #warning Incomplete implementation, return the number of rows
-        return stores.count
+        if tableView == self.tableView {
+            return stores.count
+        } else {
+            return searchedStores.count
+        }
     }
 
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "mainCell", for: indexPath)
-
-        cell.textLabel?.text = stores[indexPath.row]
+        
+        var cellIdentifier: String!
+        var storeName: String!
+        
+        if tableView == self.tableView {
+            cellIdentifier = "storeCell"
+            storeName = self.stores[indexPath.row]
+        } else {
+            cellIdentifier = "searchedStoreCell"
+            storeName = self.searchedStores[indexPath.row]
+        }
+        
+        let cell = tableView.dequeueReusableCell(withIdentifier: cellIdentifier, for: indexPath)
+        
+        cell.textLabel?.text = storeName
 
         return cell
+    }
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        if tableView == resultsController.tableView {
+            isSearchCellSelected = true
+            selectedStore = searchedStores[indexPath.row]
+            self.performSegue(withIdentifier: "showStoreDetail", sender: self)
+        }
+        tableView.deselectRow(at: indexPath, animated: true)
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         
         if segue.identifier == "showStoreDetail" {
-            if let indexPath = self.tableView.indexPathForSelectedRow {
-                
-                let selectedStore = stores[indexPath.row]
-                
-                print("Selected Store: \(selectedStore)")
-                
-                let tabBarController = segue.destination as! UITabBarController
-                tabBarController.navigationItem.title = selectedStore
-                
-                let detailNavigationController = tabBarController.viewControllers!.first as! UINavigationController
-                let detailViewController = detailNavigationController.viewControllers.first as! DetailViewController
-                detailViewController.labelString = selectedStore + " in Detail view"
-                
-                let mapNavigationController = tabBarController.viewControllers?[1] as! UINavigationController
-                let mapViewController = mapNavigationController.viewControllers.first as! MapViewController
-                mapViewController.labelString = selectedStore + " in Map view"
+            
+            if !isSearchCellSelected {
+                if let indexPath = self.tableView.indexPathForSelectedRow {
+                    selectedStore = stores[indexPath.row]
+                }
+            } else {
+                // Hack!!
+                isSearchCellSelected = false
             }
+            
+            let tabBarController = segue.destination as! UITabBarController
+            tabBarController.navigationItem.title = selectedStore
+            
+            let detailNavigationController = tabBarController.viewControllers!.first as! UINavigationController
+            let detailViewController = detailNavigationController.viewControllers.first as! DetailViewController
+            detailViewController.labelString = selectedStore + " in Detail view"
+            
+            let mapNavigationController = tabBarController.viewControllers?[1] as! UINavigationController
+            let mapViewController = mapNavigationController.viewControllers.first as! MapViewController
+            mapViewController.labelString = selectedStore + " in Map view"
+            
+            print("Selected Store: \(selectedStore)")
         }
     }
 
@@ -251,5 +295,10 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         // Pass the selected object to the new view controller.
     }
     */
+    
+    override func didReceiveMemoryWarning() {
+        super.didReceiveMemoryWarning()
+        // Dispose of any resources that can be recreated.
+    }
 
 }
