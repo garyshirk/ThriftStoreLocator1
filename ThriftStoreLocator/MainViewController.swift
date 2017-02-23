@@ -20,7 +20,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     // Total hack here: When store is selected from search results tableview, I set the selected store
     // in didSelect method, then programmatically perform a segue. But if user selects cell from 
     // regular tableview, then segue is automatically connected via storyboard and don't have a way
-    // to know if prepareForSegue whether to set store from searched tableview or regular tableview
+    // to know in prepareForSegue whether to set store from searched tableview or regular tableview
     var isSearchCellSelected: Bool = false
     
     @IBOutlet weak var tableView: UITableView!
@@ -46,6 +46,11 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         // Search configuration
         resultsController = UITableViewController(style: .plain)
         resultsController.tableView.register(UITableViewCell.self, forCellReuseIdentifier: "searchedStoreCell")
+        
+        
+        resultsController.tableView.register(UITableViewCell.self, forCellReuseIdentifier: "mapCell")
+        
+        
         resultsController.tableView.dataSource = self
         resultsController.tableView.delegate = self
         searchController = UISearchController(searchResultsController: resultsController)
@@ -172,67 +177,96 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         for store in stores {
             if store.localizedCaseInsensitiveContains(searchController.searchBar.text!) {
                 searchedStores.append(store)
-                self.resultsController.tableView.reloadData()
             }
         }
-        
+        self.resultsController.tableView.reloadData()
     }
     
     // MARK: - Table view data source
 
     func numberOfSections(in tableView: UITableView) -> Int {
-        
         return 1
     }
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         if tableView == self.tableView {
-            return stores.count
+            return stores.count + 1
         } else {
-            return searchedStores.count
+            return searchedStores.count + 1
         }
     }
 
-    
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
         var cellIdentifier: String!
         var storeName: String!
         
-        if tableView == self.tableView {
-            cellIdentifier = "storeCell"
-            storeName = self.stores[indexPath.row]
+        let cell: UITableViewCell?
+        
+        if isMapCell(at: indexPath) {
+            // this will eventually be the map cell
+            cell = tableView.dequeueReusableCell(withIdentifier: "mapCell", for: indexPath)
+            cell?.textLabel?.text = "--"
         } else {
-            cellIdentifier = "searchedStoreCell"
-            storeName = self.searchedStores[indexPath.row]
+            
+            let index = indexPath.row - 1
+            
+            if tableView == self.tableView {
+                cellIdentifier = "storeCell"
+                storeName = self.stores[index]
+            } else {
+                cellIdentifier = "searchedStoreCell"
+                storeName = self.searchedStores[index]
+            }
+
+            cell = tableView.dequeueReusableCell(withIdentifier: cellIdentifier, for: indexPath)
+            
+            cell?.textLabel?.text = storeName
         }
         
-        let cell = tableView.dequeueReusableCell(withIdentifier: cellIdentifier, for: indexPath)
-        
-        cell.textLabel?.text = storeName
-
-        return cell
+        return cell!
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        if isMapCell(at: indexPath) {
+            return
+        }
+        
         if tableView == resultsController.tableView {
             isSearchCellSelected = true
-            selectedStore = searchedStores[indexPath.row]
+            selectedStore = searchedStores[indexPath.row - 1]
             self.performSegue(withIdentifier: "showStoreDetail", sender: self)
         }
         tableView.deselectRow(at: indexPath, animated: true)
     }
     
+    func isMapCell(at indexPath: IndexPath) -> Bool {
+        return indexPath.row == 0
+    }
+    
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         
         if segue.identifier == "showStoreDetail" {
-            
-            if !isSearchCellSelected {
-                if let indexPath = self.tableView.indexPathForSelectedRow {
-                    selectedStore = stores[indexPath.row]
-                }
+        
+            // Determine if segue is from searched store cell or regular store cell
+            let indexPath: IndexPath?
+            if isSearchCellSelected {
+                indexPath = resultsController.tableView.indexPathForSelectedRow
             } else {
-                // Hack!!
+                indexPath = tableView.indexPathForSelectedRow
+            }
+        
+            // Do not segue if Map cell selected
+            if isMapCell(at: indexPath!) {
+                return
+            }
+        
+            // If this is a segue for a regular cell, need to set the selectedStore
+            if !isSearchCellSelected {
+                selectedStore = stores[(indexPath?.row)! - 1]
+            } else {
+                // Hack!! - If this is segue for a search cell, then we're done with isSearchCellSelected,
+                // reset it back to false
                 isSearchCellSelected = false
             }
             
