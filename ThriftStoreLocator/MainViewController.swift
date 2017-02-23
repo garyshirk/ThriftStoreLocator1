@@ -9,49 +9,177 @@
 import UIKit
 import SideMenu
 
-class MainViewController: UITableViewController {
+class MainViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UISearchResultsUpdating {
     
-    var dataArray: [String] = ["Goodwill", "Salvation Army", "Savers"]
-
+    var stores: [String] = ["Goodwill", "Salvation Army", "Savers"]
+    var searchedStores: [String] = []
+    var resultsController: UITableViewController!
+    var searchController: UISearchController!
+    
+    
+    @IBOutlet weak var tableView: UITableView!
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-
+        
         // Uncomment the following to preserve selection between presentations
         // self.clearsSelectionOnViewWillAppear = false
-
         // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
         // self.navigationItem.rightBarButtonItem = self.editButtonItem()
         
+        // Side Menu configuration
         // Prevent menu status bar from fading to black
         SideMenuManager.menuFadeStatusBar = false
-        
         SideMenuManager.menuAnimationTransformScaleFactor = 1
-        SideMenuManager.menuAnimationBackgroundColor = UIColor(patternImage: UIImage(named: "stars")!)
+        //SideMenuManager.menuAnimationBackgroundColor = UIColor(patternImage: UIImage(named: "stars")!)
+        SideMenuManager.menuPresentMode = .menuSlideIn
+        
+        // Scroll view inset adjustment handled by tableView constraints in storyboard
+        self.automaticallyAdjustsScrollViewInsets = false
+        
+        // Search configuration
+        resultsController = UITableViewController(style: .plain)
+        resultsController.tableView.register(UITableViewCell.self, forCellReuseIdentifier: "mainCell")
+        resultsController.tableView.dataSource = self
+        resultsController.tableView.delegate = self
+        searchController = UISearchController(searchResultsController: resultsController)
+        searchController.hidesNavigationBarDuringPresentation = true
+        searchController.searchResultsUpdater = self
+        self.tableView.tableHeaderView = searchController.searchBar
+        self.definesPresentationContext = true
+        
+        makeGetCall()
         
     }
+    
+    // NOTE: Search bar tutorial json task from http://sweettutos.com/2015/12/26/hands-on-uisearchcontroller-the-complete-guide/
+    // But below is old Swift code; Swift 3 updated code is in next function and is working https://grokswift.com/updating-nsurlsession-to-swift-3-0/
+//    func retrieveFakeData() {
+//        let session = URLSession.shared
+//        let url:NSURL! = NSURL(string: "http://jsonplaceholder.typicode.com/users")
+//    
+//       
+//        let task = session.downloadTaskWithURL(url as URL) { (location: NSURL?, response: URLResponse?, error: NSError?) -> Void in
+//            if (location != nil){
+//                let data:NSData! = NSData(contentsOfURL: location!)
+//                do{
+//                    self.users = try NSJSONSerialization.JSONObjectWithData(data, options: .MutableLeaves) as! [[String : AnyObject]]
+//                    dispatch_async(dispatch_get_main_queue(), { () -> Void in
+//                        self.tableView.reloadData()
+//                    })
+//                }catch{
+//                    // Catch any exception
+//                    print("Something went wrong")
+//                }
+//            }else{
+//                // Error
+//                print("An error occurred \(error)")
+//            }
+//        }
+//        // Start the download task
+//        task.resume()
+//    }
+    
+    
+    func makeGetCall() {
+        // Set up URL request
+        let urlString: String = "http://jsonplaceholder.typicode.com/todos/1" // note: this is a test url
+        guard let url = URL(string: urlString) else {
+            print("Error: cannot create URL")
+            return
+        }
+        let urlRequest = URLRequest(url: url)
+        
+        // Set up session
+        let config = URLSessionConfiguration.default
+        let session = URLSession(configuration: config)
+        
+        // Make the request
+        let task = session.dataTask(with: urlRequest, completionHandler: { (data, response, error) in
+            
+            // Handle returned response
+            print(error ?? "no error")
+            print(response!)
+            
+            // Parse the Json response data
+            do {
+                guard let todo = try JSONSerialization.jsonObject(with: data!, options: []) as? [String: Any] else {
+                    print("Error trying to convert data to JSON")
+                    return
+                }
+                
+                // Got the data
+                print("Data is \(todo.description)")
+                
+                // Reload the tableView on the main thread
+                DispatchQueue.main.async(execute: { () -> Void in
+                    self.tableView.reloadData()
+                })
+                
+                // todo object is a dictionary, so can access the title using the "title" key
+                guard let todoTitle = todo["title"] as? String else {
+                    print("Could not get title from JSON")
+                    return
+                }
+                print("The title is: \(todoTitle)")
+            } catch {
+                print("Error trying to convert data to JSON")
+                return
+            }
+        })
+        task.resume()
+    }
+
+    //    func makeGetCall() {
+    //        // Set up URL request
+    //        let todoEndpoint: String = "http://jsonplaceholder.typicode.com/users"
+    //        guard let url = URL(string: todoEndpoint) else {
+    //            print("Error: cannot create URL")
+    //            return
+    //        }
+    //        let urlRequest = URLRequest(url: url)
+    //
+    //        // Set up session
+    //        let config = URLSessionConfiguration.default
+    //        let session = URLSession(configuration: config)
+    //
+    //        // Make the request
+    //        let task = session.dataTask(with: urlRequest, completionHandler: { (data, response, error) in
+    //            // Handle returned response
+    //            print(error ?? "no error")
+    //            print(response!)
+    //        })
+    //        task.resume()
+    //    }
+
 
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
+    
+    @available(iOS 8.0, *)
+    public func updateSearchResults(for searchController: UISearchController) {
+        
+    }
 
     // MARK: - Table view data source
 
-    override func numberOfSections(in tableView: UITableView) -> Int {
+    func numberOfSections(in tableView: UITableView) -> Int {
         // #warning Incomplete implementation, return the number of sections
         return 1
     }
 
-    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         // #warning Incomplete implementation, return the number of rows
-        return dataArray.count
+        return stores.count
     }
 
     
-    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "mainCell", for: indexPath)
 
-        cell.textLabel?.text = dataArray[indexPath.row]
+        cell.textLabel?.text = stores[indexPath.row]
 
         return cell
     }
@@ -61,7 +189,7 @@ class MainViewController: UITableViewController {
         if segue.identifier == "showStoreDetail" {
             if let indexPath = self.tableView.indexPathForSelectedRow {
                 
-                let selectedStore = dataArray[indexPath.row]
+                let selectedStore = stores[indexPath.row]
                 
                 print("Selected Store: \(selectedStore)")
                 

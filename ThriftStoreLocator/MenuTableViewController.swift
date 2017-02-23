@@ -32,15 +32,15 @@ class MenuTableViewController: UITableViewController {
         super.viewWillAppear(animated)
         
         // this will be non-nil if a blur effect is applied
-        guard tableView.backgroundView == nil else {
-            return
-        }
-        
-        // Set up a background image in menu
-        let imageView = UIImageView(image: UIImage(named: "saturn"))
-        imageView.contentMode = .scaleAspectFit
-        imageView.backgroundColor = UIColor.black.withAlphaComponent(0.2)
-        tableView.backgroundView = imageView
+//        guard tableView.backgroundView == nil else {
+//            return
+//        }
+//        
+//        // Set up a background image in menu
+//        let imageView = UIImageView(image: UIImage(named: "saturn"))
+//        imageView.contentMode = .scaleAspectFit
+//        imageView.backgroundColor = UIColor.black.withAlphaComponent(0.2)
+//        tableView.backgroundView = imageView
     }
 
 
