@@ -11,17 +11,33 @@ import SideMenu
 
 class MainViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UITextFieldDelegate {
     
-    var stores: [String] = ["Goodwill", "Salvation Army", "Savers", "Thrift on Main", "Sparrows Nest"]
+    var stores: [String] = ["Goodwill", "Salvation Army", "Savers", "Thrift on Main", "Sparrows Nest",
+                            "Goodwill Schaumburg", "Goodwill2", "Salvation Army2", "Savers2",
+                            "Thrift on Main2", "Sparrows Nest2", "Goodwill Crystal Lake",
+                            "Thrift on Main3", "Sparrows Nest3", "Goodwill Carpentersville",
+                            "Thrift on Main4", "Sparrows Nest4", "Goodwill Lake Zurich"]
+    
+    var searchedStores: [String] = []
+    
     var selectedStore: String!
     
+    var isSearching: Bool = false
+
     @IBOutlet weak var tableView: UITableView!
-    
+    @IBOutlet weak var titleLabel: UILabel!
     @IBOutlet weak var searchView: UIView!
     @IBOutlet weak var searchTextField: UITextField!
-    var isSearching: Bool = false
+    
+    // TODO - Move dimmerView to front of view on storyboard. Keeping it behind tableView during development
+    @IBOutlet weak var dimmerView: UIView!
+    
+    var titleBackgroundColor: UIColor!
+    
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        self.navigationItem.backBarButtonItem = UIBarButtonItem(title:"Back", style:.plain, target:nil, action:nil)
         
         // Uncomment the following to preserve selection between presentations
         // self.clearsSelectionOnViewWillAppear = false
@@ -29,8 +45,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         // self.navigationItem.rightBarButtonItem = self.editButtonItem()
         
 
-        // Side Menu configuration
-        // Prevent menu status bar from fading to black
+        // Side Menu appearance and configuration
         let appDelegate = UIApplication.shared.delegate as! AppDelegate
         SideMenuManager.menuAnimationBackgroundColor = appDelegate.uicolorFromHex(rgbValue: 0x034517)
         SideMenuManager.menuFadeStatusBar = false
@@ -40,12 +55,31 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         // Scroll view inset adjustment handled by tableView constraints in storyboard
         self.automaticallyAdjustsScrollViewInsets = false
         
-        // Search configuration
-        setSearchBarVisibility(isOn: false)
+        // Search and Title configuration
+        titleBackgroundColor = searchView.backgroundColor
+        titleLabel.text = "Thrift Store Locator"
+        titleLabel.tintColor = UIColor.white
+        setSearchEditMode(doSet: false)
+        setSearchEnabledMode(doSet: false)
+        
+        searchTextField.delegate = self
+        
+        
         
         
         //makeGetCall()
         
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        print("ViewWillAppear")
+        tableView.isUserInteractionEnabled = true
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        print("ViewWillDisappear")
     }
         
     // NOTE: Search bar tutorial json task from http://sweettutos.com/2015/12/26/hands-on-uisearchcontroller-the-complete-guide/
@@ -152,40 +186,68 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     // MARK: - TextField delegates
     
     func textFieldDidBeginEditing(_ textField: UITextField) {
-        
+        print("Did begin editing search field")
+        setSearchEditMode(doSet: true)
+    }
+    
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        setSearchEditMode(doSet: false)
+        searchTextField.resignFirstResponder()
+        return true
     }
     
     // may be called if forced even if shouldEndEditing returns NO (e.g. view removed from window) or endEditing:YES called
     func textFieldDidEndEditing(_ textField: UITextField) {
-        
+        print("Did end editing search field")
+        if let searchStr = searchTextField.text {
+            searchedStores.removeAll()
+            for store in stores {
+                if searchStr.isEmpty || store.localizedCaseInsensitiveContains(searchStr) {
+                    searchedStores.append(store)
+                }
+            }
+        }
+        tableView.reloadData()
     }
     
-    func setSearchBarVisibility(isOn showSearch: Bool) {
-        if showSearch {
-            searchView.isHidden = false
+    func setSearchEnabledMode(doSet setToEnabled: Bool) {
+        if setToEnabled {
             isSearching = true
-            self.title = ""
+            setSearchEditMode(doSet: true)
+            searchView.backgroundColor = UIColor.white
+            titleLabel.isHidden = true
+            searchTextField.isHidden = false
+            searchTextField.becomeFirstResponder()
         } else {
-            searchView.isHidden = true
             isSearching = false
-            self.title = "HELLO"
+            setSearchEditMode(doSet: false)
+            searchView.backgroundColor = titleBackgroundColor
+            titleLabel.isHidden = false
+            searchTextField.isHidden = true
+            searchTextField.text = ""
+            searchTextField.resignFirstResponder()
+            tableView.reloadData()
         }
     }
     
+    func setSearchEditMode(doSet setToEdit: Bool) {
+        if setToEdit {
+            dimmerView.isHidden = false
+            tableView.isUserInteractionEnabled = false
+        } else {
+            dimmerView.isHidden = true
+            tableView.isUserInteractionEnabled = true
+        }
+    }
     
     @IBAction func searchButtonPressed(_ sender: Any) {
         print("search button pressed")
         
         if isSearching {
-            setSearchBarVisibility(isOn: false)
+            setSearchEnabledMode(doSet: false)
         } else {
-            setSearchBarVisibility(isOn: true)
+            setSearchEnabledMode(doSet: true)
         }
-    }
-    
-
-    @IBAction func searchXPressed(_ sender: Any) {
-        print("searchX button pressed")
     }
     
     // MARK: - Table view data source
@@ -195,16 +257,24 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     }
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-         return stores.count
+        if isSearching {
+            return searchedStores.count
+        } else {
+            return stores.count
+        }
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
     
         let cell = tableView.dequeueReusableCell(withIdentifier: "storeCell", for: indexPath)
-            
-        cell.textLabel?.text = stores[indexPath.row]
         
+        if isSearching {
+            cell.textLabel?.text = searchedStores[indexPath.row]
+        } else {
+            cell.textLabel?.text = stores[indexPath.row]
+        }
+    
         return cell
     }
     
@@ -217,7 +287,12 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         if segue.identifier == "showStoreDetail" {
             
             if let indexPath = tableView.indexPathForSelectedRow {
-                selectedStore = stores[(indexPath.row)]
+                
+                if isSearching {
+                    selectedStore = searchedStores[(indexPath.row)]
+                } else {
+                    selectedStore = stores[(indexPath.row)]
+                }
             }
             
             let tabBarController = segue.destination as! UITabBarController

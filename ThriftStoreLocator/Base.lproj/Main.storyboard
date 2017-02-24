@@ -84,6 +84,10 @@
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
+                            <view opaque="NO" alpha="0.40000000000000002" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="EoC-M1-kV4" userLabel="dimmerView">
+                                <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                                <color key="backgroundColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
+                            </view>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="28" sectionFooterHeight="28" translatesAutoresizingMaskIntoConstraints="NO" id="wgO-5x-fvO">
                                 <rect key="frame" x="0.0" y="64" width="375" height="603"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
@@ -117,9 +121,13 @@
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                         <constraints>
+                            <constraint firstItem="EoC-M1-kV4" firstAttribute="leading" secondItem="Mcc-wQ-TYf" secondAttribute="leadingMargin" constant="-16" id="0FY-UC-A7i"/>
                             <constraint firstItem="wgO-5x-fvO" firstAttribute="bottom" secondItem="v2w-Sy-8zg" secondAttribute="top" id="0Pc-LK-HSg"/>
                             <constraint firstAttribute="trailing" secondItem="wgO-5x-fvO" secondAttribute="trailing" id="DQ3-SR-MWK"/>
                             <constraint firstItem="wgO-5x-fvO" firstAttribute="top" secondItem="SHX-PC-eje" secondAttribute="bottom" id="HuU-mB-JcU"/>
+                            <constraint firstItem="EoC-M1-kV4" firstAttribute="top" secondItem="SHX-PC-eje" secondAttribute="bottom" constant="-64" id="VTW-g4-nzA"/>
+                            <constraint firstItem="v2w-Sy-8zg" firstAttribute="top" secondItem="EoC-M1-kV4" secondAttribute="bottom" id="hGd-hy-ASs"/>
+                            <constraint firstAttribute="trailingMargin" secondItem="EoC-M1-kV4" secondAttribute="trailing" constant="-16" id="l9r-Dh-jDj"/>
                             <constraint firstItem="wgO-5x-fvO" firstAttribute="leading" secondItem="Mcc-wQ-TYf" secondAttribute="leading" id="xQE-5d-XYe"/>
                         </constraints>
                     </view>
@@ -135,20 +143,36 @@
                             <rect key="frame" x="78" y="6" width="219" height="33"/>
                             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                             <subviews>
-                                <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" textAlignment="natural" minimumFontSize="17" clearButtonMode="whileEditing" translatesAutoresizingMaskIntoConstraints="NO" id="LIg-BT-skl" userLabel="SearchTextField">
+                                <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" placeholder="Search" textAlignment="natural" minimumFontSize="17" clearButtonMode="whileEditing" translatesAutoresizingMaskIntoConstraints="NO" id="LIg-BT-skl" userLabel="SearchTextField">
                                     <rect key="frame" x="7" y="7" width="215" height="19"/>
                                     <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
-                                    <color key="tintColor" red="0.0" green="0.50196081400000003" blue="0.25098040700000002" alpha="1" colorSpace="calibratedRGB"/>
+                                    <color key="tintColor" red="0.011764705882352941" green="0.27058823529411763" blue="0.25098040700000002" alpha="1" colorSpace="calibratedRGB"/>
                                     <nil key="textColor"/>
                                     <fontDescription key="fontDescription" type="system" pointSize="14"/>
-                                    <textInputTraits key="textInputTraits"/>
+                                    <textInputTraits key="textInputTraits" autocorrectionType="no" spellCheckingType="no" returnKeyType="search"/>
                                 </textField>
+                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" usesAttributedText="YES" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="U5f-Kr-vqX">
+                                    <rect key="frame" x="0.0" y="0.0" width="219" height="33"/>
+                                    <attributedString key="attributedText">
+                                        <fragment content="Label">
+                                            <attributes>
+                                                <color key="NSColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                                <font key="NSFont" size="18" name=".AppleSystemUIFont"/>
+                                                <paragraphStyle key="NSParagraphStyle" alignment="center" lineBreakMode="wordWrapping" baseWritingDirection="natural" tighteningFactorForTruncation="0.0"/>
+                                            </attributes>
+                                        </fragment>
+                                    </attributedString>
+                                    <nil key="highlightedColor"/>
+                                </label>
                             </subviews>
-                            <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                             <constraints>
                                 <constraint firstAttribute="trailing" secondItem="LIg-BT-skl" secondAttribute="trailing" constant="-3" id="3ls-CG-6Lm"/>
                                 <constraint firstItem="LIg-BT-skl" firstAttribute="leading" secondItem="fsL-CZ-vjs" secondAttribute="leading" constant="7" id="D0r-fX-xIa"/>
+                                <constraint firstAttribute="bottom" secondItem="U5f-Kr-vqX" secondAttribute="bottom" id="HYB-dh-G6N"/>
+                                <constraint firstItem="U5f-Kr-vqX" firstAttribute="top" secondItem="fsL-CZ-vjs" secondAttribute="top" id="JkX-g5-8T9"/>
                                 <constraint firstItem="LIg-BT-skl" firstAttribute="centerY" secondItem="fsL-CZ-vjs" secondAttribute="centerY" id="NLN-VL-jC0"/>
+                                <constraint firstAttribute="trailing" secondItem="U5f-Kr-vqX" secondAttribute="trailing" id="Utm-ya-Egu"/>
+                                <constraint firstItem="U5f-Kr-vqX" firstAttribute="leading" secondItem="fsL-CZ-vjs" secondAttribute="leading" id="opS-Fk-o1o"/>
                             </constraints>
                             <userDefinedRuntimeAttributes>
                                 <userDefinedRuntimeAttribute type="boolean" keyPath="layer.masksToBounds" value="YES"/>
@@ -165,9 +189,11 @@
                         </barButtonItem>
                     </navigationItem>
                     <connections>
+                        <outlet property="dimmerView" destination="EoC-M1-kV4" id="tEU-o3-ONm"/>
                         <outlet property="searchTextField" destination="LIg-BT-skl" id="cuE-R1-FKX"/>
                         <outlet property="searchView" destination="fsL-CZ-vjs" id="OJN-pa-EsZ"/>
                         <outlet property="tableView" destination="wgO-5x-fvO" id="fp6-SG-Ddi"/>
+                        <outlet property="titleLabel" destination="U5f-Kr-vqX" id="xvX-Ua-1Kx"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="oef-6y-ye7" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -289,7 +315,7 @@
         <!--Menu-->
         <scene sceneID="bwh-XC-rnc">
             <objects>
-                <tableViewController id="OW7-bm-gmX" sceneMemberID="viewController">
+                <tableViewController id="OW7-bm-gmX" customClass="MenuTableViewController" customModule="ThriftStoreLocator" customModuleProvider="target" sceneMemberID="viewController">
                     <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="static" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="28" sectionFooterHeight="28" id="OOJ-Ol-1eb">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
