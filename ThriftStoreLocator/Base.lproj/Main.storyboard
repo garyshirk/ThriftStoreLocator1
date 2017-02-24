@@ -126,44 +126,47 @@
                     <navigationItem key="navigationItem" id="9lr-JA-5m3">
                         <nil key="title"/>
                         <barButtonItem key="leftBarButtonItem" image="menuIcon" id="OZb-qO-0Ub">
-                            <color key="tintColor" cocoaTouchSystemColor="darkTextColor"/>
+                            <color key="tintColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                             <connections>
                                 <segue destination="M2D-kd-UKs" kind="presentation" id="8E5-OD-rGE"/>
                             </connections>
                         </barButtonItem>
-                        <view key="titleView" contentMode="scaleToFill" id="fsL-CZ-vjs">
+                        <view key="titleView" clipsSubviews="YES" contentMode="scaleToFill" id="fsL-CZ-vjs">
                             <rect key="frame" x="78" y="6" width="219" height="33"/>
                             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                             <subviews>
-                                <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="LIg-BT-skl" userLabel="SearchTextField">
-                                    <rect key="frame" x="0.0" y="8" width="189" height="17"/>
+                                <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" textAlignment="natural" minimumFontSize="17" clearButtonMode="whileEditing" translatesAutoresizingMaskIntoConstraints="NO" id="LIg-BT-skl" userLabel="SearchTextField">
+                                    <rect key="frame" x="7" y="7" width="215" height="19"/>
+                                    <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                    <color key="tintColor" red="0.0" green="0.50196081400000003" blue="0.25098040700000002" alpha="1" colorSpace="calibratedRGB"/>
                                     <nil key="textColor"/>
                                     <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                     <textInputTraits key="textInputTraits"/>
                                 </textField>
-                                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="qKH-IE-dDU" userLabel="SearchX">
-                                    <rect key="frame" x="197" y="8" width="18" height="18"/>
-                                    <constraints>
-                                        <constraint firstAttribute="height" constant="18" id="GQl-2e-xmM"/>
-                                        <constraint firstAttribute="width" constant="18" id="YB2-oC-qJd"/>
-                                    </constraints>
-                                    <state key="normal" image="searchX"/>
-                                </button>
                             </subviews>
                             <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                             <constraints>
-                                <constraint firstAttribute="trailing" secondItem="qKH-IE-dDU" secondAttribute="trailing" constant="4" id="0BQ-ia-Jnr"/>
-                                <constraint firstItem="LIg-BT-skl" firstAttribute="leading" secondItem="fsL-CZ-vjs" secondAttribute="leading" id="EAS-yJ-67V"/>
-                                <constraint firstItem="qKH-IE-dDU" firstAttribute="leading" secondItem="LIg-BT-skl" secondAttribute="trailing" constant="8" id="LBz-Oc-Oqe"/>
-                                <constraint firstItem="qKH-IE-dDU" firstAttribute="centerY" secondItem="fsL-CZ-vjs" secondAttribute="centerY" id="X0V-2b-naA"/>
-                                <constraint firstItem="LIg-BT-skl" firstAttribute="centerY" secondItem="fsL-CZ-vjs" secondAttribute="centerY" id="Xtz-fy-3xI"/>
+                                <constraint firstAttribute="trailing" secondItem="LIg-BT-skl" secondAttribute="trailing" constant="-3" id="3ls-CG-6Lm"/>
+                                <constraint firstItem="LIg-BT-skl" firstAttribute="leading" secondItem="fsL-CZ-vjs" secondAttribute="leading" constant="7" id="D0r-fX-xIa"/>
+                                <constraint firstItem="LIg-BT-skl" firstAttribute="centerY" secondItem="fsL-CZ-vjs" secondAttribute="centerY" id="NLN-VL-jC0"/>
                             </constraints>
+                            <userDefinedRuntimeAttributes>
+                                <userDefinedRuntimeAttribute type="boolean" keyPath="layer.masksToBounds" value="YES"/>
+                                <userDefinedRuntimeAttribute type="number" keyPath="layer.cornerRadius">
+                                    <integer key="value" value="5"/>
+                                </userDefinedRuntimeAttribute>
+                            </userDefinedRuntimeAttributes>
                         </view>
                         <barButtonItem key="rightBarButtonItem" systemItem="search" id="4xc-VZ-iq9">
-                            <color key="tintColor" cocoaTouchSystemColor="darkTextColor"/>
+                            <color key="tintColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                            <connections>
+                                <action selector="searchButtonPressed:" destination="NLN-iD-Puq" id="clw-4R-myg"/>
+                            </connections>
                         </barButtonItem>
                     </navigationItem>
                     <connections>
+                        <outlet property="searchTextField" destination="LIg-BT-skl" id="cuE-R1-FKX"/>
+                        <outlet property="searchView" destination="fsL-CZ-vjs" id="OJN-pa-EsZ"/>
                         <outlet property="tableView" destination="wgO-5x-fvO" id="fp6-SG-Ddi"/>
                     </connections>
                 </viewController>
@@ -205,7 +208,7 @@
                                         <rect key="frame" x="0.0" y="0.0" width="375" height="44"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="f5z-qJ-Hsc" id="Kvr-eQ-DDj">
-                                            <rect key="frame" x="0.0" y="0.0" width="375" height="44"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="375" height="43"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                         </tableViewCellContentView>
                                     </tableViewCell>
@@ -213,7 +216,7 @@
                                         <rect key="frame" x="0.0" y="44" width="375" height="44"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="QtY-St-1Dl" id="1dJ-Gp-zqR">
-                                            <rect key="frame" x="0.0" y="0.0" width="375" height="44"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="375" height="43"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                         </tableViewCellContentView>
                                     </tableViewCell>
@@ -221,7 +224,7 @@
                                         <rect key="frame" x="0.0" y="88" width="375" height="44"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="Btv-zL-xGh" id="tGQ-zU-koI">
-                                            <rect key="frame" x="0.0" y="0.0" width="375" height="44"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="375" height="43"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                         </tableViewCellContentView>
                                     </tableViewCell>
@@ -283,7 +286,7 @@
             </objects>
             <point key="canvasLocation" x="4304.8000000000002" y="176.76161919040482"/>
         </scene>
-        <!--Root View Controller-->
+        <!--Menu-->
         <scene sceneID="bwh-XC-rnc">
             <objects>
                 <tableViewController id="OW7-bm-gmX" sceneMemberID="viewController">
@@ -359,7 +362,7 @@
                             <outlet property="delegate" destination="OW7-bm-gmX" id="neG-Dm-PWP"/>
                         </connections>
                     </tableView>
-                    <navigationItem key="navigationItem" title="Root View Controller" id="SdR-l3-go2"/>
+                    <navigationItem key="navigationItem" title="Menu" id="SdR-l3-go2"/>
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="8Hc-sK-qDG" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
@@ -368,7 +371,7 @@
         <!--Side Menu Navigation Controller-->
         <scene sceneID="s6x-78-fNU">
             <objects>
-                <navigationController navigationBarHidden="YES" id="M2D-kd-UKs" customClass="UISideMenuNavigationController" customModule="SideMenu" sceneMemberID="viewController">
+                <navigationController id="M2D-kd-UKs" customClass="UISideMenuNavigationController" customModule="SideMenu" sceneMemberID="viewController">
                     <navigationBar key="navigationBar" contentMode="scaleToFill" id="tMY-b7-DOf">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="44"/>
                         <autoresizingMask key="autoresizingMask"/>
@@ -481,6 +484,5 @@
     </scenes>
     <resources>
         <image name="menuIcon" width="25" height="25"/>
-        <image name="searchX" width="50" height="50"/>
     </resources>
 </document>

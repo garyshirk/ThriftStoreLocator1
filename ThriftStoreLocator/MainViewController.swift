@@ -9,12 +9,16 @@
 import UIKit
 import SideMenu
 
-class MainViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
+class MainViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UITextFieldDelegate {
     
     var stores: [String] = ["Goodwill", "Salvation Army", "Savers", "Thrift on Main", "Sparrows Nest"]
     var selectedStore: String!
     
     @IBOutlet weak var tableView: UITableView!
+    
+    @IBOutlet weak var searchView: UIView!
+    @IBOutlet weak var searchTextField: UITextField!
+    var isSearching: Bool = false
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -27,13 +31,17 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
 
         // Side Menu configuration
         // Prevent menu status bar from fading to black
+        let appDelegate = UIApplication.shared.delegate as! AppDelegate
+        SideMenuManager.menuAnimationBackgroundColor = appDelegate.uicolorFromHex(rgbValue: 0x034517)
         SideMenuManager.menuFadeStatusBar = false
         SideMenuManager.menuAnimationTransformScaleFactor = 1
-        //SideMenuManager.menuAnimationBackgroundColor = UIColor(patternImage: UIImage(named: "stars")!)
         SideMenuManager.menuPresentMode = .menuSlideIn
         
         // Scroll view inset adjustment handled by tableView constraints in storyboard
         self.automaticallyAdjustsScrollViewInsets = false
+        
+        // Search configuration
+        setSearchBarVisibility(isOn: false)
         
         
         //makeGetCall()
@@ -141,6 +149,44 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     //    }
 
  
+    // MARK: - TextField delegates
+    
+    func textFieldDidBeginEditing(_ textField: UITextField) {
+        
+    }
+    
+    // may be called if forced even if shouldEndEditing returns NO (e.g. view removed from window) or endEditing:YES called
+    func textFieldDidEndEditing(_ textField: UITextField) {
+        
+    }
+    
+    func setSearchBarVisibility(isOn showSearch: Bool) {
+        if showSearch {
+            searchView.isHidden = false
+            isSearching = true
+            self.title = ""
+        } else {
+            searchView.isHidden = true
+            isSearching = false
+            self.title = "HELLO"
+        }
+    }
+    
+    
+    @IBAction func searchButtonPressed(_ sender: Any) {
+        print("search button pressed")
+        
+        if isSearching {
+            setSearchBarVisibility(isOn: false)
+        } else {
+            setSearchBarVisibility(isOn: true)
+        }
+    }
+    
+
+    @IBAction func searchXPressed(_ sender: Any) {
+        print("searchX button pressed")
+    }
     
     // MARK: - Table view data source
 
