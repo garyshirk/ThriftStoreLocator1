@@ -9,19 +9,10 @@
 import UIKit
 import SideMenu
 
-class MainViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UISearchResultsUpdating {
+class MainViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
     
     var stores: [String] = ["Goodwill", "Salvation Army", "Savers", "Thrift on Main", "Sparrows Nest"]
-    var searchedStores: [String] = []
     var selectedStore: String!
-    var resultsController: UITableViewController!
-    var searchController: UISearchController!
-    
-    // Total hack here: When store is selected from search results tableview, I set the selected store
-    // in didSelect method, then programmatically perform a segue. But if user selects cell from 
-    // regular tableview, then segue is automatically connected via storyboard and don't have a way
-    // to know in prepareForSegue whether to set store from searched tableview or regular tableview
-    var isSearchCellSelected: Bool = false
     
     @IBOutlet weak var tableView: UITableView!
     
@@ -33,6 +24,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
         // self.navigationItem.rightBarButtonItem = self.editButtonItem()
         
+
         // Side Menu configuration
         // Prevent menu status bar from fading to black
         SideMenuManager.menuFadeStatusBar = false
@@ -43,33 +35,11 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         // Scroll view inset adjustment handled by tableView constraints in storyboard
         self.automaticallyAdjustsScrollViewInsets = false
         
-        // Search configuration
-        resultsController = UITableViewController(style: .plain)
-        resultsController.tableView.register(UITableViewCell.self, forCellReuseIdentifier: "searchedStoreCell")
-        
-        
-        resultsController.tableView.register(UITableViewCell.self, forCellReuseIdentifier: "mapCell")
-        
-        
-        resultsController.tableView.dataSource = self
-        resultsController.tableView.delegate = self
-        searchController = UISearchController(searchResultsController: resultsController)
-        searchController.hidesNavigationBarDuringPresentation = true
-        searchController.searchResultsUpdater = self
-        self.tableView.tableHeaderView = searchController.searchBar
-        
-        /*
-            The current view controller will present a search controller over its main view.
-            Setting the definesPresentationContext property to true will indicate that the view controller’s
-            view will be covered each time the search controller is shown over it.
-            This will allow to avoid unknown behaviour
-        */
-        self.definesPresentationContext = true
         
         //makeGetCall()
         
     }
-    
+        
     // NOTE: Search bar tutorial json task from http://sweettutos.com/2015/12/26/hands-on-uisearchcontroller-the-complete-guide/
     // But below is old Swift code; Swift 3 updated code is in next function and is working https://grokswift.com/updating-nsurlsession-to-swift-3-0/
 //    func retrieveFakeData() {
@@ -170,17 +140,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     //        task.resume()
     //    }
 
-    // MARK = Search Results Updating
-    
-    func updateSearchResults(for searchController: UISearchController) {
-        searchedStores.removeAll()
-        for store in stores {
-            if store.localizedCaseInsensitiveContains(searchController.searchBar.text!) {
-                searchedStores.append(store)
-            }
-        }
-        self.resultsController.tableView.reloadData()
-    }
+ 
     
     // MARK: - Table view data source
 
@@ -189,85 +149,29 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     }
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        if tableView == self.tableView {
-            return stores.count + 1
-        } else {
-            return searchedStores.count + 1
-        }
+         return stores.count
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
-        var cellIdentifier: String!
-        var storeName: String!
-        
-        let cell: UITableViewCell?
-        
-        if isMapCell(at: indexPath) {
-            // this will eventually be the map cell
-            cell = tableView.dequeueReusableCell(withIdentifier: "mapCell", for: indexPath)
-            cell?.textLabel?.text = "--"
-        } else {
+    
+        let cell = tableView.dequeueReusableCell(withIdentifier: "storeCell", for: indexPath)
             
-            let index = indexPath.row - 1
-            
-            if tableView == self.tableView {
-                cellIdentifier = "storeCell"
-                storeName = self.stores[index]
-            } else {
-                cellIdentifier = "searchedStoreCell"
-                storeName = self.searchedStores[index]
-            }
-
-            cell = tableView.dequeueReusableCell(withIdentifier: cellIdentifier, for: indexPath)
-            
-            cell?.textLabel?.text = storeName
-        }
+        cell.textLabel?.text = stores[indexPath.row]
         
-        return cell!
+        return cell
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        if isMapCell(at: indexPath) {
-            return
-        }
-        
-        if tableView == resultsController.tableView {
-            isSearchCellSelected = true
-            selectedStore = searchedStores[indexPath.row - 1]
-            self.performSegue(withIdentifier: "showStoreDetail", sender: self)
-        }
-        tableView.deselectRow(at: indexPath, animated: true)
-    }
-    
-    func isMapCell(at indexPath: IndexPath) -> Bool {
-        return indexPath.row == 0
+            tableView.deselectRow(at: indexPath, animated: true)
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         
         if segue.identifier == "showStoreDetail" {
-        
-            // Determine if segue is from searched store cell or regular store cell
-            let indexPath: IndexPath?
-            if isSearchCellSelected {
-                indexPath = resultsController.tableView.indexPathForSelectedRow
-            } else {
-                indexPath = tableView.indexPathForSelectedRow
-            }
-        
-            // Do not segue if Map cell selected
-            if isMapCell(at: indexPath!) {
-                return
-            }
-        
-            // If this is a segue for a regular cell, need to set the selectedStore
-            if !isSearchCellSelected {
-                selectedStore = stores[(indexPath?.row)! - 1]
-            } else {
-                // Hack!! - If this is segue for a search cell, then we're done with isSearchCellSelected,
-                // reset it back to false
-                isSearchCellSelected = false
+            
+            if let indexPath = tableView.indexPathForSelectedRow {
+                selectedStore = stores[(indexPath.row)]
             }
             
             let tabBarController = segue.destination as! UITabBarController
