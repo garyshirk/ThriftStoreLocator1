@@ -84,12 +84,19 @@
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <view opaque="NO" alpha="0.40000000000000002" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="EoC-M1-kV4" userLabel="dimmerView">
+                            <view opaque="NO" alpha="0.40000000000000002" contentMode="scaleToFill" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="EoC-M1-kV4" userLabel="dimmerView">
                                 <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <color key="backgroundColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
                             </view>
+                            <mapView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" mapType="standard" translatesAutoresizingMaskIntoConstraints="NO" id="2RY-6e-AG0">
+                                <rect key="frame" x="0.0" y="64" width="375" height="201"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="201" id="Syz-MY-Luo"/>
+                                </constraints>
+                            </mapView>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="28" sectionFooterHeight="28" translatesAutoresizingMaskIntoConstraints="NO" id="wgO-5x-fvO">
-                                <rect key="frame" x="0.0" y="64" width="375" height="603"/>
+                                <rect key="frame" x="0.0" y="265" width="375" height="402"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 <prototypes>
                                     <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" selectionStyle="default" indentationWidth="10" reuseIdentifier="storeCell" textLabel="r1j-SE-iKY" style="IBUITableViewCellStyleDefault" id="QaK-Qj-4hf">
@@ -121,14 +128,13 @@
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                         <constraints>
-                            <constraint firstItem="EoC-M1-kV4" firstAttribute="leading" secondItem="Mcc-wQ-TYf" secondAttribute="leadingMargin" constant="-16" id="0FY-UC-A7i"/>
-                            <constraint firstItem="wgO-5x-fvO" firstAttribute="bottom" secondItem="v2w-Sy-8zg" secondAttribute="top" id="0Pc-LK-HSg"/>
-                            <constraint firstAttribute="trailing" secondItem="wgO-5x-fvO" secondAttribute="trailing" id="DQ3-SR-MWK"/>
-                            <constraint firstItem="wgO-5x-fvO" firstAttribute="top" secondItem="SHX-PC-eje" secondAttribute="bottom" id="HuU-mB-JcU"/>
-                            <constraint firstItem="EoC-M1-kV4" firstAttribute="top" secondItem="SHX-PC-eje" secondAttribute="bottom" constant="-64" id="VTW-g4-nzA"/>
-                            <constraint firstItem="v2w-Sy-8zg" firstAttribute="top" secondItem="EoC-M1-kV4" secondAttribute="bottom" id="hGd-hy-ASs"/>
-                            <constraint firstAttribute="trailingMargin" secondItem="EoC-M1-kV4" secondAttribute="trailing" constant="-16" id="l9r-Dh-jDj"/>
-                            <constraint firstItem="wgO-5x-fvO" firstAttribute="leading" secondItem="Mcc-wQ-TYf" secondAttribute="leading" id="xQE-5d-XYe"/>
+                            <constraint firstItem="2RY-6e-AG0" firstAttribute="leading" secondItem="Mcc-wQ-TYf" secondAttribute="leadingMargin" constant="-16" id="PAb-Yp-gxb"/>
+                            <constraint firstAttribute="trailingMargin" secondItem="2RY-6e-AG0" secondAttribute="trailing" constant="-16" id="WBe-8X-vIL"/>
+                            <constraint firstItem="wgO-5x-fvO" firstAttribute="leading" secondItem="Mcc-wQ-TYf" secondAttribute="leadingMargin" constant="-16" id="Wwg-47-TTg"/>
+                            <constraint firstItem="v2w-Sy-8zg" firstAttribute="top" secondItem="wgO-5x-fvO" secondAttribute="bottom" id="dbv-Xb-bIf"/>
+                            <constraint firstAttribute="trailingMargin" secondItem="wgO-5x-fvO" secondAttribute="trailing" constant="-16" id="hoA-qh-TIn"/>
+                            <constraint firstItem="wgO-5x-fvO" firstAttribute="top" secondItem="2RY-6e-AG0" secondAttribute="bottom" id="l71-m8-gwZ"/>
+                            <constraint firstItem="2RY-6e-AG0" firstAttribute="top" secondItem="SHX-PC-eje" secondAttribute="bottom" id="qZ9-L2-vRT"/>
                         </constraints>
                     </view>
                     <navigationItem key="navigationItem" id="9lr-JA-5m3">
@@ -190,6 +196,8 @@
                     </navigationItem>
                     <connections>
                         <outlet property="dimmerView" destination="EoC-M1-kV4" id="tEU-o3-ONm"/>
+                        <outlet property="mapView" destination="2RY-6e-AG0" id="vax-bG-d4u"/>
+                        <outlet property="mapViewHeightConstraint" destination="Syz-MY-Luo" id="XQd-fr-pFI"/>
                         <outlet property="searchTextField" destination="LIg-BT-skl" id="cuE-R1-FKX"/>
                         <outlet property="searchView" destination="fsL-CZ-vjs" id="OJN-pa-EsZ"/>
                         <outlet property="tableView" destination="wgO-5x-fvO" id="fp6-SG-Ddi"/>

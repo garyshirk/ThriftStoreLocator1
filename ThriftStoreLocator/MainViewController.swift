@@ -7,9 +7,10 @@
 //
 
 import UIKit
+import MapKit
 import SideMenu
 
-class MainViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UITextFieldDelegate {
+class MainViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UITextFieldDelegate, MKMapViewDelegate {
     
     var stores: [String] = ["Goodwill", "Salvation Army", "Savers", "Thrift on Main", "Sparrows Nest",
                             "Goodwill Schaumburg", "Goodwill2", "Salvation Army2", "Savers2",
@@ -27,6 +28,9 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     @IBOutlet weak var titleLabel: UILabel!
     @IBOutlet weak var searchView: UIView!
     @IBOutlet weak var searchTextField: UITextField!
+    
+    @IBOutlet weak var mapView: MKMapView!
+    @IBOutlet weak var mapViewHeightConstraint: NSLayoutConstraint!
     
     // TODO - Move dimmerView to front of view on storyboard. Keeping it behind tableView during development
     @IBOutlet weak var dimmerView: UIView!
@@ -61,8 +65,11 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         titleLabel.tintColor = UIColor.white
         setSearchEditMode(doSet: false)
         setSearchEnabledMode(doSet: false)
-        
         searchTextField.delegate = self
+        
+        // Map Kit View
+        mapView.mapType = .standard
+        mapView.delegate = self
         
         
         
@@ -250,7 +257,55 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         }
     }
     
-    // MARK: - Table view data source
+    // MARK - ScrollView
+    
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+//        if mapViewHeightConstraint.constant > 80.0 {
+//            mapViewHeightConstraint.constant = mapViewHeightConstraint.constant - 10.0
+//            tableView.reloadData()
+//        }
+    }
+    
+//    func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
+//        
+//        tableView.reloadData()
+//        
+//        if (scrollView.contentOffset.y > 400) {
+//            headerHeight = 0.0;
+//            
+//            if (isHidden == NO) {
+//                
+//                isHidden = YES;
+//                self.tableView.reloadData();
+//            }
+//            
+//        } else {
+//            headerHeight = 70.0;
+//            
+//            if (isHidden == YES) {
+//                
+//                isHidden = NO;
+//                self.tableView.reloadData();
+//            }
+//        }
+//    }
+    
+    // MARK: - Table view data source and delegates
+    
+//    func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+//        let v = UIView()
+//        v.backgroundColor = .blue
+//        let segmentedControl = UISegmentedControl(frame: CGRect(x: 10, y: 5, width: tableView.frame.width - 20, height: 30))
+//        segmentedControl.insertSegment(withTitle: "One", at: 0, animated: false)
+//        segmentedControl.insertSegment(withTitle: "Two", at: 1, animated: false)
+//        segmentedControl.insertSegment(withTitle: "Three", at: 2, animated: false)
+//        v.addSubview(segmentedControl)
+//        return v
+//    }
+//    
+//    func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+//        return mapViewHeight
+//    }
 
     func numberOfSections(in tableView: UITableView) -> Int {
         return 1
