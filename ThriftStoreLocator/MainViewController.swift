@@ -10,6 +10,8 @@ import UIKit
 import MapKit
 import SideMenu
 
+// TODO - MapView initial height should be proportional to device height
+
 class MainViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UITextFieldDelegate, MKMapViewDelegate {
     
     var stores: [String] = ["Goodwill", "Salvation Army", "Savers", "Thrift on Main", "Sparrows Nest",
@@ -280,14 +282,6 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         menuBarButton.tintColor = UIColor.white
     }
     
-    func stoppedScrolling() {
-        if let frame = self.navigationController?.navigationBar.frame {
-            if frame.origin.y < 20 {
-                animateNavBarTo(y: -(frame.size.height - 21))
-            }
-        }
-    }
-    
     func updateBarButtonItems(alpha: CGFloat) {
         searchView.alpha = alpha
         if alpha < 0.5 {
@@ -303,95 +297,98 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         }
     }
     
-    func animateNavBarTo(y: CGFloat) {
-        UIView.animate(withDuration: 0.2, animations: {
-            if var frame = self.navigationController?.navigationBar.frame {
-                let alpha: CGFloat = frame.origin.y >= y ? 0.0 : 1.0
-                frame.origin.y = y
-                self.navigationController?.navigationBar.frame = frame
-                self.updateBarButtonItems(alpha: alpha)
+    // TODO - This code came with sample code to hide nav bar when scrolling
+    // Purpose was to animate the nav bar title to and from 1 -> 0 alpha,
+    // But that seems to be happening even though this code is commented out
+    
+//    func stoppedScrolling() {
+//        if let frame = self.navigationController?.navigationBar.frame {
+//            if frame.origin.y < 20 {
+//                animateNavBarTo(y: -(frame.size.height - 21))
+//            }
+//        }
+//    }
+
+    
+//    func animateNavBarTo(y: CGFloat) {
+//        UIView.animate(withDuration: 0.2, animations: {
+//            if var frame = self.navigationController?.navigationBar.frame {
+//                let alpha: CGFloat = frame.origin.y >= y ? 0.0 : 1.0
+//                frame.origin.y = y
+//                self.navigationController?.navigationBar.frame = frame
+//                self.updateBarButtonItems(alpha: alpha)
+//            }
+//        })
+//    }
+    
+    func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
+        if !decelerate {
+            //stoppedScrolling()
+        }
+    }
+    
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        
+        if var frame = self.navigationController?.navigationBar.frame {
+            let navHeightMinus21 = (frame.size.height) - 21
+            let scrollOffset = scrollView.contentOffset.y
+            let scrollDiff = scrollOffset - self.previousScrollViewOffset
+            let scrollHeight = scrollView.frame.size.height
+            let scrollContentSizeHeight = scrollView.contentSize.height + scrollView.contentInset.bottom
+            
+            if scrollOffset <= -scrollView.contentInset.top {
+                frame.origin.y = 20
+                print("scrollOffset <= -scrollview: Nav bar should show")
+                
+            } else if ((scrollOffset + scrollHeight) >= scrollContentSizeHeight) {
+                frame.origin.y = -navHeightMinus21
+                print("scrollOffset <+ scrollHeight >= -scrollContentSizeHeight: Nav bar should hide")
+                
+            } else {
+                frame.origin.y = min(20, max(-navHeightMinus21, frame.origin.y - scrollDiff))
+                print("else clause: Nav bar should be moving")
             }
-        
-        
-        })
+            
+            let framePercentageHidden = (( 20 - (frame.origin.y)) / ((frame.size.height) - 1))
+            updateBarButtonItems(alpha: 1.0 - framePercentageHidden)
+            
+            self.navigationController?.navigationBar.frame = frame
+            self.previousScrollViewOffset = scrollOffset
+            
+            mapViewYConstraint.constant = frame.origin.y - 20
+            
+            // DEBUG
+            print("navBarY = \(frame.origin.y), mapViewY = \(mapViewYConstraint.constant)")
+            print("navHeightMinus21: \(navHeightMinus21)")
+            print("Alpha: \(1.0 - framePercentageHidden)")
+            print("scrollOffset: \(scrollOffset)")
+            print("scrollDiff: \(scrollDiff)")
+            print("scrollHeight: \(scrollHeight)")
+            print("scrollView.contentSize.ht: \(scrollView.contentSize.height)")
+            print("scrollView.contentInsetBottom: \(scrollView.contentInset.bottom)")
+            print("scrollContentSize: \(scrollContentSizeHeight)")
+            print("=====")
+            
+            // TODO - This code shrinks and grows map view as user scrolls, but needs to be smoother
+//            if (frame.origin.y == -size) && (mapViewHeightConstraint.constant >= 100) {
+//                mapViewHeightConstraint.constant = mapViewHeightConstraint.constant - 10
+//            }
+//            else if (frame.origin.y == 20) && (mapViewHeightConstraint.constant <= 200.0) {
+//                mapViewHeightConstraint.constant = mapViewHeightConstraint.constant + 10
+//            }
+        }
+    }
+    
+    func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
+
     }
     
     func scrollViewDidScrollToTop(_ scrollView: UIScrollView) {
         
     }
     
-    func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
-        if !decelerate {
-            stoppedScrolling()
-        }
-    }
-    
     func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
-    }
-    
-    func scrollViewDidScroll(_ scrollView: UIScrollView) {
         
-        if var frame = self.navigationController?.navigationBar.frame {
-            let size = (frame.size.height) - 21
-            let framePercentageHidden = (( 20 - (frame.origin.y)) / ((frame.size.height) - 1))
-            let scrollOffset = scrollView.contentOffset.y
-            let scrollDiff = scrollOffset - self.previousScrollViewOffset
-            let scrollHeight = scrollView.frame.size.height
-            let scrollContentSizeHeight = scrollView.contentSize.height + scrollView.contentInset.bottom
-            
-            
-            if scrollOffset <= -scrollView.contentInset.top {
-                frame.origin.y = 20
-                
-            } else if ((scrollOffset + scrollHeight) >= scrollContentSizeHeight) {
-                frame.origin.y = -size
-                
-            } else {
-                frame.origin.y = min(20, max(-size, frame.origin.y - scrollDiff))
-            }
-            
-            self.navigationController?.navigationBar.frame = frame
-            updateBarButtonItems(alpha: 1.0 - framePercentageHidden)
-            self.previousScrollViewOffset = scrollOffset
-            
-            mapViewYConstraint.constant = frame.origin.y - 20
-            print("navBarY = \(frame.origin.y), mapViewY = \(mapViewYConstraint.constant)")
-        }
-        
-        
-        
-        
-        
-//        if mapViewHeightConstraint.constant > 80.0 {
-//            mapViewHeightConstraint.constant = mapViewHeightConstraint.constant - 10.0
-//            tableView.reloadData()
-//        }
-    }
-    
-    func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
-        
-        
-//        
-//        tableView.reloadData()
-//        
-//        if (scrollView.contentOffset.y > 400) {
-//            headerHeight = 0.0;
-//            
-//            if (isHidden == NO) {
-//                
-//                isHidden = YES;
-//                self.tableView.reloadData();
-//            }
-//            
-//        } else {
-//            headerHeight = 70.0;
-//            
-//            if (isHidden == YES) {
-//                
-//                isHidden = NO;
-//                self.tableView.reloadData();
-//            }
-//        }
     }
     
     // MARK: - Table view data source and delegates
