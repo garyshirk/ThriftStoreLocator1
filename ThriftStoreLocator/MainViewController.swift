@@ -28,14 +28,19 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     @IBOutlet weak var titleLabel: UILabel!
     @IBOutlet weak var searchView: UIView!
     @IBOutlet weak var searchTextField: UITextField!
+    @IBOutlet weak var menuBarButton: UIBarButtonItem!
+    @IBOutlet weak var searchBarButton: UIBarButtonItem!
     
     @IBOutlet weak var mapView: MKMapView!
     @IBOutlet weak var mapViewHeightConstraint: NSLayoutConstraint!
+    @IBOutlet weak var mapViewYConstraint: NSLayoutConstraint!
     
     // TODO - Move dimmerView to front of view on storyboard. Keeping it behind tableView during development
     @IBOutlet weak var dimmerView: UIView!
     
     var titleBackgroundColor: UIColor!
+    
+    var previousScrollViewOffset: CGFloat = 0.0
     
     
     override func viewDidLoad() {
@@ -82,6 +87,10 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         super.viewWillAppear(animated)
         print("ViewWillAppear")
         tableView.isUserInteractionEnabled = true
+        
+        // DEBUG
+        print(mapViewYConstraint.constant)
+        print("=====")
     }
     
     override func viewWillDisappear(_ animated: Bool) {
@@ -259,14 +268,109 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     
     // MARK - ScrollView
     
+    func restoreNavigationBar() {
+        mapViewYConstraint.constant = 0.0
+        var frame = self.navigationController?.navigationBar.frame
+        frame?.origin.y = 20
+        self.navigationController?.navigationBar.frame = frame!
+        searchView.alpha = 1.0
+        searchBarButton.isEnabled = true
+        searchBarButton.tintColor = UIColor.white
+        menuBarButton.isEnabled = true
+        menuBarButton.tintColor = UIColor.white
+    }
+    
+    func stoppedScrolling() {
+        if let frame = self.navigationController?.navigationBar.frame {
+            if frame.origin.y < 20 {
+                animateNavBarTo(y: -(frame.size.height - 21))
+            }
+        }
+    }
+    
+    func updateBarButtonItems(alpha: CGFloat) {
+        searchView.alpha = alpha
+        if alpha < 0.5 {
+            searchBarButton.isEnabled = false
+            searchBarButton.tintColor = UIColor.clear
+            menuBarButton.isEnabled = false
+            menuBarButton.tintColor = UIColor.clear
+        } else {
+            searchBarButton.isEnabled = true
+            searchBarButton.tintColor = UIColor.white
+            menuBarButton.isEnabled = true
+            menuBarButton.tintColor = UIColor.white
+        }
+    }
+    
+    func animateNavBarTo(y: CGFloat) {
+        UIView.animate(withDuration: 0.2, animations: {
+            if var frame = self.navigationController?.navigationBar.frame {
+                let alpha: CGFloat = frame.origin.y >= y ? 0.0 : 1.0
+                frame.origin.y = y
+                self.navigationController?.navigationBar.frame = frame
+                self.updateBarButtonItems(alpha: alpha)
+            }
+        
+        
+        })
+    }
+    
+    func scrollViewDidScrollToTop(_ scrollView: UIScrollView) {
+        
+    }
+    
+    func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
+        if !decelerate {
+            stoppedScrolling()
+        }
+    }
+    
+    func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
+    }
+    
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        
+        if var frame = self.navigationController?.navigationBar.frame {
+            let size = (frame.size.height) - 21
+            let framePercentageHidden = (( 20 - (frame.origin.y)) / ((frame.size.height) - 1))
+            let scrollOffset = scrollView.contentOffset.y
+            let scrollDiff = scrollOffset - self.previousScrollViewOffset
+            let scrollHeight = scrollView.frame.size.height
+            let scrollContentSizeHeight = scrollView.contentSize.height + scrollView.contentInset.bottom
+            
+            
+            if scrollOffset <= -scrollView.contentInset.top {
+                frame.origin.y = 20
+                
+            } else if ((scrollOffset + scrollHeight) >= scrollContentSizeHeight) {
+                frame.origin.y = -size
+                
+            } else {
+                frame.origin.y = min(20, max(-size, frame.origin.y - scrollDiff))
+            }
+            
+            self.navigationController?.navigationBar.frame = frame
+            updateBarButtonItems(alpha: 1.0 - framePercentageHidden)
+            self.previousScrollViewOffset = scrollOffset
+            
+            mapViewYConstraint.constant = frame.origin.y - 20
+            print("navBarY = \(frame.origin.y), mapViewY = \(mapViewYConstraint.constant)")
+        }
+        
+        
+        
+        
+        
 //        if mapViewHeightConstraint.constant > 80.0 {
 //            mapViewHeightConstraint.constant = mapViewHeightConstraint.constant - 10.0
 //            tableView.reloadData()
 //        }
     }
     
-//    func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
+    func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
+        
+        
 //        
 //        tableView.reloadData()
 //        
@@ -288,7 +392,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
 //                self.tableView.reloadData();
 //            }
 //        }
-//    }
+    }
     
     // MARK: - Table view data source and delegates
     
@@ -340,6 +444,9 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         
         if segue.identifier == "showStoreDetail" {
+            
+            // If navigation bar was hidden due to scrolling, restore it before seguing
+            restoreNavigationBar()
             
             if let indexPath = tableView.indexPathForSelectedRow {
                 
