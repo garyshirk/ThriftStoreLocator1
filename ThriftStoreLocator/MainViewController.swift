@@ -58,7 +58,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
 
         // Side Menu appearance and configuration
         let appDelegate = UIApplication.shared.delegate as! AppDelegate
-        SideMenuManager.menuAnimationBackgroundColor = appDelegate.uicolorFromHex(rgbValue: 0x034517)
+        SideMenuManager.menuAnimationBackgroundColor = appDelegate.uicolorFromHex(rgbValue: UInt32(AppDelegate.NAV_BAR_TINT_COLOR))
         SideMenuManager.menuFadeStatusBar = false
         SideMenuManager.menuAnimationTransformScaleFactor = 1
         SideMenuManager.menuPresentMode = .menuSlideIn
@@ -81,7 +81,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         
         
         
-        //makeGetCall()
+        makeGetCall()
         
     }
     
@@ -92,12 +92,10 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         
         // DEBUG
         print(mapViewYConstraint.constant)
-        print("=====")
     }
     
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        print("ViewWillDisappear")
     }
         
     // NOTE: Search bar tutorial json task from http://sweettutos.com/2015/12/26/hands-on-uisearchcontroller-the-complete-guide/

@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		314D2EADF3C475E290BC2116 /* Pods_ThriftStoreLocator.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 796EB802B8425583242F5A32 /* Pods_ThriftStoreLocator.framework */; };
+		E12F1C911E66304B006371A9 /* DataLayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = E12F1C901E66304B006371A9 /* DataLayer.swift */; };
+		E12F1C941E663E81006371A9 /* NetworkLayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = E12F1C931E663E81006371A9 /* NetworkLayer.swift */; };
 		E1724D101E5B732F00E71909 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1724D0F1E5B732F00E71909 /* AppDelegate.swift */; };
 		E1724D151E5B732F00E71909 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = E1724D131E5B732F00E71909 /* Main.storyboard */; };
 		E1724D181E5B732F00E71909 /* ThriftStoreLocator.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = E1724D161E5B732F00E71909 /* ThriftStoreLocator.xcdatamodeld */; };
@@ -19,12 +21,16 @@
 		E173E9891E5BA850001FF201 /* MenuViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E173E9881E5BA850001FF201 /* MenuViewController.swift */; };
 		E173E98B1E5BAAC6001FF201 /* SettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E173E98A1E5BAAC6001FF201 /* SettingsViewController.swift */; };
 		E173E98D1E5BBA34001FF201 /* AboutViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E173E98C1E5BBA34001FF201 /* AboutViewController.swift */; };
+		E1F93D121E66293200660A36 /* StoresViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1F93D111E66293200660A36 /* StoresViewModel.swift */; };
+		E1F93D151E662A7100660A36 /* ModelManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1F93D141E662A7100660A36 /* ModelManager.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		1CE09159045F46D114E86841 /* Pods-ThriftStoreLocator.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ThriftStoreLocator.release.xcconfig"; path = "Pods/Target Support Files/Pods-ThriftStoreLocator/Pods-ThriftStoreLocator.release.xcconfig"; sourceTree = "<group>"; };
 		796EB802B8425583242F5A32 /* Pods_ThriftStoreLocator.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_ThriftStoreLocator.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		AE5829B3E21A93676FAE59BF /* Pods-ThriftStoreLocator.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ThriftStoreLocator.debug.xcconfig"; path = "Pods/Target Support Files/Pods-ThriftStoreLocator/Pods-ThriftStoreLocator.debug.xcconfig"; sourceTree = "<group>"; };
+		E12F1C901E66304B006371A9 /* DataLayer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DataLayer.swift; sourceTree = "<group>"; };
+		E12F1C931E663E81006371A9 /* NetworkLayer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NetworkLayer.swift; sourceTree = "<group>"; };
 		E1724D0C1E5B732F00E71909 /* ThriftStoreLocator.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ThriftStoreLocator.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E1724D0F1E5B732F00E71909 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		E1724D141E5B732F00E71909 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
@@ -38,6 +44,8 @@
 		E173E9881E5BA850001FF201 /* MenuViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MenuViewController.swift; sourceTree = "<group>"; };
 		E173E98A1E5BAAC6001FF201 /* SettingsViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SettingsViewController.swift; sourceTree = "<group>"; };
 		E173E98C1E5BBA34001FF201 /* AboutViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = AboutViewController.swift; path = ../AboutViewController.swift; sourceTree = "<group>"; };
+		E1F93D111E66293200660A36 /* StoresViewModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StoresViewModel.swift; sourceTree = "<group>"; };
+		E1F93D141E662A7100660A36 /* ModelManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ModelManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -59,6 +67,23 @@
 				1CE09159045F46D114E86841 /* Pods-ThriftStoreLocator.release.xcconfig */,
 			);
 			name = Pods;
+			sourceTree = "<group>";
+		};
+		E12F1C8F1E662DD1006371A9 /* Data */ = {
+			isa = PBXGroup;
+			children = (
+				E1F93D101E66195C00660A36 /* CoreData */,
+				E12F1C901E66304B006371A9 /* DataLayer.swift */,
+			);
+			name = Data;
+			sourceTree = "<group>";
+		};
+		E12F1C921E663E21006371A9 /* NetworkLayer */ = {
+			isa = PBXGroup;
+			children = (
+				E12F1C931E663E81006371A9 /* NetworkLayer.swift */,
+			);
+			name = NetworkLayer;
 			sourceTree = "<group>";
 		};
 		E1724D031E5B732F00E71909 = {
@@ -83,19 +108,46 @@
 			isa = PBXGroup;
 			children = (
 				E1724D0F1E5B732F00E71909 /* AppDelegate.swift */,
+				E1724D131E5B732F00E71909 /* Main.storyboard */,
+				E1724D1B1E5B732F00E71909 /* LaunchScreen.storyboard */,
+				E1724D1E1E5B732F00E71909 /* Info.plist */,
+				E1724D191E5B732F00E71909 /* Assets.xcassets */,
+				E12F1C8F1E662DD1006371A9 /* Data */,
+				E12F1C921E663E21006371A9 /* NetworkLayer */,
+				E1F93D131E662A4000660A36 /* ModelLayer */,
+				E1F93D0F1E6618E100660A36 /* Controllers */,
+			);
+			path = ThriftStoreLocator;
+			sourceTree = "<group>";
+		};
+		E1F93D0F1E6618E100660A36 /* Controllers */ = {
+			isa = PBXGroup;
+			children = (
 				E1724D241E5B741000E71909 /* MainViewController.swift */,
+				E1F93D111E66293200660A36 /* StoresViewModel.swift */,
 				E173E9881E5BA850001FF201 /* MenuViewController.swift */,
 				E1724D261E5B7BAC00E71909 /* DetailViewController.swift */,
 				E1724D281E5B7E2500E71909 /* MapViewController.swift */,
 				E173E98A1E5BAAC6001FF201 /* SettingsViewController.swift */,
 				E173E98C1E5BBA34001FF201 /* AboutViewController.swift */,
-				E1724D131E5B732F00E71909 /* Main.storyboard */,
-				E1724D191E5B732F00E71909 /* Assets.xcassets */,
-				E1724D1B1E5B732F00E71909 /* LaunchScreen.storyboard */,
-				E1724D1E1E5B732F00E71909 /* Info.plist */,
+			);
+			name = Controllers;
+			sourceTree = "<group>";
+		};
+		E1F93D101E66195C00660A36 /* CoreData */ = {
+			isa = PBXGroup;
+			children = (
 				E1724D161E5B732F00E71909 /* ThriftStoreLocator.xcdatamodeld */,
 			);
-			path = ThriftStoreLocator;
+			name = CoreData;
+			sourceTree = "<group>";
+		};
+		E1F93D131E662A4000660A36 /* ModelLayer */ = {
+			isa = PBXGroup;
+			children = (
+				E1F93D141E662A7100660A36 /* ModelManager.swift */,
+			);
+			name = ModelLayer;
 			sourceTree = "<group>";
 		};
 		F8B21205C7D1FB94CF6E84D9 /* Frameworks */ = {
@@ -230,14 +282,18 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E12F1C941E663E81006371A9 /* NetworkLayer.swift in Sources */,
 				E1724D101E5B732F00E71909 /* AppDelegate.swift in Sources */,
 				E1724D181E5B732F00E71909 /* ThriftStoreLocator.xcdatamodeld in Sources */,
 				E173E98B1E5BAAC6001FF201 /* SettingsViewController.swift in Sources */,
+				E12F1C911E66304B006371A9 /* DataLayer.swift in Sources */,
 				E173E9891E5BA850001FF201 /* MenuViewController.swift in Sources */,
 				E1724D251E5B741000E71909 /* MainViewController.swift in Sources */,
 				E1724D291E5B7E2500E71909 /* MapViewController.swift in Sources */,
 				E173E98D1E5BBA34001FF201 /* AboutViewController.swift in Sources */,
+				E1F93D151E662A7100660A36 /* ModelManager.swift in Sources */,
 				E1724D271E5B7BAC00E71909 /* DetailViewController.swift in Sources */,
+				E1F93D121E66293200660A36 /* StoresViewModel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
