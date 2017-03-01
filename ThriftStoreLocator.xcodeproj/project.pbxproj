@@ -10,6 +10,8 @@
 		314D2EADF3C475E290BC2116 /* Pods_ThriftStoreLocator.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 796EB802B8425583242F5A32 /* Pods_ThriftStoreLocator.framework */; };
 		E12F1C911E66304B006371A9 /* DataLayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = E12F1C901E66304B006371A9 /* DataLayer.swift */; };
 		E12F1C941E663E81006371A9 /* NetworkLayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = E12F1C931E663E81006371A9 /* NetworkLayer.swift */; };
+		E12F1C971E664D87006371A9 /* Store.swift in Sources */ = {isa = PBXBuildFile; fileRef = E12F1C951E664D87006371A9 /* Store.swift */; };
+		E12F1C981E664D87006371A9 /* Store+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = E12F1C961E664D87006371A9 /* Store+CoreDataProperties.swift */; };
 		E1724D101E5B732F00E71909 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1724D0F1E5B732F00E71909 /* AppDelegate.swift */; };
 		E1724D151E5B732F00E71909 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = E1724D131E5B732F00E71909 /* Main.storyboard */; };
 		E1724D181E5B732F00E71909 /* ThriftStoreLocator.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = E1724D161E5B732F00E71909 /* ThriftStoreLocator.xcdatamodeld */; };
@@ -31,6 +33,8 @@
 		AE5829B3E21A93676FAE59BF /* Pods-ThriftStoreLocator.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ThriftStoreLocator.debug.xcconfig"; path = "Pods/Target Support Files/Pods-ThriftStoreLocator/Pods-ThriftStoreLocator.debug.xcconfig"; sourceTree = "<group>"; };
 		E12F1C901E66304B006371A9 /* DataLayer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DataLayer.swift; sourceTree = "<group>"; };
 		E12F1C931E663E81006371A9 /* NetworkLayer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NetworkLayer.swift; sourceTree = "<group>"; };
+		E12F1C951E664D87006371A9 /* Store.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Store.swift; sourceTree = "<group>"; };
+		E12F1C961E664D87006371A9 /* Store+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Store+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		E1724D0C1E5B732F00E71909 /* ThriftStoreLocator.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ThriftStoreLocator.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E1724D0F1E5B732F00E71909 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		E1724D141E5B732F00E71909 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
@@ -137,6 +141,8 @@
 		E1F93D101E66195C00660A36 /* CoreData */ = {
 			isa = PBXGroup;
 			children = (
+				E12F1C951E664D87006371A9 /* Store.swift */,
+				E12F1C961E664D87006371A9 /* Store+CoreDataProperties.swift */,
 				E1724D161E5B732F00E71909 /* ThriftStoreLocator.xcdatamodeld */,
 			);
 			name = CoreData;
@@ -293,6 +299,8 @@
 				E173E98D1E5BBA34001FF201 /* AboutViewController.swift in Sources */,
 				E1F93D151E662A7100660A36 /* ModelManager.swift in Sources */,
 				E1724D271E5B7BAC00E71909 /* DetailViewController.swift in Sources */,
+				E12F1C981E664D87006371A9 /* Store+CoreDataProperties.swift in Sources */,
+				E12F1C971E664D87006371A9 /* Store.swift in Sources */,
 				E1F93D121E66293200660A36 /* StoresViewModel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
