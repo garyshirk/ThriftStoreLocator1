@@ -1,5 +1,5 @@
 //
-//  DetailViewController.swift
+//  AboutViewController.swift
 //  ThriftStoreLocator
 //
 //  Created by Gary Shirk on 2/20/17.
@@ -8,33 +8,24 @@
 
 import UIKit
 
-class DetailViewController: UIViewController {
-    
-    var labelString: String = ""
+class AboutViewController: UIViewController {
 
-    @IBOutlet weak var label: UILabel?
-    
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        label?.text = labelString
-        
-        
-    }
-    
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        
+        // Do any additional setup after loading the view.
     }
 
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
-        
-        
     }
     
 
+    @IBAction func doneButtonPressed(_ sender: Any) {
+        self.dismiss(animated: true, completion: nil)
+    }
+    
     /*
     // MARK: - Navigation
 

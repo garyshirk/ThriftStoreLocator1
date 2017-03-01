@@ -7,6 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		314D2EADF3C475E290BC2116 /* Pods_ThriftStoreLocator.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 796EB802B8425583242F5A32 /* Pods_ThriftStoreLocator.framework */; };
+		E12F1C911E66304B006371A9 /* DataLayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = E12F1C901E66304B006371A9 /* DataLayer.swift */; };
+		E12F1C941E663E81006371A9 /* NetworkLayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = E12F1C931E663E81006371A9 /* NetworkLayer.swift */; };
+		E12F1C971E664D87006371A9 /* Store.swift in Sources */ = {isa = PBXBuildFile; fileRef = E12F1C951E664D87006371A9 /* Store.swift */; };
+		E12F1C981E664D87006371A9 /* Store+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = E12F1C961E664D87006371A9 /* Store+CoreDataProperties.swift */; };
+		E16BFB681E6777E8007438C8 /* AboutViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E16BFB671E6777E8007438C8 /* AboutViewController.swift */; };
 		E1724D101E5B732F00E71909 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1724D0F1E5B732F00E71909 /* AppDelegate.swift */; };
 		E1724D151E5B732F00E71909 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = E1724D131E5B732F00E71909 /* Main.storyboard */; };
 		E1724D181E5B732F00E71909 /* ThriftStoreLocator.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = E1724D161E5B732F00E71909 /* ThriftStoreLocator.xcdatamodeld */; };
@@ -15,9 +21,21 @@
 		E1724D251E5B741000E71909 /* MainViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1724D241E5B741000E71909 /* MainViewController.swift */; };
 		E1724D271E5B7BAC00E71909 /* DetailViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1724D261E5B7BAC00E71909 /* DetailViewController.swift */; };
 		E1724D291E5B7E2500E71909 /* MapViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1724D281E5B7E2500E71909 /* MapViewController.swift */; };
+		E173E9891E5BA850001FF201 /* MenuViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E173E9881E5BA850001FF201 /* MenuViewController.swift */; };
+		E173E98B1E5BAAC6001FF201 /* SettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E173E98A1E5BAAC6001FF201 /* SettingsViewController.swift */; };
+		E1F93D121E66293200660A36 /* StoresViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1F93D111E66293200660A36 /* StoresViewModel.swift */; };
+		E1F93D151E662A7100660A36 /* ModelManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1F93D141E662A7100660A36 /* ModelManager.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		1CE09159045F46D114E86841 /* Pods-ThriftStoreLocator.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ThriftStoreLocator.release.xcconfig"; path = "Pods/Target Support Files/Pods-ThriftStoreLocator/Pods-ThriftStoreLocator.release.xcconfig"; sourceTree = "<group>"; };
+		796EB802B8425583242F5A32 /* Pods_ThriftStoreLocator.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_ThriftStoreLocator.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		AE5829B3E21A93676FAE59BF /* Pods-ThriftStoreLocator.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ThriftStoreLocator.debug.xcconfig"; path = "Pods/Target Support Files/Pods-ThriftStoreLocator/Pods-ThriftStoreLocator.debug.xcconfig"; sourceTree = "<group>"; };
+		E12F1C901E66304B006371A9 /* DataLayer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DataLayer.swift; sourceTree = "<group>"; };
+		E12F1C931E663E81006371A9 /* NetworkLayer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NetworkLayer.swift; sourceTree = "<group>"; };
+		E12F1C951E664D87006371A9 /* Store.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Store.swift; sourceTree = "<group>"; };
+		E12F1C961E664D87006371A9 /* Store+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Store+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		E16BFB671E6777E8007438C8 /* AboutViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AboutViewController.swift; sourceTree = "<group>"; };
 		E1724D0C1E5B732F00E71909 /* ThriftStoreLocator.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ThriftStoreLocator.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E1724D0F1E5B732F00E71909 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		E1724D141E5B732F00E71909 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
@@ -28,6 +46,10 @@
 		E1724D241E5B741000E71909 /* MainViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MainViewController.swift; sourceTree = "<group>"; };
 		E1724D261E5B7BAC00E71909 /* DetailViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DetailViewController.swift; sourceTree = "<group>"; };
 		E1724D281E5B7E2500E71909 /* MapViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MapViewController.swift; sourceTree = "<group>"; };
+		E173E9881E5BA850001FF201 /* MenuViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MenuViewController.swift; sourceTree = "<group>"; };
+		E173E98A1E5BAAC6001FF201 /* SettingsViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SettingsViewController.swift; sourceTree = "<group>"; };
+		E1F93D111E66293200660A36 /* StoresViewModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StoresViewModel.swift; sourceTree = "<group>"; };
+		E1F93D141E662A7100660A36 /* ModelManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ModelManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -35,17 +57,46 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				314D2EADF3C475E290BC2116 /* Pods_ThriftStoreLocator.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		5AC5D9F1019D9DFA19F65E45 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				AE5829B3E21A93676FAE59BF /* Pods-ThriftStoreLocator.debug.xcconfig */,
+				1CE09159045F46D114E86841 /* Pods-ThriftStoreLocator.release.xcconfig */,
+			);
+			name = Pods;
+			sourceTree = "<group>";
+		};
+		E12F1C8F1E662DD1006371A9 /* Data */ = {
+			isa = PBXGroup;
+			children = (
+				E1F93D101E66195C00660A36 /* CoreData */,
+				E12F1C901E66304B006371A9 /* DataLayer.swift */,
+			);
+			name = Data;
+			sourceTree = "<group>";
+		};
+		E12F1C921E663E21006371A9 /* NetworkLayer */ = {
+			isa = PBXGroup;
+			children = (
+				E12F1C931E663E81006371A9 /* NetworkLayer.swift */,
+			);
+			name = NetworkLayer;
+			sourceTree = "<group>";
+		};
 		E1724D031E5B732F00E71909 = {
 			isa = PBXGroup;
 			children = (
 				E1724D0E1E5B732F00E71909 /* ThriftStoreLocator */,
 				E1724D0D1E5B732F00E71909 /* Products */,
+				5AC5D9F1019D9DFA19F65E45 /* Pods */,
+				F8B21205C7D1FB94CF6E84D9 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -61,16 +112,56 @@
 			isa = PBXGroup;
 			children = (
 				E1724D0F1E5B732F00E71909 /* AppDelegate.swift */,
-				E1724D241E5B741000E71909 /* MainViewController.swift */,
-				E1724D261E5B7BAC00E71909 /* DetailViewController.swift */,
-				E1724D281E5B7E2500E71909 /* MapViewController.swift */,
 				E1724D131E5B732F00E71909 /* Main.storyboard */,
-				E1724D191E5B732F00E71909 /* Assets.xcassets */,
 				E1724D1B1E5B732F00E71909 /* LaunchScreen.storyboard */,
 				E1724D1E1E5B732F00E71909 /* Info.plist */,
-				E1724D161E5B732F00E71909 /* ThriftStoreLocator.xcdatamodeld */,
+				E1724D191E5B732F00E71909 /* Assets.xcassets */,
+				E12F1C8F1E662DD1006371A9 /* Data */,
+				E12F1C921E663E21006371A9 /* NetworkLayer */,
+				E1F93D131E662A4000660A36 /* ModelLayer */,
+				E1F93D0F1E6618E100660A36 /* Controllers */,
 			);
 			path = ThriftStoreLocator;
+			sourceTree = "<group>";
+		};
+		E1F93D0F1E6618E100660A36 /* Controllers */ = {
+			isa = PBXGroup;
+			children = (
+				E1724D241E5B741000E71909 /* MainViewController.swift */,
+				E1F93D111E66293200660A36 /* StoresViewModel.swift */,
+				E173E9881E5BA850001FF201 /* MenuViewController.swift */,
+				E1724D261E5B7BAC00E71909 /* DetailViewController.swift */,
+				E1724D281E5B7E2500E71909 /* MapViewController.swift */,
+				E173E98A1E5BAAC6001FF201 /* SettingsViewController.swift */,
+				E16BFB671E6777E8007438C8 /* AboutViewController.swift */,
+			);
+			name = Controllers;
+			sourceTree = "<group>";
+		};
+		E1F93D101E66195C00660A36 /* CoreData */ = {
+			isa = PBXGroup;
+			children = (
+				E12F1C951E664D87006371A9 /* Store.swift */,
+				E12F1C961E664D87006371A9 /* Store+CoreDataProperties.swift */,
+				E1724D161E5B732F00E71909 /* ThriftStoreLocator.xcdatamodeld */,
+			);
+			name = CoreData;
+			sourceTree = "<group>";
+		};
+		E1F93D131E662A4000660A36 /* ModelLayer */ = {
+			isa = PBXGroup;
+			children = (
+				E1F93D141E662A7100660A36 /* ModelManager.swift */,
+			);
+			name = ModelLayer;
+			sourceTree = "<group>";
+		};
+		F8B21205C7D1FB94CF6E84D9 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				796EB802B8425583242F5A32 /* Pods_ThriftStoreLocator.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -80,9 +171,12 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = E1724D211E5B732F00E71909 /* Build configuration list for PBXNativeTarget "ThriftStoreLocator" */;
 			buildPhases = (
+				3A58CFA51617E16E0544D7CB /* [CP] Check Pods Manifest.lock */,
 				E1724D081E5B732F00E71909 /* Sources */,
 				E1724D091E5B732F00E71909 /* Frameworks */,
 				E1724D0A1E5B732F00E71909 /* Resources */,
+				13451ACEF3629779F313579A /* [CP] Embed Pods Frameworks */,
+				8DD48D4A69CAE0DF7716E2F6 /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -141,16 +235,73 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		13451ACEF3629779F313579A /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-ThriftStoreLocator/Pods-ThriftStoreLocator-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		3A58CFA51617E16E0544D7CB /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_ROOT}/../Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n";
+			showEnvVarsInLog = 0;
+		};
+		8DD48D4A69CAE0DF7716E2F6 /* [CP] Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "[CP] Copy Pods Resources";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-ThriftStoreLocator/Pods-ThriftStoreLocator-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		E1724D081E5B732F00E71909 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E12F1C941E663E81006371A9 /* NetworkLayer.swift in Sources */,
 				E1724D101E5B732F00E71909 /* AppDelegate.swift in Sources */,
 				E1724D181E5B732F00E71909 /* ThriftStoreLocator.xcdatamodeld in Sources */,
+				E173E98B1E5BAAC6001FF201 /* SettingsViewController.swift in Sources */,
+				E12F1C911E66304B006371A9 /* DataLayer.swift in Sources */,
+				E173E9891E5BA850001FF201 /* MenuViewController.swift in Sources */,
 				E1724D251E5B741000E71909 /* MainViewController.swift in Sources */,
 				E1724D291E5B7E2500E71909 /* MapViewController.swift in Sources */,
+				E1F93D151E662A7100660A36 /* ModelManager.swift in Sources */,
 				E1724D271E5B7BAC00E71909 /* DetailViewController.swift in Sources */,
+				E16BFB681E6777E8007438C8 /* AboutViewController.swift in Sources */,
+				E12F1C981E664D87006371A9 /* Store+CoreDataProperties.swift in Sources */,
+				E12F1C971E664D87006371A9 /* Store.swift in Sources */,
+				E1F93D121E66293200660A36 /* StoresViewModel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -269,6 +420,7 @@
 		};
 		E1724D221E5B732F00E71909 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = AE5829B3E21A93676FAE59BF /* Pods-ThriftStoreLocator.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				DEVELOPMENT_TEAM = 5T6QA6HZRH;
@@ -282,6 +434,7 @@
 		};
 		E1724D231E5B732F00E71909 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 1CE09159045F46D114E86841 /* Pods-ThriftStoreLocator.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				DEVELOPMENT_TEAM = 5T6QA6HZRH;
@@ -312,6 +465,7 @@
 				E1724D231E5B732F00E71909 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 

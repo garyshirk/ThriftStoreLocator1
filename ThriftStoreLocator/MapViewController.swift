@@ -9,11 +9,15 @@
 import UIKit
 
 class MapViewController: UIViewController {
+    
+    var labelString: String = ""
 
+    @IBOutlet weak var mapLabel: UILabel?
+    
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        // Do any additional setup after loading the view.
+        mapLabel?.text = labelString
     }
 
     override func didReceiveMemoryWarning() {
