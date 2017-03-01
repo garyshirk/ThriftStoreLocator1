@@ -9,5 +9,6 @@ target 'ThriftStoreLocator' do
   # Pods for ThriftStoreLocator
   pod 'SideMenu'
   pod 'Alamofire', '~> 4.4'
+  pod 'SwiftyJSON'
 
 end
