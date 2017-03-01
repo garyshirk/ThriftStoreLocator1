@@ -336,15 +336,15 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
             
             if scrollOffset <= -scrollView.contentInset.top {
                 frame.origin.y = 20
-                print("scrollOffset <= -scrollview: Nav bar should show")
+                //print("scrollOffset <= -scrollview: Nav bar should show")
                 
             } else if ((scrollOffset + scrollHeight) >= scrollContentSizeHeight) {
                 frame.origin.y = -navHeightMinus21
-                print("scrollOffset <+ scrollHeight >= -scrollContentSizeHeight: Nav bar should hide")
+                //print("scrollOffset <+ scrollHeight >= -scrollContentSizeHeight: Nav bar should hide")
                 
             } else {
                 frame.origin.y = min(20, max(-navHeightMinus21, frame.origin.y - scrollDiff))
-                print("else clause: Nav bar should be moving")
+                //print("else clause: Nav bar should be moving")
             }
             
             let framePercentageHidden = (( 20 - (frame.origin.y)) / ((frame.size.height) - 1))
@@ -356,16 +356,16 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
             mapViewYConstraint.constant = frame.origin.y - 20
             
             // DEBUG
-            print("navBarY = \(frame.origin.y), mapViewY = \(mapViewYConstraint.constant)")
-            print("navHeightMinus21: \(navHeightMinus21)")
-            print("Alpha: \(1.0 - framePercentageHidden)")
-            print("scrollOffset: \(scrollOffset)")
-            print("scrollDiff: \(scrollDiff)")
-            print("scrollHeight: \(scrollHeight)")
-            print("scrollView.contentSize.ht: \(scrollView.contentSize.height)")
-            print("scrollView.contentInsetBottom: \(scrollView.contentInset.bottom)")
-            print("scrollContentSize: \(scrollContentSizeHeight)")
-            print("=====")
+//            print("navBarY = \(frame.origin.y), mapViewY = \(mapViewYConstraint.constant)")
+//            print("navHeightMinus21: \(navHeightMinus21)")
+//            print("Alpha: \(1.0 - framePercentageHidden)")
+//            print("scrollOffset: \(scrollOffset)")
+//            print("scrollDiff: \(scrollDiff)")
+//            print("scrollHeight: \(scrollHeight)")
+//            print("scrollView.contentSize.ht: \(scrollView.contentSize.height)")
+//            print("scrollView.contentInsetBottom: \(scrollView.contentInset.bottom)")
+//            print("scrollContentSize: \(scrollContentSizeHeight)")
+//            print("=====")
             
             // TODO - This code shrinks and grows map view as user scrolls, but needs to be smoother
 //            if (frame.origin.y == -size) && (mapViewHeightConstraint.constant >= 100) {
