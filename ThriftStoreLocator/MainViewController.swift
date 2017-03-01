@@ -44,6 +44,8 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     
     var previousScrollViewOffset: CGFloat = 0.0
     
+    var barButtonDefaultTintColor: UIColor?
+    
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -57,19 +59,22 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         
 
         // Side Menu appearance and configuration
-        let appDelegate = UIApplication.shared.delegate as! AppDelegate
-        SideMenuManager.menuAnimationBackgroundColor = appDelegate.uicolorFromHex(rgbValue: UInt32(AppDelegate.NAV_BAR_TINT_COLOR))
+        //let appDelegate = UIApplication.shared.delegate as! AppDelegate
+        //SideMenuManager.menuAnimationBackgroundColor = appDelegate.uicolorFromHex(rgbValue: UInt32(AppDelegate.NAV_BAR_TINT_COLOR))
+        SideMenuManager.menuAnimationBackgroundColor = UIColor.white
         SideMenuManager.menuFadeStatusBar = false
-        SideMenuManager.menuAnimationTransformScaleFactor = 1
+        SideMenuManager.menuAnimationTransformScaleFactor = 0.95
         SideMenuManager.menuPresentMode = .menuSlideIn
         
         // Scroll view inset adjustment handled by tableView constraints in storyboard
         self.automaticallyAdjustsScrollViewInsets = false
         
         // Search and Title configuration
+        //titleLabel.tintColor = UIColor.black
         titleBackgroundColor = searchView.backgroundColor
         titleLabel.text = "Thrift Store Locator"
-        titleLabel.tintColor = UIColor.white
+        barButtonDefaultTintColor = self.view.tintColor
+        
         setSearchEditMode(doSet: false)
         setSearchEnabledMode(doSet: false)
         searchTextField.delegate = self
@@ -275,9 +280,9 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         self.navigationController?.navigationBar.frame = frame!
         searchView.alpha = 1.0
         searchBarButton.isEnabled = true
-        searchBarButton.tintColor = UIColor.white
+        searchBarButton.tintColor = barButtonDefaultTintColor
         menuBarButton.isEnabled = true
-        menuBarButton.tintColor = UIColor.white
+        menuBarButton.tintColor = barButtonDefaultTintColor
     }
     
     func updateBarButtonItems(alpha: CGFloat) {
@@ -289,9 +294,9 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
             menuBarButton.tintColor = UIColor.clear
         } else {
             searchBarButton.isEnabled = true
-            searchBarButton.tintColor = UIColor.white
+            searchBarButton.tintColor = barButtonDefaultTintColor
             menuBarButton.isEnabled = true
-            menuBarButton.tintColor = UIColor.white
+            menuBarButton.tintColor = barButtonDefaultTintColor
         }
     }
     

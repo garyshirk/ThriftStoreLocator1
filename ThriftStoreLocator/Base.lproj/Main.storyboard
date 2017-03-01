@@ -140,7 +140,6 @@
                     <navigationItem key="navigationItem" id="9lr-JA-5m3">
                         <nil key="title"/>
                         <barButtonItem key="leftBarButtonItem" image="menuIcon" id="OZb-qO-0Ub">
-                            <color key="tintColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                             <connections>
                                 <segue destination="M2D-kd-UKs" kind="presentation" id="8E5-OD-rGE"/>
                             </connections>
@@ -152,7 +151,6 @@
                                 <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" placeholder="Search" textAlignment="natural" minimumFontSize="17" clearButtonMode="whileEditing" translatesAutoresizingMaskIntoConstraints="NO" id="LIg-BT-skl" userLabel="SearchTextField">
                                     <rect key="frame" x="7" y="7" width="215" height="19"/>
                                     <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
-                                    <color key="tintColor" red="0.011764705882352941" green="0.27058823529411763" blue="0.25098040700000002" alpha="1" colorSpace="calibratedRGB"/>
                                     <nil key="textColor"/>
                                     <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                     <textInputTraits key="textInputTraits" autocorrectionType="no" spellCheckingType="no" returnKeyType="search"/>
@@ -162,7 +160,6 @@
                                     <attributedString key="attributedText">
                                         <fragment content="Label">
                                             <attributes>
-                                                <color key="NSColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                                 <font key="NSFont" size="18" name=".AppleSystemUIFont"/>
                                                 <paragraphStyle key="NSParagraphStyle" alignment="center" lineBreakMode="wordWrapping" baseWritingDirection="natural" tighteningFactorForTruncation="0.0"/>
                                             </attributes>
@@ -188,7 +185,6 @@
                             </userDefinedRuntimeAttributes>
                         </view>
                         <barButtonItem key="rightBarButtonItem" image="searchIcon" id="4xc-VZ-iq9">
-                            <color key="tintColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                             <connections>
                                 <action selector="searchButtonPressed:" destination="NLN-iD-Puq" id="clw-4R-myg"/>
                             </connections>
@@ -408,14 +404,11 @@
         <!--Side Menu Navigation Controller-->
         <scene sceneID="s6x-78-fNU">
             <objects>
-                <navigationController id="M2D-kd-UKs" customClass="UISideMenuNavigationController" customModule="SideMenu" sceneMemberID="viewController">
+                <navigationController navigationBarHidden="YES" id="M2D-kd-UKs" customClass="UISideMenuNavigationController" customModule="SideMenu" sceneMemberID="viewController">
                     <navigationBar key="navigationBar" contentMode="scaleToFill" id="tMY-b7-DOf">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="44"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </navigationBar>
-                    <userDefinedRuntimeAttributes>
-                        <userDefinedRuntimeAttribute type="boolean" keyPath="leftSide" value="YES"/>
-                    </userDefinedRuntimeAttributes>
                     <connections>
                         <segue destination="OW7-bm-gmX" kind="relationship" relationship="rootViewController" id="UPC-w4-xGj"/>
                     </connections>

@@ -21,6 +21,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
         
+        // This method along with some changes to color attributes on storyboard and MainViewController can be used to change nav bar appearance
+        //setNavBarAppearance()
+        
+        return true
+    }
+    
+    func setNavBarAppearance() {
         // Set color of app's navigation bars
         let navigationBarAppearance = UINavigationBar.appearance()
         navigationBarAppearance.tintColor = uicolorFromHex(rgbValue: UInt32(AppDelegate.NAV_TINT_COLOR))
@@ -32,8 +39,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // This change along with adding info.plist property - "View controller-based status bar app" to "No"
         // adjusts the color of the status bar
         UIApplication.shared.statusBarStyle = UIStatusBarStyle.lightContent
-        
-        return true
     }
     
     func uicolorFromHex(rgbValue:UInt32)->UIColor{
