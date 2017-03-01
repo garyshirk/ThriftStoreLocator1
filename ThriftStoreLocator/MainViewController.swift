@@ -12,7 +12,7 @@ import SideMenu
 
 // TODO - MapView initial height should be proportional to device height
 
-class MainViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UITextFieldDelegate, MKMapViewDelegate {
+class MainViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UITextFieldDelegate, MKMapViewDelegate, StoresViewModelDelegate {
     
     var stores: [String] = ["Goodwill", "Salvation Army", "Savers", "Thrift on Main", "Sparrows Nest",
                             "Goodwill Schaumburg", "Goodwill2", "Salvation Army2", "Savers2",
@@ -20,11 +20,19 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
                             "Thrift on Main3", "Sparrows Nest3", "Goodwill Carpentersville",
                             "Thrift on Main4", "Sparrows Nest4", "Goodwill Lake Zurich"]
     
+    var viewModel: StoresViewModel!
+    
     var searchedStores: [String] = []
     
     var selectedStore: String!
     
     var isSearching: Bool = false
+    
+    var titleBackgroundColor: UIColor!
+    
+    var previousScrollViewOffset: CGFloat = 0.0
+    
+    var barButtonDefaultTintColor: UIColor?
 
     @IBOutlet weak var tableView: UITableView!
     @IBOutlet weak var titleLabel: UILabel!
@@ -39,13 +47,6 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     
     // TODO - Move dimmerView to front of view on storyboard. Keeping it behind tableView during development
     @IBOutlet weak var dimmerView: UIView!
-    
-    var titleBackgroundColor: UIColor!
-    
-    var previousScrollViewOffset: CGFloat = 0.0
-    
-    var barButtonDefaultTintColor: UIColor?
-    
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -63,14 +64,14 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         //SideMenuManager.menuAnimationBackgroundColor = appDelegate.uicolorFromHex(rgbValue: UInt32(AppDelegate.NAV_BAR_TINT_COLOR))
         SideMenuManager.menuAnimationBackgroundColor = UIColor.white
         SideMenuManager.menuFadeStatusBar = false
-        SideMenuManager.menuAnimationTransformScaleFactor = 0.95
+        SideMenuManager.menuAnimationTransformScaleFactor = 1.0
         SideMenuManager.menuPresentMode = .menuSlideIn
         
         // Scroll view inset adjustment handled by tableView constraints in storyboard
         self.automaticallyAdjustsScrollViewInsets = false
         
         // Search and Title configuration
-        //titleLabel.tintColor = UIColor.black
+        //titleLabel.tintColor = UIColor.white
         titleBackgroundColor = searchView.backgroundColor
         titleLabel.text = "Thrift Store Locator"
         barButtonDefaultTintColor = self.view.tintColor
@@ -83,24 +84,25 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         mapView.mapType = .standard
         mapView.delegate = self
         
-        
-        
-        
-        makeGetCall()
+        // Get list of stores for current location
+        viewModel = StoresViewModel(delegate: self)
         
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        print("ViewWillAppear")
         tableView.isUserInteractionEnabled = true
         
         // DEBUG
-        print(mapViewYConstraint.constant)
+        // print(mapViewYConstraint.constant)
     }
     
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
+    }
+    
+    func handleStoresUpdated(stores: [Store]) {
+        
     }
         
     // NOTE: Search bar tutorial json task from http://sweettutos.com/2015/12/26/hands-on-uisearchcontroller-the-complete-guide/
@@ -131,7 +133,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
 //        task.resume()
 //    }
     
-    
+    // OLD code - Moved to NetworkLayer and now using Alamofire
     func makeGetCall() {
         // Set up URL request
         let urlString: String = "http://jsonplaceholder.typicode.com/todos/1" // note: this is a test url
@@ -207,7 +209,6 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     // MARK: - TextField delegates
     
     func textFieldDidBeginEditing(_ textField: UITextField) {
-        print("Did begin editing search field")
         setSearchEditMode(doSet: true)
     }
     
@@ -217,9 +218,8 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         return true
     }
     
-    // may be called if forced even if shouldEndEditing returns NO (e.g. view removed from window) or endEditing:YES called
+    // May be called if forced even if shouldEndEditing returns NO (e.g. view removed from window) or endEditing:YES called
     func textFieldDidEndEditing(_ textField: UITextField) {
-        print("Did end editing search field")
         if let searchStr = searchTextField.text {
             searchedStores.removeAll()
             for store in stores {

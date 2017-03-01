@@ -60,6 +60,20 @@ extension DataLayer {
         })
     }
     
+//    func getMessagesOnMainThread() -> [Store] {
+//        
+//        
+//        
+//        return stores
+//    }
+    
+    
+    
+    
+    
+    
+    
+    
 //    func saveInBackground(daos: [MessageDAO], saveInBackgroundSuccess: VoidBlock? = nil) {
 //        //In background thread
 //        persistentContainer.performBackgroundTask( { context in

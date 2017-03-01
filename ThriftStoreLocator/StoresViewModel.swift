@@ -23,6 +23,7 @@ class StoresViewModel {
     init(delegate: StoresViewModelDelegate?) {
         self.delegate = delegate
         modelManager = ModelManager.sharedInstance
+        modelManager.loadMessages()
     }
     
 }

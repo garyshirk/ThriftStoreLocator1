@@ -12,4 +12,17 @@ class ModelManager {
     
     static var sharedInstance = ModelManager()
     
+    var networkLayer = NetworkLayer()
+    var dataLayer = DataLayer()
+    
+//    func getStoresOnMainThread() -> [Store] {
+//        return dataLayer.getMessagesOnMainThread()
+//    }
+    
+    func loadMessages() {
+        
+        networkLayer.loadStoresFromServer()
+    }
+    
+    
 }
