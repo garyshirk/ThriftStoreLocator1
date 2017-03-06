@@ -29,14 +29,14 @@ class StoresViewModel {
         
         modelManager = ModelManager.sharedInstance
         
-        modelManager.loadStores(serverLoadSuccess: { [weak self] testStores -> Void in
+        modelManager.loadStores(viewModelUpdater: { [weak self] testStores -> Void in
             
             guard let strongSelf = self else {
                 return
             }
             
             strongSelf.testStores = testStores
-            print(strongSelf.testStores)
+            print("Test stores received in StoresViewModel")
             
             //strongSelf.stores = stores
             //strongSelf.stores.forEach {print("Store Name: \($0.name)")}

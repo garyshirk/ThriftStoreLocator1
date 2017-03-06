@@ -21,12 +21,12 @@ class ModelManager {
 //        return dataLayer.getMessagesOnMainThread()
 //    }
     
-    func loadStores(serverLoadSuccess: @escaping ([String]) -> Void) { //([Store]) -> Void) {
+    func loadStores(viewModelUpdater: @escaping ([String]) -> Void) { //([Store]) -> Void) {
         
-        networkLayer.loadStoresFromServer(loadStores: {stores in
-            print("running enclosure in modelmanager: \(stores)")
+        networkLayer.loadStoresFromServer(modelManagerUpdater: {stores in
+            print("Test Stores received in ModelManager")
             
-            serverLoadSuccess(stores)
+            viewModelUpdater(stores)
         })
     }
     
