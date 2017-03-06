@@ -14,11 +14,11 @@ import SideMenu
 
 class MainViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UITextFieldDelegate, MKMapViewDelegate, StoresViewModelDelegate {
     
-    var stores: [String] = ["Goodwill", "Salvation Army", "Savers", "Thrift on Main", "Sparrows Nest",
-                            "Goodwill Schaumburg", "Goodwill2", "Salvation Army2", "Savers2",
-                            "Thrift on Main2", "Sparrows Nest2", "Goodwill Crystal Lake",
-                            "Thrift on Main3", "Sparrows Nest3", "Goodwill Carpentersville",
-                            "Thrift on Main4", "Sparrows Nest4", "Goodwill Lake Zurich"]
+//    var stores: [String] = ["Goodwill", "Salvation Army", "Savers", "Thrift on Main", "Sparrows Nest",
+//                            "Goodwill Schaumburg", "Goodwill2", "Salvation Army2", "Savers2",
+//                            "Thrift on Main2", "Sparrows Nest2", "Goodwill Crystal Lake",
+//                            "Thrift on Main3", "Sparrows Nest3", "Goodwill Carpentersville",
+//                            "Thrift on Main4", "Sparrows Nest4", "Goodwill Lake Zurich"]
     
     var viewModel: StoresViewModel!
     
@@ -85,6 +85,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         mapView.delegate = self
         
         // Get list of stores for current location
+        // TODO - Use dependency injection for setting viewModel
         viewModel = StoresViewModel(delegate: self)
         
     }
@@ -101,8 +102,8 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         super.viewWillDisappear(animated)
     }
     
-    func handleStoresUpdated(stores: [Store]) {
-        
+    func handleStoresUpdated(stores: [String]) {//[Store]) {
+        tableView.reloadData()
     }
         
     // NOTE: Search bar tutorial json task from http://sweettutos.com/2015/12/26/hands-on-uisearchcontroller-the-complete-guide/
@@ -222,7 +223,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     func textFieldDidEndEditing(_ textField: UITextField) {
         if let searchStr = searchTextField.text {
             searchedStores.removeAll()
-            for store in stores {
+            for store in viewModel.testStores {
                 if searchStr.isEmpty || store.localizedCaseInsensitiveContains(searchStr) {
                     searchedStores.append(store)
                 }
@@ -416,25 +417,39 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     }
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        
+        guard let viewModel = viewModel else {
+            return 0 }
+        
         if isSearching {
             return searchedStores.count
         } else {
-            return stores.count
+            return viewModel.testStores.count
         }
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
-    
         let cell = tableView.dequeueReusableCell(withIdentifier: "storeCell", for: indexPath)
         
         if isSearching {
             cell.textLabel?.text = searchedStores[indexPath.row]
         } else {
-            cell.textLabel?.text = stores[indexPath.row]
+            cell.textLabel?.text = viewModel.testStores[indexPath.row]
         }
-    
+        
         return cell
+        
+    
+//        let cell = tableView.dequeueReusableCell(withIdentifier: "storeCell", for: indexPath)
+//        
+//        if isSearching {
+//            cell.textLabel?.text = searchedStores[indexPath.row]
+//        } else {
+//            cell.textLabel?.text = stores[indexPath.row]
+//        }
+//
+//        return cell
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
@@ -453,7 +468,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
                 if isSearching {
                     selectedStore = searchedStores[(indexPath.row)]
                 } else {
-                    selectedStore = stores[(indexPath.row)]
+                    selectedStore = viewModel.testStores[(indexPath.row)]
                 }
             }
             

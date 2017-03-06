@@ -10,11 +10,18 @@ import Foundation
 import Alamofire
 import SwiftyJSON
 
+// TODO - constants should use pattern for constants (struct or enum)
 private let baseURL = "https://jsonplaceholder.typicode.com/todos"
 
 class NetworkLayer {
     
-    func loadStoresFromServer() {
+    var stores: [String] = ["Goodwill", "Salvation Army", "Savers", "Thrift on Main", "Sparrows Nest",
+                            "Goodwill Schaumburg", "Goodwill2", "Salvation Army2", "Savers2",
+                            "Thrift on Main2", "Sparrows Nest2", "Goodwill Crystal Lake",
+                            "Thrift on Main3", "Sparrows Nest3", "Goodwill Carpentersville",
+                            "Thrift on Main4", "Sparrows Nest4", "Goodwill Lake Zurich"]
+    
+    func loadStoresFromServer(loadStores: @escaping ([String]) -> Void) { //([Store]) -> Void) {
         
         Alamofire.request(baseURL, method: .get)
         
@@ -39,8 +46,15 @@ class NetworkLayer {
 //                    return
 //                }
 //                print("The title is: " + title)
-                let json = response.result.value
-                print(json!)
+                
+                let _ = response.result.value // change _ to json once we start using data retrieved from server
+                
+                // Mock - return hard coded test stores for now just to make sure vc, model and network layer are connected properly
+                loadStores(self.stores)
+                
+                
+                
+                //print(json!)
             })
     }
 

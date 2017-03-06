@@ -15,7 +15,7 @@ class DataLayer {
     
     lazy var persistentContainer: NSPersistentContainer = {
         
-        let container = NSPersistentContainer(name: "SystemOfRecord")
+        let container = NSPersistentContainer(name: "ThriftStoreLocator")
         container.viewContext.automaticallyMergesChangesFromParent = true
         container.loadPersistentStores { storeDescription, error in
             if let error = error as NSError? {
