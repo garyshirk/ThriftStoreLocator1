@@ -22,7 +22,7 @@ class ModelManager {
         return dataLayer.getStoresOnMainThread()
     }
     
-    func loadStores(viewModelUpdater: @escaping ([Store]) -> Void) { //([Store]) -> Void) {
+    func loadStores(viewModelUpdater: @escaping ([Store]) -> Void) {
         
         networkLayer.loadStoresFromServer(modelManagerUpdater: {stores in
             
@@ -30,27 +30,7 @@ class ModelManager {
             
                 let coreDataStores = self.getStoresOnMainThread()
                 viewModelUpdater(coreDataStores)
-                
-            
             })
-            
-//            print("Test Stores received in ModelManager")
-//            viewModelUpdater(stores)
         })
     }
-    
-    
-    
-//    modelManager.loadMessages(serverLoadSuccess: { [weak self] stores -> Void in
-//    
-//    guard let strongSelf = self else {
-//    return
-//    }
-//    
-//    strongSelf.stores = stores
-//    strongSelf.stores.forEach {print("Store Name: \($0.name)")}
-//    strongSelf.delegate?.handleStoresUpdated(stores: stores)
-//    
-//    
-//    })
 }

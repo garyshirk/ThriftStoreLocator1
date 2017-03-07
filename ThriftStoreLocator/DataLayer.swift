@@ -22,7 +22,6 @@ class DataLayer {
                 fatalError("Unresolved error \(error), \(error.userInfo)")
             }
         }
-        
         return container
     }()
 }
@@ -52,6 +51,8 @@ extension DataLayer {
             
             // Save stores downloaded from server
             
+            //let managedObjectContext = self.persistentContainer.viewContext
+            
             do {
             
                 for storeStr in storeStrArray {
@@ -62,7 +63,7 @@ extension DataLayer {
                         let store = Store(entity: entity, insertInto: self.persistentContainer.viewContext)
                         store.name = storeStr
                         
-                        try context.save()
+                        try store.managedObjectContext?.save()
                     }
                 }
             } catch {

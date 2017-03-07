@@ -86,7 +86,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         
         // Get list of stores for current location
         // TODO - Use dependency injection for setting viewModel
-        viewModel = StoresViewModel(delegate: self)
+        viewModel = StoresViewModel(delegate: self, withLoadStores: true)
         
     }
     

@@ -15,9 +15,9 @@ private let baseURL = "https://jsonplaceholder.typicode.com/todos"
 
 class NetworkLayer {
     
-    var storesTest = [String]()
+    var storesStrArray = [String]()
     
-    func loadStoresFromServer(modelManagerUpdater: @escaping ([String]) -> Void) { //([Store]) -> Void) {
+    func loadStoresFromServer(modelManagerUpdater: @escaping ([String]) -> Void) {
         
         Alamofire.request(baseURL, method: .get).validate()
             
@@ -34,20 +34,20 @@ class NetworkLayer {
                     
                     //print("JSON: \(json)")
                     
-                    
                     if let jsonArray = json.array {
                         
                         for item in jsonArray {
                             if let jsonDict = item.dictionary {
-                                strongSelf.storesTest.append((jsonDict["title"]?.stringValue)!)
+                                strongSelf.storesStrArray.append((jsonDict["title"]?.stringValue)!)
                             }
                         }
                     }
                     
                     print("Test stores loaded from REST server")
-                    modelManagerUpdater(strongSelf.storesTest)
+                    modelManagerUpdater(strongSelf.storesStrArray)
                 
                 case .failure(let error):
+                    // TODO - Proper error handling
                     print(error)
                 }
             })

@@ -23,11 +23,18 @@ class StoresViewModel {
     //var testStores: [String] = []
     
     
-    init(delegate: StoresViewModelDelegate?) {
+    init(delegate: StoresViewModelDelegate?, withLoadStores: Bool) {
         
         self.delegate = delegate
         
         modelManager = ModelManager.sharedInstance
+        
+        if withLoadStores {
+            doLoadStores()
+        }
+    }
+    
+    func doLoadStores() {
         
         modelManager.loadStores(viewModelUpdater: { [weak self] stores -> Void in
             
