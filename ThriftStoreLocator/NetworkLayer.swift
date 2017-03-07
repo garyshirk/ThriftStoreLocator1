@@ -10,39 +10,51 @@ import Foundation
 import Alamofire
 import SwiftyJSON
 
+// TODO - constants should use pattern for constants (struct or enum)
 private let baseURL = "https://jsonplaceholder.typicode.com/todos"
 
 class NetworkLayer {
     
-    func loadStoresFromServer() {
+    var storesArrayOfDicts = [[String:String]]() // Array of Dictionaries
+    
+    func loadStoresFromServer(modelManagerUpdater: @escaping ([[String:String]]) -> Void) {
         
-        Alamofire.request(baseURL, method: .get)
-        
-            .responseJSON(completionHandler: { response in
-                guard response.result.error == nil else {
-                    // Error - got no data back
-                    print("Error calling GET on baseURL")
-                    print(response.result.error!)
-                    return
-                }
+        Alamofire.request(baseURL, method: .get).validate()
+            
+            // TODO - Using [weak self] here; is it required?
+            .responseJSON(completionHandler: { [weak self] response in
                 
-                // If did get back data, make sure it's JSON
-//                guard let json = response.result.value as? [String: Any] else {
-//                    print("Error - response is not JSON")
-//                    print("\(response.result.error)")
-//                    return
-//                }
-//                
-//                // All ok, get the data
-//                guard let title = json["title"] as? String else {
-//                    print("Could not find value in json")
-//                    return
-//                }
-//                print("The title is: " + title)
-                let json = response.result.value
-                print(json!)
+                guard let strongSelf = self else { return }
+                
+                switch response.result {
+                
+                case .success(let value):
+                    
+                    let json = JSON(value)
+                    
+                    print("JSON: \(json)")
+                    
+                    if let jsonArray = json.array {
+                        
+                        for item in jsonArray {
+                            if let jsonDict = item.dictionary {
+                                
+                                var itemDict = [String:String]()
+                                itemDict["name"] = jsonDict["title"]?.stringValue
+                                itemDict["storeId"] = jsonDict["id"]?.stringValue
+                                strongSelf.storesArrayOfDicts.append(itemDict)
+                            }
+                        }
+                    }
+                    
+                    print("Test stores loaded from REST server")
+                    modelManagerUpdater(strongSelf.storesArrayOfDicts)
+                
+                case .failure(let error):
+                    // TODO - Proper error handling
+                    print(error)
+                }
             })
     }
-
 
 }

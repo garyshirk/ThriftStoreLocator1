@@ -15,23 +15,23 @@ class DataLayer {
     
     lazy var persistentContainer: NSPersistentContainer = {
         
-        let container = NSPersistentContainer(name: "SystemOfRecord")
+        let container = NSPersistentContainer(name: "ThriftStoreLocator")
         container.viewContext.automaticallyMergesChangesFromParent = true
         container.loadPersistentStores { storeDescription, error in
             if let error = error as NSError? {
                 fatalError("Unresolved error \(error), \(error.userInfo)")
             }
         }
-        
         return container
     }()
 }
 
 extension DataLayer {
     
-    func saveInBackground(saveInBackgroundSuccess: VoidBlock? = nil) {
+    // TODO - Is weak self required here?
+    func saveInBackground(stores: [[String:String]], saveInBackgroundSuccess: VoidBlock? = nil) {
         
-        // In background thread
+        // On background thread
         persistentContainer.performBackgroundTask( {context in
             
             // TODO - Should I alway remove current stores in CoreData whenever I go to the server
@@ -43,15 +43,30 @@ extension DataLayer {
                 try context.persistentStoreCoordinator?.execute(deleteRequst, with: context)
                 let finalCount = try? context.count(for: fetchRequest)
                 
-                print("initialCount: \(initialCount) --- finalCount: \(finalCount)")
+                print("Deleting existing Stores: InitialCount: \(initialCount) --- FinalCount: \(finalCount)")
                 
             } catch _ as NSError {
                 // TODO - Error handling
             }
             
-            // Save stores downloaded from server
+            // Save stores downloaded from server to Core Data
+            do {
             
-            
+                for storeDict:[String:String] in stores {
+                
+                    let entity = NSEntityDescription.entity(forEntityName: "Store", in: context)
+                
+                    if let entity = entity {
+                        let store = Store(entity: entity, insertInto: context)
+                        store.name = storeDict["name"]
+                        store.storeId = storeDict["storeId"]
+                        
+                        try store.managedObjectContext?.save()
+                    }
+                }
+            } catch {
+                print("Error saving Stores")
+            }
             
             // Update the main thread
             DispatchQueue.main.sync {
@@ -60,58 +75,19 @@ extension DataLayer {
         })
     }
     
-//    func getMessagesOnMainThread() -> [Store] {
-//        
-//        
-//        
-//        return stores
-//    }
+    func getStoresOnMainThread() -> [Store] {
+        
+        let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "Store")
+        
+        // Add Sort descriptor
+        let sortDescriptor = NSSortDescriptor(key: "name", ascending: true)
+        fetchRequest.sortDescriptors = [sortDescriptor]
+
+        // On main thread
+        let stores = try! persistentContainer.viewContext.fetch(fetchRequest)
+        
+        // stores.forEach { print($0.title) }
     
-    
-    
-    
-    
-    
-    
-    
-//    func saveInBackground(daos: [MessageDAO], saveInBackgroundSuccess: VoidBlock? = nil) {
-//        //In background thread
-//        persistentContainer.performBackgroundTask( { context in
-//            
-//            //Remove Previous Messages
-//            let fetchRequest: NSFetchRequest<Message> = Message.fetchRequest()
-//            let deleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest as! NSFetchRequest<NSFetchRequestResult>)
-//            
-//            do {
-//                let initialCount = try? context.count(for: fetchRequest)
-//                try context.persistentStoreCoordinator?.execute(deleteRequest, with: context)
-//                let finalCount = try? context.count(for: fetchRequest)
-//                
-//                print("initialCount: \(initialCount) ::: finalCount: \(finalCount)")
-//            } catch _ as NSError {
-//                // TODO: handle the error
-//            }
-//            
-//            
-//            //Save Message Daos
-//            do {
-//                for dao in daos {
-//                    let message = Message(context: context)
-//                    message.id     = Int64(dao.id)
-//                    message.body   = dao.body
-//                    message.title  = dao.title
-//                    message.userId = Int64(dao.userId)
-//                    
-//                    try context.save()
-//                }
-//            } catch {
-//                print("Error importing messages: \(error.localizedDescription)")
-//            }
-//            
-//            //Update main thread
-//            DispatchQueue.main.async {
-//                saveInBackgroundSuccess?()
-//            }
-//        })
-//    }
+        return stores as! [Store]
+    }
 }
