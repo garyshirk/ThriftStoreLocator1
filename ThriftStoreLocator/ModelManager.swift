@@ -26,10 +26,10 @@ class ModelManager {
         
         networkLayer.loadStoresFromServer(modelManagerUpdater: {stores in
             
-            self.dataLayer.saveInBackground(storeStrArray: stores, saveInBackgroundSuccess: {
+            self.dataLayer.saveInBackground(stores: stores, saveInBackgroundSuccess: {
             
-                let coreDataStores = self.getStoresOnMainThread()
-                viewModelUpdater(coreDataStores)
+                let storeEntities = self.getStoresOnMainThread()
+                viewModelUpdater(storeEntities)
             })
         })
     }

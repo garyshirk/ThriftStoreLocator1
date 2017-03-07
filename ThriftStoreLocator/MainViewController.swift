@@ -102,6 +102,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         super.viewWillDisappear(animated)
     }
     
+    // TODO - Don't need to pass back store array here because view is populated via viewModel.stores
     func handleStoresUpdated(stores: [Store]) {
         tableView.reloadData()
     }

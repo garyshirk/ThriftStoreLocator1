@@ -15,13 +15,8 @@ protocol StoresViewModelDelegate: class {
 class StoresViewModel {
     
     private var modelManager: ModelManager
-    
     weak var delegate: StoresViewModelDelegate?
-    
     var stores: [Store] = []
-    
-    //var testStores: [String] = []
-    
     
     init(delegate: StoresViewModelDelegate?, withLoadStores: Bool) {
         
@@ -36,21 +31,20 @@ class StoresViewModel {
     
     func doLoadStores() {
         
-        modelManager.loadStores(viewModelUpdater: { [weak self] stores -> Void in
+        modelManager.loadStores(viewModelUpdater: { [weak self] storeEntities -> Void in
             
             guard let strongSelf = self else {
                 return
             }
             
-            strongSelf.stores = stores
+            strongSelf.stores = storeEntities
             
             print("Test stores received in StoresViewModel")
             
             //strongSelf.stores.forEach {print("Store Name: \($0.name)")}
             
-            strongSelf.delegate?.handleStoresUpdated(stores: stores)
+            strongSelf.delegate?.handleStoresUpdated(stores: storeEntities)
         })
     }
-    
 }
 
