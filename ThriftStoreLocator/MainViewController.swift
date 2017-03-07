@@ -102,7 +102,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         super.viewWillDisappear(animated)
     }
     
-    func handleStoresUpdated(stores: [String]) {//[Store]) {
+    func handleStoresUpdated(stores: [Store]) {
         tableView.reloadData()
     }
         
@@ -223,9 +223,11 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     func textFieldDidEndEditing(_ textField: UITextField) {
         if let searchStr = searchTextField.text {
             searchedStores.removeAll()
-            for store in viewModel.testStores {
-                if searchStr.isEmpty || store.localizedCaseInsensitiveContains(searchStr) {
-                    searchedStores.append(store)
+            for store in viewModel.stores {
+                if let storeStr = store.name {
+                    if searchStr.isEmpty || (storeStr.localizedCaseInsensitiveContains(searchStr)) {
+                        searchedStores.append(storeStr)
+                    }
                 }
             }
         }
@@ -424,7 +426,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         if isSearching {
             return searchedStores.count
         } else {
-            return viewModel.testStores.count
+            return viewModel.stores.count
         }
     }
 
@@ -435,7 +437,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         if isSearching {
             cell.textLabel?.text = searchedStores[indexPath.row]
         } else {
-            cell.textLabel?.text = viewModel.testStores[indexPath.row]
+            cell.textLabel?.text = viewModel.stores[indexPath.row].name
         }
         
         return cell
@@ -468,7 +470,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
                 if isSearching {
                     selectedStore = searchedStores[(indexPath.row)]
                 } else {
-                    selectedStore = viewModel.testStores[(indexPath.row)]
+                    selectedStore = viewModel.stores[(indexPath.row)].name
                 }
             }
             

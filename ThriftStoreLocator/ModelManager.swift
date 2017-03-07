@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import CoreData
 
 class ModelManager {
     
@@ -17,16 +18,24 @@ class ModelManager {
     var networkLayer = NetworkLayer()
     var dataLayer = DataLayer()
     
-//    func getStoresOnMainThread() -> [Store] {
-//        return dataLayer.getMessagesOnMainThread()
-//    }
+    func getStoresOnMainThread() -> [Store] {
+        return dataLayer.getStoresOnMainThread()
+    }
     
-    func loadStores(viewModelUpdater: @escaping ([String]) -> Void) { //([Store]) -> Void) {
+    func loadStores(viewModelUpdater: @escaping ([Store]) -> Void) { //([Store]) -> Void) {
         
         networkLayer.loadStoresFromServer(modelManagerUpdater: {stores in
-            print("Test Stores received in ModelManager")
             
-            viewModelUpdater(stores)
+            self.dataLayer.saveInBackground(storeStrArray: stores, saveInBackgroundSuccess: {
+            
+                let coreDataStores = self.getStoresOnMainThread()
+                viewModelUpdater(coreDataStores)
+                
+            
+            })
+            
+//            print("Test Stores received in ModelManager")
+//            viewModelUpdater(stores)
         })
     }
     

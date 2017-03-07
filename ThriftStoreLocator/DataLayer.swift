@@ -29,7 +29,8 @@ class DataLayer {
 
 extension DataLayer {
     
-    func saveInBackground(saveInBackgroundSuccess: VoidBlock? = nil) {
+    // TODO - Is weak self required here?
+    func saveInBackground(storeStrArray: [String], saveInBackgroundSuccess: VoidBlock? = nil) {
         
         // In background thread
         persistentContainer.performBackgroundTask( {context in
@@ -51,22 +52,55 @@ extension DataLayer {
             
             // Save stores downloaded from server
             
+            do {
             
+                for storeStr in storeStrArray {
+                
+                    let entity = NSEntityDescription.entity(forEntityName: "Store", in: self.persistentContainer.viewContext)
+                
+                    if let entity = entity {
+                        let store = Store(entity: entity, insertInto: self.persistentContainer.viewContext)
+                        store.name = storeStr
+                        
+                        try context.save()
+                    }
+                }
+            } catch {
+                print("Error saving Stores")
+            }
             
             // Update the main thread
             DispatchQueue.main.sync {
                 saveInBackgroundSuccess?()
             }
+            
         })
     }
     
-//    func getMessagesOnMainThread() -> [Store] {
+    func getStoresOnMainThread() -> [Store] {
+        
+//        let descriptor = NSSortDescriptor(key: #keyPath(Store.name), ascending: true)
 //        
-//        
-//        
-//        return stores
-//    }
-    
+//        let request: NSFetchRequest<Store> = Store.fetchRequest()
+//        request.sortDescriptors = [descriptor]
+        
+        
+        let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "Store")
+        
+        // Add Sort descriptor
+        let sortDescriptor = NSSortDescriptor(key: "name", ascending: true)
+        fetchRequest.sortDescriptors = [sortDescriptor]
+
+        
+        //on main thread
+        let stores = try! persistentContainer.viewContext.fetch(fetchRequest)
+        
+        //        messages.forEach { print($0.title) }
+        
+        
+        
+        return stores as! [Store]
+    }
     
     
     

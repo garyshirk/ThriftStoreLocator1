@@ -9,7 +9,7 @@
 import Foundation
 
 protocol StoresViewModelDelegate: class {
-    func handleStoresUpdated(stores: [String]) //[Store])
+    func handleStoresUpdated(stores: [Store])
 }
 
 class StoresViewModel {
@@ -20,7 +20,7 @@ class StoresViewModel {
     
     var stores: [Store] = []
     
-    var testStores: [String] = []
+    //var testStores: [String] = []
     
     
     init(delegate: StoresViewModelDelegate?) {
@@ -29,18 +29,19 @@ class StoresViewModel {
         
         modelManager = ModelManager.sharedInstance
         
-        modelManager.loadStores(viewModelUpdater: { [weak self] testStores -> Void in
+        modelManager.loadStores(viewModelUpdater: { [weak self] stores -> Void in
             
             guard let strongSelf = self else {
                 return
             }
             
-            strongSelf.testStores = testStores
+            strongSelf.stores = stores
+            
             print("Test stores received in StoresViewModel")
             
-            //strongSelf.stores = stores
             //strongSelf.stores.forEach {print("Store Name: \($0.name)")}
-            strongSelf.delegate?.handleStoresUpdated(stores: strongSelf.testStores)
+            
+            strongSelf.delegate?.handleStoresUpdated(stores: stores)
         })
     }
     
