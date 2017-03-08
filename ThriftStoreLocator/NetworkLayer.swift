@@ -11,18 +11,19 @@ import Alamofire
 import SwiftyJSON
 
 // TODO - constants should use pattern for constants (struct or enum)
-private let baseURL = "https://jsonplaceholder.typicode.com/todos"
+private let baseURL = "http://127.0.0.1:3000/stores"  //"http://localhost:3000/stores" //"https://jsonplaceholder.typicode.com/todos"
 
 class NetworkLayer {
     
-    var storesArrayOfDicts = [[String:String]]() // Array of Dictionaries
+    var storesArrayOfDicts = [[String:AnyObject]]() // Array of Dictionaries
     
-    func loadStoresFromServer(modelManagerUpdater: @escaping ([[String:String]]) -> Void) {
+    func loadStoresFromServer(modelManagerUpdater: @escaping ([[String:AnyObject]]) -> Void) {
         
         Alamofire.request(baseURL, method: .get).validate()
             
             // TODO - Using [weak self] here; is it required?
             .responseJSON(completionHandler: { [weak self] response in
+            //.responseString(completionHandler: { [weak self] response in // Need to use responseString to work with localhost json-server
                 
                 guard let strongSelf = self else { return }
                 
@@ -32,7 +33,7 @@ class NetworkLayer {
                     
                     let json = JSON(value)
                     
-                    print("JSON: \(json)")
+                    //print("JSON: \(json)")
                     
                     if let jsonArray = json.array {
                         
@@ -40,9 +41,9 @@ class NetworkLayer {
                             if let jsonDict = item.dictionary {
                                 
                                 var itemDict = [String:String]()
-                                itemDict["name"] = jsonDict["title"]?.stringValue
-                                itemDict["storeId"] = jsonDict["id"]?.stringValue
-                                strongSelf.storesArrayOfDicts.append(itemDict)
+                                itemDict["name"] = jsonDict["bizName"]?.stringValue
+                                itemDict["storeId"] = jsonDict["bizID"]?.stringValue
+                                strongSelf.storesArrayOfDicts.append(itemDict as [String : AnyObject])
                             }
                         }
                     }

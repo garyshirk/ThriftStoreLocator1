@@ -17,8 +17,8 @@ extension Store {
         return NSFetchRequest<Store>(entityName: "Store");
     }
 
-    @NSManaged public var locLong: String?
-    @NSManaged public var locLat: String?
+    @NSManaged public var locLong: NSNumber?
+    @NSManaged public var locLat: NSNumber?
     @NSManaged public var county: String?
     @NSManaged public var website: String?
     @NSManaged public var email: String?
@@ -30,6 +30,6 @@ extension Store {
     @NSManaged public var name: String?
     @NSManaged public var categoryMain: String?
     @NSManaged public var categorySub: String?
-    @NSManaged public var storeId: String?
+    @NSManaged public var storeId: NSNumber?
 
 }
