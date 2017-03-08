@@ -41,8 +41,22 @@ class NetworkLayer {
                             if let jsonDict = item.dictionary {
                                 
                                 var itemDict = [String:String]()
+                                
                                 itemDict["name"] = jsonDict["bizName"]?.stringValue
                                 itemDict["storeId"] = jsonDict["bizID"]?.stringValue
+                                itemDict["categoryMain"] = jsonDict["bizCat"]?.stringValue
+                                itemDict["categorySub"] = jsonDict["bizCatSub"]?.stringValue
+                                itemDict["address"] = jsonDict["bizAddr"]?.stringValue
+                                itemDict["city"] = jsonDict["bizCity"]?.stringValue
+                                itemDict["state"] = jsonDict["bizState"]?.stringValue
+                                itemDict["zip"] = jsonDict["bizZip"]?.stringValue
+                                itemDict["phone"] = jsonDict["bizPhone"]?.stringValue
+                                itemDict["email"] = jsonDict["bizEmail"]?.stringValue
+                                itemDict["website"] = jsonDict["bizURL"]?.stringValue
+                                itemDict["locLat"] = jsonDict["locLat"]?.stringValue
+                                itemDict["locLong"] = jsonDict["locLong"]?.stringValue
+                                itemDict["county"] = jsonDict["locCounty"]?.stringValue
+                                
                                 strongSelf.storesArrayOfDicts.append(itemDict as [String : AnyObject])
                             }
                         }

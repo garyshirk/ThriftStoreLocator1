@@ -57,9 +57,25 @@ extension DataLayer {
                     let entity = NSEntityDescription.entity(forEntityName: "Store", in: context)
                 
                     if let entity = entity {
+                        
                         let store = Store(entity: entity, insertInto: context)
+                        
                         store.name = storeDict["name"] as? String
-                        store.storeId = (storeDict["storeId"] as! NSString).doubleValue as NSNumber?
+                        store.storeId = (storeDict["storeId"] as! NSString).integerValue as NSNumber?
+                        store.categoryMain = storeDict["categoryMain"] as? String
+                        store.categorySub = storeDict["categorySub"] as? String
+                        store.address = storeDict["address"] as? String
+                        store.city = storeDict["city"] as? String
+                        store.state = storeDict["state"] as? String
+                        store.zip = storeDict["zip"] as? String
+                        store.phone = storeDict["phone"] as? String
+                        store.email = storeDict["email"] as? String
+                        store.website = storeDict["website"] as? String
+                        store.locLat = (storeDict["locLat"] as? NSString)?.doubleValue as NSNumber?
+                        store.locLong = (storeDict["locLong"] as? NSString)?.doubleValue as NSNumber?
+                        store.county = storeDict["county"] as? String
+                        
+                        print(store.description)
                         
                         try store.managedObjectContext?.save()
                     }
