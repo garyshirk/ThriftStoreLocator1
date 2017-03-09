@@ -203,11 +203,54 @@
                                 <nil key="textColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="3Gc-jb-DvY" userLabel="DirectionsView">
+                                <rect key="frame" x="16" y="257" width="160" height="30"/>
+                                <subviews>
+                                    <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="Map-50" translatesAutoresizingMaskIntoConstraints="NO" id="1AQ-Oq-Ime">
+                                        <rect key="frame" x="0.0" y="0.0" width="30" height="30"/>
+                                        <constraints>
+                                            <constraint firstAttribute="width" constant="30" id="1qD-Qw-pOP"/>
+                                            <constraint firstAttribute="height" constant="30" id="qIG-lY-HGD"/>
+                                        </constraints>
+                                    </imageView>
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="LM3-iz-g1f" userLabel="DirectionsButton">
+                                        <rect key="frame" x="-6" y="-5" width="170" height="40"/>
+                                        <connections>
+                                            <action selector="getDirectionsButton:" destination="CxU-8a-578" eventType="touchUpInside" id="43l-pn-xaP"/>
+                                        </connections>
+                                    </button>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Get Directions" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="mH4-Tu-t1g">
+                                        <rect key="frame" x="41" y="4" width="110" height="21"/>
+                                        <constraints>
+                                            <constraint firstAttribute="width" constant="110" id="4Mk-3f-xrF"/>
+                                            <constraint firstAttribute="height" constant="21" id="4g3-qD-zji"/>
+                                        </constraints>
+                                        <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                        <nil key="textColor"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
+                                </subviews>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <constraints>
+                                    <constraint firstItem="1AQ-Oq-Ime" firstAttribute="top" secondItem="3Gc-jb-DvY" secondAttribute="top" id="5aQ-8h-k6G"/>
+                                    <constraint firstItem="mH4-Tu-t1g" firstAttribute="leading" secondItem="1AQ-Oq-Ime" secondAttribute="trailing" constant="11" id="6s6-TP-6BK"/>
+                                    <constraint firstItem="1AQ-Oq-Ime" firstAttribute="leading" secondItem="3Gc-jb-DvY" secondAttribute="leading" id="JDb-wM-QUv"/>
+                                    <constraint firstAttribute="height" constant="30" id="PHk-ae-3Xx"/>
+                                    <constraint firstAttribute="width" constant="160" id="U38-0n-0Lh"/>
+                                    <constraint firstItem="LM3-iz-g1f" firstAttribute="leading" secondItem="3Gc-jb-DvY" secondAttribute="leading" constant="-6" id="X3E-o0-Vth"/>
+                                    <constraint firstAttribute="trailing" secondItem="LM3-iz-g1f" secondAttribute="trailing" constant="-4" id="iXk-7o-hJT"/>
+                                    <constraint firstAttribute="bottom" secondItem="LM3-iz-g1f" secondAttribute="bottom" constant="-5" id="mtC-0d-7jO"/>
+                                    <constraint firstItem="mH4-Tu-t1g" firstAttribute="top" secondItem="3Gc-jb-DvY" secondAttribute="top" constant="4" id="oiA-DI-bs1"/>
+                                    <constraint firstItem="LM3-iz-g1f" firstAttribute="top" secondItem="3Gc-jb-DvY" secondAttribute="top" constant="-5" id="rQd-e2-7ap"/>
+                                </constraints>
+                            </view>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                         <constraints>
+                            <constraint firstAttribute="leadingMargin" secondItem="3Gc-jb-DvY" secondAttribute="leading" id="3Fg-62-1QQ"/>
                             <constraint firstItem="5Hh-Vx-3Fa" firstAttribute="top" secondItem="55v-kh-zDm" secondAttribute="bottom" constant="16" id="5PC-AB-2WE"/>
                             <constraint firstAttribute="leadingMargin" secondItem="5zN-Wu-uGg" secondAttribute="leading" id="8Pi-Ye-9Bh"/>
+                            <constraint firstItem="3Gc-jb-DvY" firstAttribute="top" secondItem="liF-gO-yCv" secondAttribute="bottom" constant="26" id="9LE-F5-vkl"/>
                             <constraint firstItem="liF-gO-yCv" firstAttribute="leading" secondItem="b9s-jt-SLM" secondAttribute="trailing" constant="8" id="FO5-ry-cUd"/>
                             <constraint firstAttribute="leadingMargin" secondItem="nuV-89-Dg9" secondAttribute="leading" id="Gf1-J7-sfQ"/>
                             <constraint firstItem="5zN-Wu-uGg" firstAttribute="top" secondItem="k8a-H1-KDg" secondAttribute="bottom" constant="4" id="Ho6-JO-iI0"/>
@@ -488,6 +531,7 @@
         </scene>
     </scenes>
     <resources>
+        <image name="Map-50" width="25" height="25"/>
         <image name="fav_on" width="16" height="16"/>
         <image name="menuIcon" width="25" height="25"/>
         <image name="searchIcon" width="25" height="25"/>

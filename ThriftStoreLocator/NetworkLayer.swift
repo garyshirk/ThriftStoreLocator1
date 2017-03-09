@@ -13,11 +13,23 @@ import SwiftyJSON
 // TODO - constants should use pattern for constants (struct or enum)
 private let baseURL = "http://127.0.0.1:3000/stores"  //"http://localhost:3000/stores" //"https://jsonplaceholder.typicode.com/todos"
 
+var useDebug = true
+
 class NetworkLayer {
     
+    // TODO - Probably should change AnyObject to Any
     var storesArrayOfDicts = [[String:AnyObject]]() // Array of Dictionaries
     
     func loadStoresFromServer(modelManagerUpdater: @escaping ([[String:AnyObject]]) -> Void) {
+        
+        
+        // DEBUG
+        if useDebug {
+            loadStoresLocally()
+            modelManagerUpdater(storesArrayOfDicts)
+            return
+        }
+        
         
         Alamofire.request(baseURL, method: .get).validate()
             
@@ -70,6 +82,25 @@ class NetworkLayer {
                     print(error)
                 }
             })
+    }
+    
+    func loadStoresLocally() {
+        
+        let storeDict  = [
+            "name": "Goodwill",
+            "storeId": "1",
+            "address": "1430 E Algonquin Rd",
+            "city": "Algonquin",
+            "state": "IL",
+            "zip": "60102",
+            "phone": "630-772-1345",
+            "email": "",
+            "website": "",
+            "locLat": "42.2",
+            "locLong": "-88.3",
+        ] as [String : Any]
+        
+        storesArrayOfDicts.append(storeDict as [String : AnyObject])
     }
 
 }

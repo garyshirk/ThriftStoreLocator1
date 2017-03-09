@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import MapKit
 
 class DetailViewController: UIViewController {
     
@@ -17,6 +18,7 @@ class DetailViewController: UIViewController {
     var cityStr: String!
     var stateStr: String!
     var zipStr: String!
+    var location: (Double, Double)?
 
     @IBOutlet weak var storeName: UILabel!
     @IBOutlet weak var favImageView: UIImageView!
@@ -32,7 +34,11 @@ class DetailViewController: UIViewController {
         super.viewDidLoad()
 
         storeName.text = storeNameStr
-        distanceLabel.text = distanceStr
+        
+        if let lat = location?.0, let long = location?.1 {
+            distanceLabel.text = ("Lat: \(lat), Long: \(long)")
+        }
+        
         streetLabel.text = streetStr
         
         if let unwrappedCityStr = cityStr {
@@ -45,13 +51,38 @@ class DetailViewController: UIViewController {
         let heartImg: UIImage = (isFav == true ? UIImage(named: "fav_on") : UIImage(named: "fav_off"))!
         favImageView.image = heartImg
         
+        
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
     }
     
+    
+    @IBAction func getDirectionsButton(_ sender: Any) {
+        print("getDirectionsButton pressed")
+        openMapForPlace()
+    }
+    
+    
   
+    func openMapForPlace() {
+        
+        let latitude: CLLocationDegrees = location!.0
+        let longitude: CLLocationDegrees = location!.1
+        
+        let regionDistance:CLLocationDistance = 10000
+        let coordinates = CLLocationCoordinate2DMake(latitude, longitude)
+        let regionSpan = MKCoordinateRegionMakeWithDistance(coordinates, regionDistance, regionDistance)
+        let options = [
+            MKLaunchOptionsMapCenterKey: NSValue(mkCoordinate: regionSpan.center),
+            MKLaunchOptionsMapSpanKey: NSValue(mkCoordinateSpan: regionSpan.span)
+        ]
+        let placemark = MKPlacemark(coordinate: coordinates, addressDictionary: nil)
+        let mapItem = MKMapItem(placemark: placemark)
+        mapItem.name = streetLabel.text
+        mapItem.openInMaps(launchOptions: options)
+    }
     
     
     

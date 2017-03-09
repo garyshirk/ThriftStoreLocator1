@@ -436,9 +436,13 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         let cell = tableView.dequeueReusableCell(withIdentifier: "storeCell", for: indexPath)
         
         if isSearching {
-            cell.textLabel?.text = searchedStores[indexPath.row].name
+            if let searchedStoreName = searchedStores[indexPath.row].name {
+                cell.textLabel?.text = searchedStoreName
+            }
         } else {
-            cell.textLabel?.text = viewModel.stores[indexPath.row].name
+            if let storeName = viewModel.stores[indexPath.row].name {
+                cell.textLabel?.text = storeName
+            }
         }
         
         return cell
@@ -480,10 +484,13 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
                 detailViewController.distanceStr = "10 miles away"
                 detailViewController.isFav = false
                 detailViewController.streetStr = selectedStore.address
-                              
                 detailViewController.cityStr = selectedStore.city
                 detailViewController.stateStr = selectedStore.state
                 detailViewController.zipStr = selectedStore.zip
+                
+                let locLat = selectedStore.locLat as! Double
+                let locLong = selectedStore.locLong as! Double
+                detailViewController.location = (locLat, locLong)
             }
             
             // Old code in case you want to go back to embedding detail vc in a tabviewcontroller
