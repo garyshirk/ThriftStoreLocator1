@@ -22,9 +22,9 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     
     var viewModel: StoresViewModel!
     
-    var searchedStores: [String] = []
+    var searchedStores: [Store] = []
     
-    var selectedStore: String!
+    var selectedStore: Store!
     
     var isSearching: Bool = false
     
@@ -227,7 +227,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
             for store in viewModel.stores {
                 if let storeStr = store.name {
                     if searchStr.isEmpty || (storeStr.localizedCaseInsensitiveContains(searchStr)) {
-                        searchedStores.append(storeStr)
+                        searchedStores.append(store)
                     }
                 }
             }
@@ -436,7 +436,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         let cell = tableView.dequeueReusableCell(withIdentifier: "storeCell", for: indexPath)
         
         if isSearching {
-            cell.textLabel?.text = searchedStores[indexPath.row]
+            cell.textLabel?.text = searchedStores[indexPath.row].name
         } else {
             cell.textLabel?.text = viewModel.stores[indexPath.row].name
         }
@@ -471,22 +471,35 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
                 if isSearching {
                     selectedStore = searchedStores[(indexPath.row)]
                 } else {
-                    selectedStore = viewModel.stores[(indexPath.row)].name
+                    selectedStore = viewModel.stores[(indexPath.row)]
                 }
             }
             
-            let tabBarController = segue.destination as! UITabBarController
-            tabBarController.navigationItem.title = selectedStore
+            if let detailViewController = segue.destination as? DetailViewController {
+                detailViewController.storeNameStr = selectedStore.name
+                detailViewController.distanceStr = "10 miles away"
+                detailViewController.isFav = false
+                detailViewController.streetStr = selectedStore.address
+                              
+                detailViewController.cityStr = selectedStore.city
+                detailViewController.stateStr = selectedStore.state
+                detailViewController.zipStr = selectedStore.zip
+            }
             
-            let detailNavigationController = tabBarController.viewControllers!.first as! UINavigationController
-            let detailViewController = detailNavigationController.viewControllers.first as! DetailViewController
-            detailViewController.labelString = selectedStore + " in Detail view"
+            // Old code in case you want to go back to embedding detail vc in a tabviewcontroller
+//            let navigationController = segue.destination as! UINavigationController
+//            let detailViewController = navigationController.viewControllers.first as! DetailViewController
+//            navigationController.title = selectedStore
+//            detailViewController.labelString = selectedStore
             
-            let mapNavigationController = tabBarController.viewControllers?[1] as! UINavigationController
-            let mapViewController = mapNavigationController.viewControllers.first as! MapViewController
-            mapViewController.labelString = selectedStore + " in Map view"
-            
-            print("Selected Store: \(selectedStore)")
+//            let tabBarController = segue.destination as! UITabBarController
+//            tabBarController.navigationItem.title = selectedStore
+//            let detailNavigationController = tabBarController.viewControllers!.first as! UINavigationController
+//            let detailViewController = detailNavigationController.viewControllers.first as! DetailViewController
+//            detailViewController.labelString = selectedStore + " in Detail view"
+//            let mapNavigationController = tabBarController.viewControllers?[1] as! UINavigationController
+//            let mapViewController = mapNavigationController.viewControllers.first as! MapViewController
+//            mapViewController.labelString = selectedStore + " in Map view"
         }
     }
 

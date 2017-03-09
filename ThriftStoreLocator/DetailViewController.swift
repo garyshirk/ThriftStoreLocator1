@@ -10,39 +10,61 @@ import UIKit
 
 class DetailViewController: UIViewController {
     
-    var labelString: String = ""
+    var storeNameStr: String!
+    var distanceStr: String!
+    var isFav: Bool!
+    var streetStr: String!
+    var cityStr: String!
+    var stateStr: String!
+    var zipStr: String!
 
-    @IBOutlet weak var label: UILabel?
+    @IBOutlet weak var storeName: UILabel!
+    @IBOutlet weak var favImageView: UIImageView!
+    @IBOutlet weak var distanceLabel: UILabel!
+    @IBOutlet weak var streetLabel: UILabel!
+    @IBOutlet weak var cityLabel: UILabel!
+    @IBOutlet weak var stateLabel: UILabel!
+    @IBOutlet weak var zipLabel: UILabel!
+    
     
     override func viewDidLoad() {
+        
         super.viewDidLoad()
 
-        label?.text = labelString
+        storeName.text = storeNameStr
+        distanceLabel.text = distanceStr
+        streetLabel.text = streetStr
         
+        if let unwrappedCityStr = cityStr {
+            cityLabel.text = ("\(unwrappedCityStr),")
+        }
+
+        stateLabel.text = stateStr
+        zipLabel.text = zipStr
+        
+        let heartImg: UIImage = (isFav == true ? UIImage(named: "fav_on") : UIImage(named: "fav_off"))!
+        favImageView.image = heartImg
         
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        
     }
+    
+  
+    
+    
+    
+    
+    
+    
+    
 
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
         
-        
-    }
     
-
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destinationViewController.
-        // Pass the selected object to the new view controller.
     }
-    */
 
 }
