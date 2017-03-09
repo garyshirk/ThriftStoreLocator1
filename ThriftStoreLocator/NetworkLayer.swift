@@ -13,14 +13,14 @@ import SwiftyJSON
 // TODO - constants should use pattern for constants (struct or enum)
 private let baseURL = "http://127.0.0.1:3000/stores"  //"http://localhost:3000/stores" //"https://jsonplaceholder.typicode.com/todos"
 
-var useDebug = true
+var useDebug = false
 
 class NetworkLayer {
     
     // TODO - Probably should change AnyObject to Any
-    var storesArrayOfDicts = [[String:AnyObject]]() // Array of Dictionaries
+    var storesArrayOfDicts = [[String:Any]]() // Array of Dictionaries
     
-    func loadStoresFromServer(modelManagerUpdater: @escaping ([[String:AnyObject]]) -> Void) {
+    func loadStoresFromServer(modelManagerUpdater: @escaping ([[String:Any]]) -> Void) {
         
         
         // DEBUG
@@ -69,7 +69,7 @@ class NetworkLayer {
                                 itemDict["locLong"] = jsonDict["locLong"]?.stringValue
                                 itemDict["county"] = jsonDict["locCounty"]?.stringValue
                                 
-                                strongSelf.storesArrayOfDicts.append(itemDict as [String : AnyObject])
+                                strongSelf.storesArrayOfDicts.append(itemDict as [String : Any])
                             }
                         }
                     }
@@ -100,7 +100,7 @@ class NetworkLayer {
             "locLong": "-88.3",
         ] as [String : Any]
         
-        storesArrayOfDicts.append(storeDict as [String : AnyObject])
+        storesArrayOfDicts.append(storeDict)
     }
 
 }

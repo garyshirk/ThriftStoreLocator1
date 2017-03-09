@@ -29,7 +29,7 @@ class DataLayer {
 extension DataLayer {
     
     // TODO - Is weak self required here?
-    func saveInBackground(stores: [[String:AnyObject]], saveInBackgroundSuccess: VoidBlock? = nil) {
+    func saveInBackground(stores: [[String:Any]], saveInBackgroundSuccess: VoidBlock? = nil) {
         
         // On background thread
         persistentContainer.performBackgroundTask( {context in
@@ -52,7 +52,7 @@ extension DataLayer {
             // Save stores downloaded from server to Core Data
             do {
             
-                for storeDict:[String:AnyObject] in stores {
+                for storeDict:[String:Any] in stores {
                 
                     let entity = NSEntityDescription.entity(forEntityName: "Store", in: context)
                 
