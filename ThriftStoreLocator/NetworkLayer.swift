@@ -13,7 +13,7 @@ import SwiftyJSON
 // TODO - constants should use pattern for constants (struct or enum)
 private let baseURL = "http://127.0.0.1:3000/stores"  //"http://localhost:3000/stores" //"https://jsonplaceholder.typicode.com/todos"
 
-var useDebug = false
+var useDebug = true
 
 class NetworkLayer {
     
@@ -85,8 +85,8 @@ class NetworkLayer {
     
     func loadStoresLocally() {
         
-        let storeDict  = [
-            "name": "Goodwill",
+        let storeDict1  = [
+            "name": "Goodwill Algonquin",
             "storeId": "1",
             "address": "1430 E Algonquin Rd",
             "city": "Algonquin",
@@ -95,11 +95,43 @@ class NetworkLayer {
             "phone": "630-772-1345",
             "email": "",
             "website": "",
-            "locLat": "42.2",
-            "locLong": "-88.3",
+            "locLat": "42.160150",
+            "locLong": "-88.273972",
         ] as [String : Any]
         
-        storesArrayOfDicts.append(storeDict)
+        storesArrayOfDicts.append(storeDict1)
+        
+        let storeDict2  = [
+            "name": "Goodwill Crystal Lake",
+            "storeId": "2",
+            "address": "1016 Central Park Dr",
+            "city": "Crystal Lake",
+            "state": "IL",
+            "zip": "60014",
+            "phone": "630-676-1345",
+            "email": "",
+            "website": "",
+            "locLat": "42.211024",
+            "locLong": "-88.283469",
+            ] as [String : Any]
+        
+        storesArrayOfDicts.append(storeDict2)
+        
+        let storeDict3  = [
+            "name": "Goodwill Carpentersville",
+            "storeId": "3",
+            "address": "7777 Miller Rd",
+            "city": "Carpentersville",
+            "state": "IL",
+            "zip": "60110",
+            "phone": "630-676-1345",
+            "email": "",
+            "website": "",
+            "locLat": "42.121406",
+            "locLong": "-88.339040",
+            ] as [String : Any]
+        
+        storesArrayOfDicts.append(storeDict3)
     }
 
 }

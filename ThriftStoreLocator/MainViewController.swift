@@ -13,6 +13,8 @@ import SideMenu
 
 // TODO - MapView initial height should be proportional to device height
 
+// TODO - Define a CLCicularRegion based on user's current location and update store map and list when user leaves that region
+
 class MainViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UITextFieldDelegate, MKMapViewDelegate, CLLocationManagerDelegate, StoresViewModelDelegate {
     
     var viewModel: StoresViewModel!
@@ -114,7 +116,12 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         myLocation.lat = locValue.latitude
         myLocation.long = locValue.longitude
         //print("locations = \(myLocation.lat) \(myLocation.long)")
+        
         lookUpLocation()
+        
+        //Zoom the map to user location
+        let region = MKCoordinateRegionMakeWithDistance(locValue, 20000, 20000)
+        mapView.setRegion(region, animated: true)
     }
     
     func lookUpLocation() {
@@ -154,6 +161,14 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     // TODO - Don't need to pass back store array here because view is populated via viewModel.stores
     func handleStoresUpdated(stores: [Store]) {
         tableView.reloadData()
+        
+        
+        // TODO - Add annotations to map
+        for store in stores {
+            let annotation = MKPointAnnotation()
+            annotation.coordinate = CLLocationCoordinate2D(latitude: store.locLat as! CLLocationDegrees, longitude: store.locLong as! CLLocationDegrees)
+            mapView.addAnnotation(annotation)
+        }
     }
 
  
