@@ -35,7 +35,6 @@ class NetworkLayer {
             
             // TODO - Using [weak self] here; is it required?
             .responseJSON(completionHandler: { [weak self] response in
-            //.responseString(completionHandler: { [weak self] response in // Need to use responseString to work with localhost json-server
                 
                 guard let strongSelf = self else { return }
                 

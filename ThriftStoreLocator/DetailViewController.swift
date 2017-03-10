@@ -18,7 +18,7 @@ class DetailViewController: UIViewController {
     var cityStr: String!
     var stateStr: String!
     var zipStr: String!
-    var location: (Double, Double)?
+    var storeLocation: (lat: Double, long: Double)?
 
     @IBOutlet weak var storeName: UILabel!
     @IBOutlet weak var favImageView: UIImageView!
@@ -35,7 +35,7 @@ class DetailViewController: UIViewController {
 
         storeName.text = storeNameStr
         
-        if let lat = location?.0, let long = location?.1 {
+        if let lat = storeLocation?.0, let long = storeLocation?.1 {
             distanceLabel.text = ("Lat: \(lat), Long: \(long)")
         }
         
@@ -68,8 +68,8 @@ class DetailViewController: UIViewController {
   
     func openMapForPlace() {
         
-        let latitude: CLLocationDegrees = location!.0
-        let longitude: CLLocationDegrees = location!.1
+        let latitude: CLLocationDegrees = storeLocation!.lat
+        let longitude: CLLocationDegrees = storeLocation!.long
         
         let regionDistance:CLLocationDistance = 10000
         let coordinates = CLLocationCoordinate2DMake(latitude, longitude)
@@ -81,6 +81,9 @@ class DetailViewController: UIViewController {
         let placemark = MKPlacemark(coordinate: coordinates, addressDictionary: nil)
         let mapItem = MKMapItem(placemark: placemark)
         mapItem.name = streetLabel.text
+        
+        print(mapItem.name ?? "No name")
+        
         mapItem.openInMaps(launchOptions: options)
     }
     

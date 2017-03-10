@@ -8,17 +8,12 @@
 
 import UIKit
 import MapKit
+import CoreLocation
 import SideMenu
 
 // TODO - MapView initial height should be proportional to device height
 
-class MainViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UITextFieldDelegate, MKMapViewDelegate, StoresViewModelDelegate {
-    
-//    var stores: [String] = ["Goodwill", "Salvation Army", "Savers", "Thrift on Main", "Sparrows Nest",
-//                            "Goodwill Schaumburg", "Goodwill2", "Salvation Army2", "Savers2",
-//                            "Thrift on Main2", "Sparrows Nest2", "Goodwill Crystal Lake",
-//                            "Thrift on Main3", "Sparrows Nest3", "Goodwill Carpentersville",
-//                            "Thrift on Main4", "Sparrows Nest4", "Goodwill Lake Zurich"]
+class MainViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UITextFieldDelegate, MKMapViewDelegate, CLLocationManagerDelegate, StoresViewModelDelegate {
     
     var viewModel: StoresViewModel!
     
@@ -33,6 +28,10 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     var previousScrollViewOffset: CGFloat = 0.0
     
     var barButtonDefaultTintColor: UIColor?
+    
+    var myLocation: (lat: Double, long: Double)?
+    
+    let locationManager = CLLocationManager()
 
     @IBOutlet weak var tableView: UITableView!
     @IBOutlet weak var titleLabel: UILabel!
@@ -40,7 +39,6 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     @IBOutlet weak var searchTextField: UITextField!
     @IBOutlet weak var menuBarButton: UIBarButtonItem!
     @IBOutlet weak var searchBarButton: UIBarButtonItem!
-    
     @IBOutlet weak var mapView: MKMapView!
     @IBOutlet weak var mapViewHeightConstraint: NSLayoutConstraint!
     @IBOutlet weak var mapViewYConstraint: NSLayoutConstraint!
@@ -83,10 +81,17 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         // Map Kit View
         mapView.mapType = .standard
         mapView.delegate = self
+        locationManager.requestWhenInUseAuthorization()
+        if CLLocationManager.locationServicesEnabled() {
+            locationManager.delegate = self
+            locationManager.desiredAccuracy = kCLLocationAccuracyNearestTenMeters
+            locationManager.startUpdatingLocation()
+        }
         
         // Get list of stores for current location
         // TODO - Use dependency injection for setting viewModel
         viewModel = StoresViewModel(delegate: self, withLoadStores: true)
+        
         
     }
     
@@ -102,110 +107,17 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         super.viewWillDisappear(animated)
     }
     
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        let locValue:CLLocationCoordinate2D = manager.location!.coordinate
+        print("locations = \(locValue.latitude) \(locValue.longitude)")
+        myLocation?.lat = locValue.latitude
+        myLocation?.long = locValue.longitude
+    }
+    
     // TODO - Don't need to pass back store array here because view is populated via viewModel.stores
     func handleStoresUpdated(stores: [Store]) {
         tableView.reloadData()
     }
-        
-    // NOTE: Search bar tutorial json task from http://sweettutos.com/2015/12/26/hands-on-uisearchcontroller-the-complete-guide/
-    // But below is old Swift code; Swift 3 updated code is in next function and is working https://grokswift.com/updating-nsurlsession-to-swift-3-0/
-//    func retrieveFakeData() {
-//        let session = URLSession.shared
-//        let url:NSURL! = NSURL(string: "http://jsonplaceholder.typicode.com/users")
-//    
-//       
-//        let task = session.downloadTaskWithURL(url as URL) { (location: NSURL?, response: URLResponse?, error: NSError?) -> Void in
-//            if (location != nil){
-//                let data:NSData! = NSData(contentsOfURL: location!)
-//                do{
-//                    self.users = try NSJSONSerialization.JSONObjectWithData(data, options: .MutableLeaves) as! [[String : AnyObject]]
-//                    dispatch_async(dispatch_get_main_queue(), { () -> Void in
-//                        self.tableView.reloadData()
-//                    })
-//                }catch{
-//                    // Catch any exception
-//                    print("Something went wrong")
-//                }
-//            }else{
-//                // Error
-//                print("An error occurred \(error)")
-//            }
-//        }
-//        // Start the download task
-//        task.resume()
-//    }
-    
-    // OLD code - Moved to NetworkLayer and now using Alamofire
-    func makeGetCall() {
-        // Set up URL request
-        let urlString: String = "http://jsonplaceholder.typicode.com/todos/1" // note: this is a test url
-        guard let url = URL(string: urlString) else {
-            print("Error: cannot create URL")
-            return
-        }
-        let urlRequest = URLRequest(url: url)
-        
-        // Set up session
-        let config = URLSessionConfiguration.default
-        let session = URLSession(configuration: config)
-        
-        // Make the request
-        let task = session.dataTask(with: urlRequest, completionHandler: { (data, response, error) in
-            
-            // Handle returned response
-            print(error ?? "no error")
-            print(response!)
-            
-            // Parse the Json response data
-            do {
-                guard let todo = try JSONSerialization.jsonObject(with: data!, options: []) as? [String: Any] else {
-                    print("Error trying to convert data to JSON")
-                    return
-                }
-                
-                // Got the data
-                print("Data is \(todo.description)")
-                
-                // Reload the tableView on the main thread
-                DispatchQueue.main.async(execute: { () -> Void in
-                    self.tableView.reloadData()
-                })
-                
-                // todo object is a dictionary, so can access the title using the "title" key
-                guard let todoTitle = todo["title"] as? String else {
-                    print("Could not get title from JSON")
-                    return
-                }
-                print("The title is: \(todoTitle)")
-            } catch {
-                print("Error trying to convert data to JSON")
-                return
-            }
-        })
-        task.resume()
-    }
-
-    //    func makeGetCall() {
-    //        // Set up URL request
-    //        let todoEndpoint: String = "http://jsonplaceholder.typicode.com/users"
-    //        guard let url = URL(string: todoEndpoint) else {
-    //            print("Error: cannot create URL")
-    //            return
-    //        }
-    //        let urlRequest = URLRequest(url: url)
-    //
-    //        // Set up session
-    //        let config = URLSessionConfiguration.default
-    //        let session = URLSession(configuration: config)
-    //
-    //        // Make the request
-    //        let task = session.dataTask(with: urlRequest, completionHandler: { (data, response, error) in
-    //            // Handle returned response
-    //            print(error ?? "no error")
-    //            print(response!)
-    //        })
-    //        task.resume()
-    //    }
 
  
     // MARK: - TextField delegates
@@ -490,7 +402,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
                 
                 let locLat = selectedStore.locLat as! Double
                 let locLong = selectedStore.locLong as! Double
-                detailViewController.location = (locLat, locLong)
+                detailViewController.storeLocation = (locLat, locLong)
             }
             
             // Old code in case you want to go back to embedding detail vc in a tabviewcontroller
