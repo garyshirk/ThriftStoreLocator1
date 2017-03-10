@@ -29,7 +29,9 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     
     var barButtonDefaultTintColor: UIColor?
     
-    var myLocation: (lat: Double, long: Double)?
+    var myLocation: (lat: Double, long: Double) = (0.0, 0.0)
+    
+    lazy var geocoder = CLGeocoder()
     
     let locationManager = CLLocationManager()
 
@@ -109,9 +111,44 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         let locValue:CLLocationCoordinate2D = manager.location!.coordinate
-        print("locations = \(locValue.latitude) \(locValue.longitude)")
-        myLocation?.lat = locValue.latitude
-        myLocation?.long = locValue.longitude
+        myLocation.lat = locValue.latitude
+        myLocation.long = locValue.longitude
+        //print("locations = \(myLocation.lat) \(myLocation.long)")
+        lookUpLocation()
+    }
+    
+    func lookUpLocation() {
+        
+        let locationCoords: CLLocation = CLLocation(latitude: myLocation.lat, longitude: myLocation.long)
+    
+        geocoder.reverseGeocodeLocation(locationCoords) { (placemarks, error) in
+    
+            print(locationCoords)
+    
+            if error != nil {
+                print("Reverse geocoder failed with error" + (error?.localizedDescription)!)
+                return
+            }
+    
+            if let placemarks = placemarks, let placemark = placemarks.first, let zip = placemark.postalCode {
+                
+                let locality = placemark.locality ?? "No locality found"
+                print("Locality: \(locality)")
+                
+                let subLocality = placemark.subLocality ?? "No sub locality found"
+                print("Sub Locality: \(subLocality)")
+                
+                let name = placemark.name ?? "No name found"
+                print("Name: \(name)")
+                
+                let region = placemark.region?.identifier ?? "No region found"
+                print("Region Identifier: \(region)")
+                
+                print("Zip Code: \(zip)")
+            } else {
+                print("Problem with placemark data")
+            }
+        }
     }
     
     // TODO - Don't need to pass back store array here because view is populated via viewModel.stores
@@ -358,17 +395,6 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         }
         
         return cell
-        
-    
-//        let cell = tableView.dequeueReusableCell(withIdentifier: "storeCell", for: indexPath)
-//        
-//        if isSearching {
-//            cell.textLabel?.text = searchedStores[indexPath.row]
-//        } else {
-//            cell.textLabel?.text = stores[indexPath.row]
-//        }
-//
-//        return cell
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
@@ -404,69 +430,9 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
                 let locLong = selectedStore.locLong as! Double
                 detailViewController.storeLocation = (locLat, locLong)
             }
-            
-            // Old code in case you want to go back to embedding detail vc in a tabviewcontroller
-//            let navigationController = segue.destination as! UINavigationController
-//            let detailViewController = navigationController.viewControllers.first as! DetailViewController
-//            navigationController.title = selectedStore
-//            detailViewController.labelString = selectedStore
-            
-//            let tabBarController = segue.destination as! UITabBarController
-//            tabBarController.navigationItem.title = selectedStore
-//            let detailNavigationController = tabBarController.viewControllers!.first as! UINavigationController
-//            let detailViewController = detailNavigationController.viewControllers.first as! DetailViewController
-//            detailViewController.labelString = selectedStore + " in Detail view"
-//            let mapNavigationController = tabBarController.viewControllers?[1] as! UINavigationController
-//            let mapViewController = mapNavigationController.viewControllers.first as! MapViewController
-//            mapViewController.labelString = selectedStore + " in Map view"
         }
     }
 
-    /*
-    // Override to support conditional editing of the table view.
-    override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
-        // Return false if you do not want the specified item to be editable.
-        return true
-    }
-    */
-
-    /*
-    // Override to support editing the table view.
-    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
-        if editingStyle == .delete {
-            // Delete the row from the data source
-            tableView.deleteRows(at: [indexPath], with: .fade)
-        } else if editingStyle == .insert {
-            // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view
-        }    
-    }
-    */
-
-    /*
-    // Override to support rearranging the table view.
-    override func tableView(_ tableView: UITableView, moveRowAt fromIndexPath: IndexPath, to: IndexPath) {
-
-    }
-    */
-
-    /*
-    // Override to support conditional rearranging of the table view.
-    override func tableView(_ tableView: UITableView, canMoveRowAt indexPath: IndexPath) -> Bool {
-        // Return false if you do not want the item to be re-orderable.
-        return true
-    }
-    */
-
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destinationViewController.
-        // Pass the selected object to the new view controller.
-    }
-    */
-    
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
