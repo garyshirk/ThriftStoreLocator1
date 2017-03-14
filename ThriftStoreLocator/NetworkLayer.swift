@@ -11,20 +11,21 @@ import Alamofire
 import SwiftyJSON
 
 // TODO - constants should use pattern for constants (struct or enum)
-private let baseURL = "http://127.0.0.1:3000/stores"  //"http://localhost:3000/stores" //"https://jsonplaceholder.typicode.com/todos"
+//private let baseURL = "http://127.0.0.1:8000/thriftstores"
+private let baseURL = "http://localhost:3000/stores"
+//"https://jsonplaceholder.typicode.com/todos"
 
-var useDebug = true
+var isLoadingLocal = true
 
 class NetworkLayer {
     
-    // TODO - Probably should change AnyObject to Any
     var storesArrayOfDicts = [[String:Any]]() // Array of Dictionaries
     
     func loadStoresFromServer(modelManagerUpdater: @escaping ([[String:Any]]) -> Void) {
         
         
         // DEBUG
-        if useDebug {
+        if isLoadingLocal {
             loadStoresLocally()
             modelManagerUpdater(storesArrayOfDicts)
             return
@@ -133,5 +134,4 @@ class NetworkLayer {
         
         storesArrayOfDicts.append(storeDict3)
     }
-
 }
