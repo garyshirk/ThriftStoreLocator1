@@ -175,6 +175,25 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         }
     }
     
+    func distanceFromMyLocation(toLat: NSNumber, long: NSNumber) -> String {
+        
+        let toLatDouble = toLat.doubleValue
+        let toLongDouble = long.doubleValue
+        
+        let myLoc = CLLocation(latitude: myLocation.lat, longitude: myLocation.long)
+        let storeLoc = CLLocation(latitude: toLatDouble, longitude: toLongDouble)
+        var distance = myLoc.distance(from: storeLoc) * 0.000621371
+        
+        if distance < 0.1 {
+            distance = distance * 5280.0
+            return ("\(distance.roundTo(places: 1)) feet")
+        } else if (distance >= 9) {
+            return ("\(Int(distance)) miles")
+        } else {
+            return ("\(distance.roundTo(places: 1)) miles")
+        }
+    }
+    
     // TODO - Don't need to pass back store array here because view is populated via viewModel.stores
     func handleStoresUpdated(stores: [Store]) {
         tableView.reloadData()
@@ -399,6 +418,10 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     func numberOfSections(in tableView: UITableView) -> Int {
         return 1
     }
+    
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        return 90
+    }
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         
@@ -414,17 +437,21 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
-        let cell = tableView.dequeueReusableCell(withIdentifier: "storeCell", for: indexPath)
+        let cell = tableView.dequeueReusableCell(withIdentifier: "storeCell", for: indexPath) as! StoreCell
+        
+        var selectedStore: Store
         
         if isSearching {
-            if let searchedStoreName = searchedStores[indexPath.row].name {
-                cell.textLabel?.text = searchedStoreName
-            }
+            selectedStore = searchedStores[indexPath.row]
         } else {
-            if let storeName = viewModel.stores[indexPath.row].name {
-                cell.textLabel?.text = storeName
-            }
+            selectedStore = viewModel.stores[indexPath.row]
         }
+        
+        cell.storeLabel.text = selectedStore.name
+        if let city = selectedStore.city, let state = selectedStore.state {
+            cell.cityStateLabel.text = "\(city), \(state)"
+        }
+        cell.distanceLabel.text = ("\(distanceFromMyLocation(toLat: selectedStore.locLat!, long: selectedStore.locLong!)) away")
         
         return cell
     }
@@ -451,13 +478,12 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
             
             if let detailViewController = segue.destination as? DetailViewController {
                 detailViewController.storeNameStr = selectedStore.name
-                detailViewController.distanceStr = "10 miles away"
                 detailViewController.isFav = false
                 detailViewController.streetStr = selectedStore.address
                 detailViewController.cityStr = selectedStore.city
                 detailViewController.stateStr = selectedStore.state
                 detailViewController.zipStr = selectedStore.zip
-                
+                detailViewController.distanceStr = ("\(distanceFromMyLocation(toLat: selectedStore.locLat!, long: selectedStore.locLong!)) away")
                 let locLat = selectedStore.locLat as! Double
                 let locLong = selectedStore.locLong as! Double
                 detailViewController.storeLocation = (locLat, locLong)
@@ -507,5 +533,12 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         }
     }
 
+}
 
+extension Double {
+    // Rounds Double to decimal places value
+    func roundTo(places: Int) -> Double {
+        let divisor = pow(10.0, Double(places))
+        return (self * divisor).rounded() / divisor
+    }
 }

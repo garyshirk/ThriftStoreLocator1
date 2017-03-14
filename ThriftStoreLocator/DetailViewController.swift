@@ -35,9 +35,7 @@ class DetailViewController: UIViewController {
 
         storeName.text = storeNameStr
         
-        if let lat = storeLocation?.0, let long = storeLocation?.1 {
-            distanceLabel.text = ("Lat: \(lat), Long: \(long)")
-        }
+        distanceLabel.text = distanceStr
         
         streetLabel.text = streetStr
         
