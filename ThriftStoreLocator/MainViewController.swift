@@ -37,7 +37,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     
     var barButtonDefaultTintColor: UIColor?
     
-    var myLocation: (lat: Double, long: Double) = (0.0, 0.0)
+    var myLocation: CLLocationCoordinate2D?
     
     lazy var geocoder = CLGeocoder()
     
@@ -140,33 +140,34 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     
     // TODO - Need new arrow location image; current one has white background
     @IBAction func didPressLocArrow(_ sender: Any) {
-        didZoomToLocation = false
+        zoomToLocation()
     }
 
     
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         
-        if let loc = manager.location {
-        
-            let locValue:CLLocationCoordinate2D = loc.coordinate
-            myLocation.lat = locValue.latitude
-            myLocation.long = locValue.longitude
-            //print("locations = \(myLocation.lat) \(myLocation.long)")
-        
+        if let loc = manager.location?.coordinate {
+            
+            myLocation = loc
+    
             if didZoomToLocation == false {
-                //Zoom the map to user location
-                lookUpLocation(currentLocation: myLocation)
-                let region = MKCoordinateRegionMakeWithDistance(locValue, 20000, 20000)
-                mapView.setRegion(region, animated: true)
-                didZoomToLocation = true
+                lookUpLocation()
+                zoomToLocation()
             }
         }
     }
     
+    func zoomToLocation() {
+        // TODO - why do I have to unwrap myLocation; thought that happened above in func locationManager: if let loc = ...
+        let region = MKCoordinateRegionMakeWithDistance(myLocation!, 20000, 20000)
+        mapView.setRegion(region, animated: true)
+        didZoomToLocation = true
+    }
     
-    func lookUpLocation(currentLocation: (lat: Double, long: Double)) {
+    
+    func lookUpLocation() {
         
-        let locationCoords: CLLocation = CLLocation(latitude: myLocation.lat, longitude: myLocation.long)
+        let locationCoords: CLLocation = CLLocation(latitude: myLocation!.latitude, longitude: myLocation!.longitude)
     
         geocoder.reverseGeocodeLocation(locationCoords) { (placemarks, error) in
     
@@ -203,7 +204,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         let toLatDouble = toLat.doubleValue
         let toLongDouble = long.doubleValue
         
-        let myLoc = CLLocation(latitude: myLocation.lat, longitude: myLocation.long)
+        let myLoc = CLLocation(latitude: (myLocation?.latitude)!, longitude: (myLocation?.longitude)!)
         let storeLoc = CLLocation(latitude: toLatDouble, longitude: toLongDouble)
         var distance = myLoc.distance(from: storeLoc) * 0.000621371
         
@@ -221,8 +222,6 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     func handleStoresUpdated(stores: [Store]) {
         tableView.reloadData()
         
-        
-        // TODO - Add annotations to map
         for store in stores {
             let annotation = MKPointAnnotation()
             annotation.coordinate = CLLocationCoordinate2D(latitude: store.locLat as! CLLocationDegrees, longitude: store.locLong as! CLLocationDegrees)
