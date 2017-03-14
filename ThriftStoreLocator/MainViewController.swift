@@ -66,15 +66,6 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
         // self.navigationItem.rightBarButtonItem = self.editButtonItem()
         
-
-        // Side Menu appearance and configuration
-        //let appDelegate = UIApplication.shared.delegate as! AppDelegate
-        //SideMenuManager.menuAnimationBackgroundColor = appDelegate.uicolorFromHex(rgbValue: UInt32(AppDelegate.NAV_BAR_TINT_COLOR))
-        SideMenuManager.menuAnimationBackgroundColor = UIColor.white
-        SideMenuManager.menuFadeStatusBar = false
-        SideMenuManager.menuAnimationTransformScaleFactor = 1.0
-        SideMenuManager.menuPresentMode = .menuSlideIn
-        
         // Scroll view inset adjustment handled by tableView constraints in storyboard
         self.automaticallyAdjustsScrollViewInsets = false
         
@@ -88,16 +79,11 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         setSearchEnabledMode(doSet: false)
         searchTextField.delegate = self
         
-        
-        
         // DEBUG
         if isTestingPost == true {
             testPost()
             return
         }
-        
-        
-        
         
         // Map Kit View
         mapView.mapType = .standard
@@ -112,8 +98,6 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         // Get list of stores for current location
         // TODO - Use dependency injection for setting viewModel
         viewModel = StoresViewModel(delegate: self, withLoadStores: true)
-        
-        
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -127,6 +111,30 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
     }
+    
+    
+    @IBAction func didPressSideMenuButton(_ sender: Any) {
+        
+        let sb = UIStoryboard(name: "Main", bundle: nil)
+        let menuRightNavigationController = sb.instantiateViewController(withIdentifier: "sideMenuNavigationController") as! UISideMenuNavigationController
+        menuRightNavigationController.leftSide = true
+        SideMenuManager.menuRightNavigationController = menuRightNavigationController
+        
+        // Side Menu appearance and configuration
+        // let appDelegate = UIApplication.shared.delegate as! AppDelegate
+        // SideMenuManager.menuAnimationBackgroundColor = appDelegate.uicolorFromHex(rgbValue: UInt32(AppDelegate.NAV_BAR_TINT_COLOR))
+        // SideMenuManager.menuAnimationBackgroundColor = UIColor.white
+        SideMenuManager.menuAnimationBackgroundColor = UIColor.white
+        SideMenuManager.menuFadeStatusBar = false
+        SideMenuManager.menuAnimationTransformScaleFactor = 0.9
+        SideMenuManager.menuPresentMode = .viewSlideOut
+        
+        let sideMenuViewController = menuRightNavigationController.viewControllers[0] as! MenuTableViewController
+        sideMenuViewController.someString = "HELLO WORLD"
+        
+        present(SideMenuManager.menuLeftNavigationController!, animated: true, completion: nil)
+    }
+    
     
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         let locValue:CLLocationCoordinate2D = manager.location!.coordinate

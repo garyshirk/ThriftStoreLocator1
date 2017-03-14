@@ -36,7 +36,7 @@
                                         <rect key="frame" x="0.0" y="28" width="414" height="100"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="QaK-Qj-4hf" id="IGt-If-wwB">
-                                            <rect key="frame" x="0.0" y="0.0" width="414" height="99.666666666666671"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="414" height="100"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="cellblank" translatesAutoresizingMaskIntoConstraints="NO" id="2sg-5C-qT6">
@@ -123,7 +123,7 @@
                         <nil key="title"/>
                         <barButtonItem key="leftBarButtonItem" image="menuIcon" id="OZb-qO-0Ub">
                             <connections>
-                                <segue destination="M2D-kd-UKs" kind="presentation" id="8E5-OD-rGE"/>
+                                <action selector="didPressSideMenuButton:" destination="NLN-iD-Puq" id="hTQ-HP-pY1"/>
                             </connections>
                         </barButtonItem>
                         <view key="titleView" clipsSubviews="YES" contentMode="scaleToFill" id="fsL-CZ-vjs">
@@ -341,7 +341,7 @@
                                         <rect key="frame" x="0.0" y="0.0" width="414" height="44"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="f5z-qJ-Hsc" id="Kvr-eQ-DDj">
-                                            <rect key="frame" x="0.0" y="0.0" width="414" height="43.666666666666664"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="414" height="44"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                         </tableViewCellContentView>
                                     </tableViewCell>
@@ -349,7 +349,7 @@
                                         <rect key="frame" x="0.0" y="44" width="414" height="44"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="QtY-St-1Dl" id="1dJ-Gp-zqR">
-                                            <rect key="frame" x="0.0" y="0.0" width="414" height="43.666666666666664"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="414" height="44"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                         </tableViewCellContentView>
                                     </tableViewCell>
@@ -357,7 +357,7 @@
                                         <rect key="frame" x="0.0" y="88" width="414" height="44"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="Btv-zL-xGh" id="tGQ-zU-koI">
-                                            <rect key="frame" x="0.0" y="0.0" width="414" height="43.666666666666664"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="414" height="44"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                         </tableViewCellContentView>
                                     </tableViewCell>
@@ -384,7 +384,7 @@
         <!--Menu-->
         <scene sceneID="bwh-XC-rnc">
             <objects>
-                <tableViewController id="OW7-bm-gmX" customClass="MenuTableViewController" customModule="ThriftStoreLocator" customModuleProvider="target" sceneMemberID="viewController">
+                <tableViewController storyboardIdentifier="menuTableViewController" id="OW7-bm-gmX" customClass="MenuTableViewController" customModule="ThriftStoreLocator" customModuleProvider="target" sceneMemberID="viewController">
                     <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="static" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="28" sectionFooterHeight="28" id="OOJ-Ol-1eb">
                         <rect key="frame" x="0.0" y="0.0" width="414" height="736"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -466,7 +466,7 @@
         <!--Side Menu Navigation Controller-->
         <scene sceneID="s6x-78-fNU">
             <objects>
-                <navigationController navigationBarHidden="YES" id="M2D-kd-UKs" customClass="UISideMenuNavigationController" customModule="SideMenu" sceneMemberID="viewController">
+                <navigationController storyboardIdentifier="sideMenuNavigationController" navigationBarHidden="YES" id="M2D-kd-UKs" customClass="UISideMenuNavigationController" customModule="SideMenu" sceneMemberID="viewController">
                     <navigationBar key="navigationBar" contentMode="scaleToFill" id="tMY-b7-DOf">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="44"/>
                         <autoresizingMask key="autoresizingMask"/>

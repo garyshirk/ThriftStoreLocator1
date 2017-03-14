@@ -11,6 +11,8 @@ import UIKit
 class MenuTableViewController: UITableViewController {
     
     var menuItems:[String] = ["Settings", "About"]
+    
+    var someString: String = "Empty"
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -41,6 +43,11 @@ class MenuTableViewController: UITableViewController {
 //        imageView.contentMode = .scaleAspectFit
 //        imageView.backgroundColor = UIColor.black.withAlphaComponent(0.2)
 //        tableView.backgroundView = imageView
+        
+        
+        
+        print(someString)
+
     }
 
 
