@@ -42,6 +42,8 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     lazy var geocoder = CLGeocoder()
     
     let locationManager = CLLocationManager()
+    
+    var didZoomToLocation = false
 
     @IBOutlet weak var tableView: UITableView!
     @IBOutlet weak var titleLabel: UILabel!
@@ -136,20 +138,33 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     }
     
     
+    // TODO - Need new arrow location image; current one has white background
+    @IBAction func didPressLocArrow(_ sender: Any) {
+        didZoomToLocation = false
+    }
+
+    
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        let locValue:CLLocationCoordinate2D = manager.location!.coordinate
-        myLocation.lat = locValue.latitude
-        myLocation.long = locValue.longitude
-        //print("locations = \(myLocation.lat) \(myLocation.long)")
         
-        lookUpLocation()
+        if let loc = manager.location {
         
-        //Zoom the map to user location
-        let region = MKCoordinateRegionMakeWithDistance(locValue, 20000, 20000)
-        mapView.setRegion(region, animated: true)
+            let locValue:CLLocationCoordinate2D = loc.coordinate
+            myLocation.lat = locValue.latitude
+            myLocation.long = locValue.longitude
+            //print("locations = \(myLocation.lat) \(myLocation.long)")
+        
+            if didZoomToLocation == false {
+                //Zoom the map to user location
+                lookUpLocation(currentLocation: myLocation)
+                let region = MKCoordinateRegionMakeWithDistance(locValue, 20000, 20000)
+                mapView.setRegion(region, animated: true)
+                didZoomToLocation = true
+            }
+        }
     }
     
-    func lookUpLocation() {
+    
+    func lookUpLocation(currentLocation: (lat: Double, long: Double)) {
         
         let locationCoords: CLLocation = CLLocation(latitude: myLocation.lat, longitude: myLocation.long)
     

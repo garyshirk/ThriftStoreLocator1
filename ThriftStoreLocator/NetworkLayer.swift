@@ -15,7 +15,7 @@ import SwiftyJSON
 private let baseURL = "http://localhost:3000/stores"
 //"https://jsonplaceholder.typicode.com/todos"
 
-var isLoadingLocal = true
+var isLoadingLocal = false
 
 class NetworkLayer {
     
