@@ -92,7 +92,7 @@ class NetworkLayer {
                     
                     let json = JSON(value)
                     
-                    //print("JSON: \(json)")
+                    print("JSON: \(json)")
                     
                     if let jsonArray = json.array {
                         

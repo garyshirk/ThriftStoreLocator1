@@ -38,12 +38,13 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     var barButtonDefaultTintColor: UIColor?
     
     var myLocation: CLLocationCoordinate2D?
+    var mapLocation: CLLocationCoordinate2D?
     
     lazy var geocoder = CLGeocoder()
     
     let locationManager = CLLocationManager()
     
-    var didZoomToLocation = false
+    var isLocationReceived = false
 
     @IBOutlet weak var tableView: UITableView!
     @IBOutlet weak var titleLabel: UILabel!
@@ -81,33 +82,30 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         setSearchEnabledMode(doSet: false)
         searchTextField.delegate = self
         
-        // DEBUG
-        if isTestingPost == true {
-            testPost()
-            return
-        }
-        
-        // Map Kit View
+        // Set up Map Kit view
         mapView.mapType = .standard
         mapView.delegate = self
         locationManager.requestWhenInUseAuthorization()
         if CLLocationManager.locationServicesEnabled() {
             locationManager.delegate = self
-            locationManager.desiredAccuracy = kCLLocationAccuracyNearestTenMeters
+            locationManager.desiredAccuracy = kCLLocationAccuracyHundredMeters // KCLLocationAccuracyNearestTenMeters
             locationManager.startUpdatingLocation()
         }
         
-        // Get list of stores for current location
+        // Set up StoresViewModel
         // TODO - Use dependency injection for setting viewModel
-        viewModel = StoresViewModel(delegate: self, withLoadStores: true)
+        viewModel = StoresViewModel(delegate: self, withLoadStores: false)
+        
+        // DEBUG
+        if isTestingPost == true {
+            testPost()
+            return
+        }
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         tableView.isUserInteractionEnabled = true
-        
-        // DEBUG
-        // print(mapViewYConstraint.constant)
     }
     
     override func viewWillDisappear(_ animated: Bool) {
@@ -140,28 +138,45 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     
     // TODO - Need new arrow location image; current one has white background
     @IBAction func didPressLocArrow(_ sender: Any) {
-        zoomToLocation()
+        zoomToLocation(at: myLocation!)
     }
 
-    
+    // TODO - Currently no longer getting location after I get it first time; need to change this to update every couple minutes
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         
         if let loc = manager.location?.coordinate {
             
-            myLocation = loc
-    
-            if didZoomToLocation == false {
-                lookUpLocation()
-                zoomToLocation()
+            if isLocationReceived == false {
+                
+                isLocationReceived = true
+                
+                myLocation = loc
+            
+                viewModel.setStoreFilter(forLocation: myLocation!, withRadiusInMiles: 10)
+                
+                viewModel.doLoadStores()
             }
         }
     }
     
-    func zoomToLocation() {
-        // TODO - why do I have to unwrap myLocation; thought that happened above in func locationManager: if let loc = ...
-        let region = MKCoordinateRegionMakeWithDistance(myLocation!, 20000, 20000)
+    // TODO - Don't need to pass back store array here because view is populated via viewModel.stores
+    func handleStoresUpdated(stores: [Store]) {
+        tableView.reloadData()
+        
+        zoomToLocation(at: myLocation!)
+        mapLocation = myLocation
+        
+        for store in stores {
+            let annotation = MKPointAnnotation()
+            annotation.coordinate = CLLocationCoordinate2D(latitude: store.locLat as! CLLocationDegrees, longitude: store.locLong as! CLLocationDegrees)
+            mapView.addAnnotation(annotation)
+        }
+    }
+    
+    func zoomToLocation(at location: CLLocationCoordinate2D) {
+        let region = MKCoordinateRegionMakeWithDistance(location, 20000, 20000)
         mapView.setRegion(region, animated: true)
-        didZoomToLocation = true
+        //isLocationReceived = true
         
         print("LOCATION - Lat:\(myLocation?.latitude), Long:\(myLocation?.longitude)")
     }
@@ -224,18 +239,6 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         print("searchedLocation Received - Lat:\(location.latitude), Long: \(location.longitude)")
     }
     
-    // TODO - Don't need to pass back store array here because view is populated via viewModel.stores
-    func handleStoresUpdated(stores: [Store]) {
-        tableView.reloadData()
-        
-        for store in stores {
-            let annotation = MKPointAnnotation()
-            annotation.coordinate = CLLocationCoordinate2D(latitude: store.locLat as! CLLocationDegrees, longitude: store.locLong as! CLLocationDegrees)
-            mapView.addAnnotation(annotation)
-        }
-    }
-
- 
     // MARK: - TextField delegates
     
     func textFieldDidBeginEditing(_ textField: UITextField) {
@@ -454,7 +457,8 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         
         guard let viewModel = viewModel else {
-            return 0 }
+            return 0
+        }
         
         if isSearching {
             return searchedStores.count
@@ -561,6 +565,17 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         }
     }
 
+}
+
+extension MainViewController {
+    func metersToMiles(for meters: Double) -> Double {
+        // TODO - Add to a constants class
+        return meters * 0.000621371
+    }
+    
+    func milesToMeters(for miles: Double) -> Double {
+        return miles / 0.000621371
+    }
 }
 
 extension Double {
