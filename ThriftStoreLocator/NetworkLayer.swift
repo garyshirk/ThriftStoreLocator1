@@ -11,28 +11,75 @@ import Alamofire
 import SwiftyJSON
 
 // TODO - constants should use pattern for constants (struct or enum)
-//private let baseURL = "http://127.0.0.1:8000/thriftstores"
-private let baseURL = "http://localhost:3000/stores"
-//"https://jsonplaceholder.typicode.com/todos"
+//private let thriftStoreBaseURL = "http://127.0.0.1:8000/thriftstores"
+//private let thriftStoreBaseURL = "http://localhost:3000/stores"
+private let thriftStoreBaseURL = "http://localhost:8000/thriftstores/"
 
-var isLoadingLocal = true
+private let locationInfoBaseURL = "http://maps.googleapis.com/maps/api/geocode/json?address=<location>&sensor=false"
+//private let locationInfoBaseURL = "http://maps.googleapis.com/maps/api/geocode/json?address=houston&sensor=false"
+
+
+var isLoadingLocal = false
 
 class NetworkLayer {
     
+    var locationDict = [String:Any]()
+    
     var storesArrayOfDicts = [[String:Any]]() // Array of Dictionaries
     
-    func loadStoresFromServer(modelManagerUpdater: @escaping ([[String:Any]]) -> Void) {
+    
+    
+    func getLocationInfo(forSearchStr: String, modelManagerLocationUpdater: @escaping ([String:Any]) -> Void) {
+        
+        // DEBUG
+        let urlString = locationInfoBaseURL.replacingOccurrences(of: "<location>", with: forSearchStr)
+        //let urlString = locationInfoBaseURL
+        
+        Alamofire.request(urlString, method: .get).validate()
+            
+            // TODO - Using [weak self] here; is it required?
+            .responseJSON(completionHandler: { [weak self] response in
+                
+                guard let strongSelf = self else { return }
+                
+                switch response.result {
+                    
+                case .success(let value):
+                    
+                    let json = JSON(value)
+                    
+                    if strongSelf.processLocationJSON(json: json) {
+                        modelManagerLocationUpdater(strongSelf.locationDict)
+                    } else {
+                        // TODO - Error occurred processing Json
+                        // For now, send empty dictionary back to StoresViewModel and let him handle it
+                        print("Error occurred when attempting to process JSON location info")
+                        modelManagerLocationUpdater(strongSelf.locationDict)
+                    }
+                    
+                case .failure(let error):
+                    // TODO - Proper error handling
+                    print(error)
+                }
+            })
+        
+        
+    }
+    
+    func loadStoresFromServer(filterString: String, modelManagerStoreUpdater: @escaping ([[String:Any]]) -> Void) {
         
         
         // DEBUG
         if isLoadingLocal {
             loadStoresLocally()
-            modelManagerUpdater(storesArrayOfDicts)
+            modelManagerStoreUpdater(storesArrayOfDicts)
             return
         }
         
+        let urlString = "\(thriftStoreBaseURL)\(filterString)"
         
-        Alamofire.request(baseURL, method: .get).validate()
+        
+        Alamofire.request(urlString, method: .get).validate()
             
             // TODO - Using [weak self] here; is it required?
             .responseJSON(completionHandler: { [weak self] response in
@@ -74,8 +121,7 @@ class NetworkLayer {
                         }
                     }
                     
-                    print("Test stores loaded from REST server")
-                    modelManagerUpdater(strongSelf.storesArrayOfDicts)
+                    modelManagerStoreUpdater(strongSelf.storesArrayOfDicts)
                 
                 case .failure(let error):
                     // TODO - Proper error handling
@@ -84,6 +130,74 @@ class NetworkLayer {
             })
     }
     
+    func processLocationJSON(json: JSON) -> Bool {
+        
+        print("JSON: \(json)")
+        
+        if let json = json["results"].array?[0] {
+            
+            //print("ResultArray: \(json)")
+            
+            for (index, subJson):(String, JSON) in json {
+                
+                //print("INDEX: \(index), subJson: \(subJson)")
+                
+                
+                if index == "geometry" {
+                    
+                    // Get the lat and long locations
+                    self.locationDict["lat"] = (subJson["location"])["lat"].stringValue
+                    self.locationDict["long"] = (subJson["location"])["lat"].stringValue
+                
+                
+                } else if index == "formatted_address" {
+                    
+                    // Get the formatted address
+                    self.locationDict["fomatted_address"] = json["formatted_address"].stringValue
+                    
+                } else if index == "address_components" {
+                    
+                    // Get address, city, zip, country information
+                    //print("INDEX: \(index), subJson: \(subJson)")
+                    
+                    for (addrIndex, addrJson): (String, JSON) in subJson {
+                        
+                        print("addrIndex: \(addrIndex), addrJson: \(addrJson)")
+                        
+                        if let types = addrJson["types"].arrayObject {
+                            
+                            for typeValue in types {
+                                
+                                let type = typeValue as! String
+                                
+                                if type == "country" {
+                                    
+                                    // Make sure country type is US
+                                    if addrJson["short_name"].stringValue != "US" {
+                                        self.locationDict["error"] = "Search result outside US"
+                                        return false
+                                    }
+                                
+                                } else if type == "administrative_area_level_1" {
+                                    
+                                    // Get the city
+                                    self.locationDict["city"] = addrJson["short_name"].stringValue
+                                    
+                                } else if type == "postal_code" {
+                                    
+                                    // Get the zip code if available
+                                    self.locationDict["zip"] = addrJson["short_name"].stringValue
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return true
+    }
+    
+    // FOR DEBUG
     func loadStoresLocally() {
         
         let storeDict1  = [

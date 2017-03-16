@@ -162,6 +162,8 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         let region = MKCoordinateRegionMakeWithDistance(myLocation!, 20000, 20000)
         mapView.setRegion(region, animated: true)
         didZoomToLocation = true
+        
+        print("LOCATION - Lat:\(myLocation?.latitude), Long:\(myLocation?.longitude)")
     }
     
     
@@ -216,6 +218,10 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         } else {
             return ("\(distance.roundTo(places: 1)) miles")
         }
+    }
+    
+    func searchedLocationUpdated(location: CLLocationCoordinate2D) {
+        print("searchedLocation Received - Lat:\(location.latitude), Long: \(location.longitude)")
     }
     
     // TODO - Don't need to pass back store array here because view is populated via viewModel.stores

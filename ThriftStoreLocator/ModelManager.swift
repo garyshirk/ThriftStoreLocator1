@@ -16,20 +16,33 @@ class ModelManager {
     static var sharedInstance = ModelManager()
     
     var networkLayer = NetworkLayer()
+    var storeFilterStr = ""
+    
     var dataLayer = DataLayer()
     
     func getStoresOnMainThread() -> [Store] {
         return dataLayer.getStoresOnMainThread()
     }
     
-    func loadStores(viewModelUpdater: @escaping ([Store]) -> Void) {
+    func getLocationInfo(filter: String, locationViewModelUpdater: @escaping ([String:Any]) -> Void) {
         
-        networkLayer.loadStoresFromServer(modelManagerUpdater: {stores in
+        networkLayer.getLocationInfo(forSearchStr: filter, modelManagerLocationUpdater: { locationDict in
+            
+            locationViewModelUpdater(locationDict)
+        })
+    
+    }
+    
+    func loadStores(storeFilter: String, storesViewModelUpdater: @escaping ([Store]) -> Void) {
+        
+        //storeFilterStr = storeFilter
+        
+        networkLayer.loadStoresFromServer(filterString: storeFilter, modelManagerStoreUpdater: {stores in
             
             self.dataLayer.saveInBackground(stores: stores, saveInBackgroundSuccess: {
             
                 let storeEntities = self.getStoresOnMainThread()
-                viewModelUpdater(storeEntities)
+                storesViewModelUpdater(storeEntities)
             })
         })
     }
