@@ -137,7 +137,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     
     // TODO - Need new arrow location image; current one has white background
     @IBAction func didPressLocArrow(_ sender: Any) {
-        zoomToLocation(at: myLocation!)
+        viewModel.prepareForZoomToMyLocation(location: myLocation!)
     }
 
     // TODO - Currently no longer getting location after I get it first time; need to change this to update every couple minutes
@@ -151,9 +151,9 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
                 
                 myLocation = loc
             
-                viewModel.setStoreFilter(forLocation: myLocation!, withRadiusInMiles: 10, andZip: "")
+                viewModel.setStoreFilters(forLocation: myLocation!, withRadiusInMiles: 10, andZip: "")
                 
-                viewModel.doLoadStores()
+                viewModel.doLoadStores(deleteOld: true)
             }
         }
     }
@@ -161,7 +161,6 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     // TODO - Don't need to pass back store array here because view is populated via viewModel.stores
     func handleStoresUpdated(forLocation location:CLLocationCoordinate2D) {
         tableView.reloadData()
-        
         zoomToLocation(at: location)
         mapLocation = location
         
@@ -173,7 +172,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     }
     
     func zoomToLocation(at location: CLLocationCoordinate2D) {
-        let region = MKCoordinateRegionMakeWithDistance(location, 20000, 20000)
+        let region = MKCoordinateRegionMakeWithDistance(location, milesToMeters(for: 10), milesToMeters(for: 10))
         mapView.setRegion(region, animated: true)
         
         //print("LOCATION - Lat:\(myLocation?.latitude), Long:\(myLocation?.longitude)")

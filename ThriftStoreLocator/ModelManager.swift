@@ -18,8 +18,8 @@ class ModelManager {
     var networkLayer = NetworkLayer()
     var dataLayer = DataLayer()
     
-    func getStoresOnMainThread() -> [Store] {
-        return dataLayer.getStoresOnMainThread()
+    func getAllStoresOnMainThread() -> [Store] {
+        return dataLayer.getAllStoresOnMainThread()
     }
     
     func getLocationInfo(filter: String, locationViewModelUpdater: @escaping ([String:Any]) -> Void) {
@@ -30,13 +30,13 @@ class ModelManager {
         })
     }
     
-    func loadStores(storeFilter: String, storesViewModelUpdater: @escaping ([Store]) -> Void) {
+    func loadStoresFromServer(storeFilter: String, withDeleteOld: Bool, storesViewModelUpdater: @escaping ([Store]) -> Void) {
         
         networkLayer.loadStoresFromServer(filterString: storeFilter, modelManagerStoreUpdater: {stores in
             
-            self.dataLayer.saveInBackground(stores: stores, saveInBackgroundSuccess: {
+            self.dataLayer.saveInBackground(stores: stores, withDeleteOld: withDeleteOld, saveInBackgroundSuccess: {
             
-                let storeEntities = self.getStoresOnMainThread()
+                let storeEntities = self.getAllStoresOnMainThread()
                 storesViewModelUpdater(storeEntities)
             })
         })

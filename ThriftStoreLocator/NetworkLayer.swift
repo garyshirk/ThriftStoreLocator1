@@ -185,17 +185,15 @@ class NetworkLayer {
             }
         }
         
-        print("LOCATION DICT")
-        print(locationDict["lat"] as! String)
-        print(locationDict["long"] as! String)
-        print(locationDict["city"] as! String)
-        print(locationDict["state"] as! String)
+//        print("LOCATION DICT")
+//        print(locationDict["lat"] as! String)
+//        print(locationDict["long"] as! String)
+//        print(locationDict["city"] as! String)
+//        print(locationDict["state"] as! String)
+//        if let zip = locationDict["zip"] {
+//            print((zip as! String))
+//        }
         
-        if let zip = locationDict["zip"] {
-            print((zip as! String))
-        }
-        
-    
         self.locationDict["error"] = ""
         
         return true

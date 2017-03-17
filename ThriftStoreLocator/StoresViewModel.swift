@@ -24,6 +24,8 @@ class StoresViewModel {
     
     var storeFilterStr = ""
     
+    var storeFilterPredicate: NSPredicate?
+    
     var locationInfoDict: [String: Any]?
     
     var mapLocation: CLLocationCoordinate2D?
@@ -82,48 +84,59 @@ class StoresViewModel {
                         
                         if let zipcode = strongSelf.locationInfoDict?["zip"], !(strongSelf.locationInfoDict?["zip"] as! String).isEmpty {
                             
-                            strongSelf.setStoreFilter(forLocation: location, withRadiusInMiles: 10, andZip: zipcode as! String)
+                            strongSelf.setStoreFilters(forLocation: location, withRadiusInMiles: 10, andZip: zipcode as! String)
                         }
                     
                     } else {
                         
-                        strongSelf.setStoreFilter(forLocation: location, withRadiusInMiles: 10, andZip: "")
+                        strongSelf.setStoreFilters(forLocation: location, withRadiusInMiles: 10, andZip: "")
                     }
                 }
             }
 
-            strongSelf.doLoadStores()
+            strongSelf.doLoadStores(deleteOld: false)
         })
     }
     
-    func doLoadStores() {
+    func doLoadStores(deleteOld: Bool) {
         
         stores.removeAll()
         
-        modelManager.loadStores(storeFilter: storeFilterStr, storesViewModelUpdater: { [weak self] storeEntities -> Void in
+        modelManager.loadStoresFromServer(storeFilter: storeFilterStr, withDeleteOld: deleteOld, storesViewModelUpdater: { [weak self] storeEntities -> Void in
             
             guard let strongSelf = self else {
                 return
             }
             
-            strongSelf.stores = storeEntities
+            let filteredStores = (storeEntities as NSArray).filtered(using: strongSelf.storeFilterPredicate!)
+            
+            strongSelf.stores = filteredStores as! [Store]
             //strongSelf.stores.forEach {print("Store Name: \($0.name)")}
+            
             strongSelf.delegate?.handleStoresUpdated(forLocation: strongSelf.mapLocation!)
         })
     }
     
+    func prepareForZoomToMyLocation(location:CLLocationCoordinate2D) {
+        stores = modelManager.getAllStoresOnMainThread()
+        setStoreFilters(forLocation: location, withRadiusInMiles: 10, andZip: "")
+        let filteredStores = (stores as NSArray).filtered(using: storeFilterPredicate!)
+        stores = filteredStores as! [Store]
+        self.delegate?.handleStoresUpdated(forLocation: self.mapLocation!)
+    }
+    
     // Get the approximate area (expects radius to be in units of miles)
-    func setStoreFilter(forLocation location:CLLocationCoordinate2D, withRadiusInMiles radius:Double, andZip zip:String) {
+    func setStoreFilters(forLocation location:CLLocationCoordinate2D, withRadiusInMiles radius:Double, andZip zip:String) {
         
         // TODO - Not ready for this yet, but once you start notifying user about geofence entries, will need to use CLCircularRegion
         // let region = CLCircularRegion.init(center: location, radius: radius, identifier: "region")
         
         // TODO - Place coord keys in constant class
-        
         self.mapLocation = location
         
         if !zip.isEmpty {
-             storeFilterStr = "?bizZip=\(zip))"
+            storeFilterStr = "?bizZip=\(zip)"
+            storeFilterPredicate = NSPredicate(format: "%K == %@", "zip", zip)
         }
         
         // Approximate a region based on location and radius, does not account for curvature of earth but ok for short distances
@@ -140,11 +153,12 @@ class StoresViewModel {
         print("RegionLong: westLong: \(coords["westLong"]), centerLong: \(locLong), eastLong: \(coords["eastLong"])")
         print("RegionLat : northLat: \(coords["northLat"]), centerLat: \(locLat), southLat: \(coords["southLat"])")
         
-        buildLocationFilterString(forLocationCoords: coords)
+        buildLocationFilters(forLocationCoords: coords)
     }
     
-    func buildLocationFilterString(forLocationCoords coords:[String:Double]) {
+    func buildLocationFilters(forLocationCoords coords:[String:Double]) {
         
+        // Create the filter string used by server to get the within this location
         guard let eastLong = coords["eastLong"],
               let westLong = coords["westLong"],
               let northLat = coords["northLat"],
@@ -163,7 +177,14 @@ class StoresViewModel {
                         "&south_lat=" +
                         String(describing: southLat)
         
-        print("Location Filter: \(storeFilterStr)")
+        // Create the filter predicate used by this class to select which store should be shown in the MainViewController
+        // This is needed because when user searches and goes to a new location we keep the stores at the previous location in Core Data
+        // to minimize server accesses
+        let predicateNorthLat = NSPredicate(format: "%K < %@", "locLat", NSNumber(value: northLat))
+        let predicateSouthLat = NSPredicate(format: "%K > %@", "locLat", NSNumber(value: southLat))
+        let predicateEastLong = NSPredicate(format: "%K < %@", "locLong", NSNumber(value: eastLong))
+        let predicateWestLong = NSPredicate(format: "%K > %@", "locLong", NSNumber(value: westLong))
+        storeFilterPredicate = NSCompoundPredicate(andPredicateWithSubpredicates: [predicateNorthLat, predicateSouthLat, predicateEastLong, predicateWestLong])
     }
     
     func isZipCode(forSearchStr searchStr:String) -> Bool {
