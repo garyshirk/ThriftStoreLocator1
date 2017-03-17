@@ -160,13 +160,13 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     }
     
     // TODO - Don't need to pass back store array here because view is populated via viewModel.stores
-    func handleStoresUpdated(stores: [Store]) {
+    func handleStoresUpdated(forLocation location:CLLocationCoordinate2D) {
         tableView.reloadData()
         
-        zoomToLocation(at: myLocation!)
-        mapLocation = myLocation
+        zoomToLocation(at: location)
+        mapLocation = location
         
-        for store in stores {
+        for store in viewModel.stores {
             let annotation = MKPointAnnotation()
             annotation.coordinate = CLLocationCoordinate2D(latitude: store.locLat as! CLLocationDegrees, longitude: store.locLong as! CLLocationDegrees)
             mapView.addAnnotation(annotation)
@@ -235,9 +235,6 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         }
     }
     
-    func searchedLocationUpdated(location: CLLocationCoordinate2D) {
-        print("searchedLocation Received - Lat:\(location.latitude), Long: \(location.longitude)")
-    }
     
     // MARK: - TextField delegates
     
@@ -253,17 +250,21 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     
     // May be called if forced even if shouldEndEditing returns NO (e.g. view removed from window) or endEditing:YES called
     func textFieldDidEndEditing(_ textField: UITextField) {
+        
         if let searchStr = searchTextField.text {
-            searchedStores.removeAll()
-            for store in viewModel.stores {
-                if let storeStr = store.name {
-                    if searchStr.isEmpty || (storeStr.localizedCaseInsensitiveContains(searchStr)) {
-                        searchedStores.append(store)
-                    }
-                }
-            }
+            
+            viewModel.doSearch(forSearchStr: searchStr)
+            
+//            searchedStores.removeAll()
+//            for store in viewModel.stores {
+//                if let storeStr = store.name {
+//                    if searchStr.isEmpty || (storeStr.localizedCaseInsensitiveContains(searchStr)) {
+//                        searchedStores.append(store)
+//                    }
+//                }
+//            }
         }
-        tableView.reloadData()
+//        tableView.reloadData()
     }
     
     func setSearchEnabledMode(doSet setToEnabled: Bool) {
@@ -460,11 +461,12 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
             return 0
         }
         
-        if isSearching {
-            return searchedStores.count
-        } else {
-            return viewModel.stores.count
-        }
+        return viewModel.stores.count
+//        if isSearching {
+//            return searchedStores.count
+//        } else {
+//            return viewModel.stores.count
+//        }
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -473,11 +475,12 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         
         var selectedStore: Store
         
-        if isSearching {
-            selectedStore = searchedStores[indexPath.row]
-        } else {
-            selectedStore = viewModel.stores[indexPath.row]
-        }
+        selectedStore = viewModel.stores[indexPath.row]
+//        if isSearching {
+//            selectedStore = searchedStores[indexPath.row]
+//        } else {
+//            selectedStore = viewModel.stores[indexPath.row]
+//        }
         
         cell.storeLabel.text = selectedStore.name
         if let city = selectedStore.city, let state = selectedStore.state {
@@ -501,11 +504,12 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
             
             if let indexPath = tableView.indexPathForSelectedRow {
                 
-                if isSearching {
-                    selectedStore = searchedStores[(indexPath.row)]
-                } else {
-                    selectedStore = viewModel.stores[(indexPath.row)]
-                }
+                selectedStore = viewModel.stores[(indexPath.row)]
+//                if isSearching {
+//                    selectedStore = searchedStores[(indexPath.row)]
+//                } else {
+//                    selectedStore = viewModel.stores[(indexPath.row)]
+//                }
             }
             
             if let detailViewController = segue.destination as? DetailViewController {

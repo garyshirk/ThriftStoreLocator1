@@ -62,12 +62,9 @@ class NetworkLayer {
                     print(error)
                 }
             })
-        
-        
     }
     
     func loadStoresFromServer(filterString: String, modelManagerStoreUpdater: @escaping ([[String:Any]]) -> Void) {
-        
         
         // DEBUG
         if isLoadingLocal {
@@ -75,6 +72,8 @@ class NetworkLayer {
             modelManagerStoreUpdater(storesArrayOfDicts)
             return
         }
+        
+        storesArrayOfDicts.removeAll()
         
         let urlString = "\(thriftStoreBaseURL)\(filterString)"
         
@@ -134,6 +133,11 @@ class NetworkLayer {
         
         print("JSON: \(json)")
         
+        if json["status"].stringValue != "OK" {
+            self.locationDict["error"] = "Error Google api json location info returned not OK"
+            return false
+        }
+        
         if let json = json["results"].array?[0] {
             
             //print("ResultArray: \(json)")
@@ -147,7 +151,7 @@ class NetworkLayer {
                     
                     // Get the lat and long locations
                     self.locationDict["lat"] = (subJson["location"])["lat"].stringValue
-                    self.locationDict["long"] = (subJson["location"])["lat"].stringValue
+                    self.locationDict["long"] = (subJson["location"])["lng"].stringValue
                 
                 
                 } else if index == "formatted_address" {
@@ -180,13 +184,18 @@ class NetworkLayer {
                                 
                                 } else if type == "administrative_area_level_1" {
                                     
-                                    // Get the city
-                                    self.locationDict["city"] = addrJson["short_name"].stringValue
+                                    // Get the state
+                                    self.locationDict["state"] = addrJson["short_name"].stringValue
                                     
                                 } else if type == "postal_code" {
                                     
                                     // Get the zip code if available
                                     self.locationDict["zip"] = addrJson["short_name"].stringValue
+                                
+                                } else if type == "locality" {
+                                    
+                                    // Get the city
+                                    self.locationDict["city"] = addrJson["long_name"].stringValue
                                 }
                             }
                         }
@@ -194,6 +203,15 @@ class NetworkLayer {
                 }
             }
         }
+        
+        print("LOCATION DICT")
+        print(locationDict["lat"] as! String)
+        print(locationDict["long"] as! String)
+        print(locationDict["city"] as! String)
+        print(locationDict["state"] as! String)
+    
+        self.locationDict["error"] = ""
+        
         return true
     }
     
