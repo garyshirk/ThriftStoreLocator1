@@ -14,7 +14,6 @@ protocol StoresViewModelDelegate: class {
     func handleStoresUpdated(forLocation location:CLLocationCoordinate2D)
 }
 
-
 class StoresViewModel {
     
     private var modelManager: ModelManager
@@ -23,33 +22,37 @@ class StoresViewModel {
     
     var stores: [Store] = []
     
-    //var storeFilter: String = "?upper_long=-42.8&lower_long=-43&upper_lat=62.3&lower_lat=62"
     var storeFilterStr = ""
     
     var locationInfoDict: [String: Any]?
     
     var mapLocation: CLLocationCoordinate2D?
     
+    var searchType: SearchType
     
-    init(delegate: StoresViewModelDelegate?, withLoadStores: Bool) {
+    enum SearchType {
+        case zipcode
+        case other
+    }
+    
+    
+    init(delegate: StoresViewModelDelegate?) {
         self.delegate = delegate
         modelManager = ModelManager.sharedInstance
-        if withLoadStores {
-            
-            // DEBUG - Do not load stores while testing Map location api
-            //doLoadStores()
-            // instead:
-            //doGetLocationInfo()
-        }
+        searchType = .other
     }
     
     func doSearch(forSearchStr searchStr:String) {
+        
+        let searchStr = searchStr.replacingOccurrences(of: " ", with: "%20")
+        
         if isZipCode(forSearchStr: searchStr) {
-            setStoreFilter(forSearchStr: searchStr)
-            doLoadStores()
+            searchType = .zipcode
         } else {
-            getLocationInfo(forSearchStr: searchStr)
+            searchType = .other
         }
+        
+        getLocationInfo(forSearchStr: searchStr)
     }
     
     
@@ -68,16 +71,25 @@ class StoresViewModel {
             
             strongSelf.locationInfoDict = returnedLocationDict
             
+            // Always load stores based on location coordinates unless user specifically searched for a zip code
             if let lat = (strongSelf.locationInfoDict?["lat"] as? NSString)?.doubleValue {
+                
                 if let long = (strongSelf.locationInfoDict?["long"] as? NSString)?.doubleValue {
+                    
                     let location = CLLocationCoordinate2D(latitude: lat, longitude: long)
-                    strongSelf.setStoreFilter(forLocation: location, withRadiusInMiles: 20)
+                    
+                    if strongSelf.searchType == .zipcode {
+                        
+                        if let zipcode = strongSelf.locationInfoDict?["zip"], !(strongSelf.locationInfoDict?["zip"] as! String).isEmpty {
+                            
+                            strongSelf.setStoreFilter(forLocation: location, withRadiusInMiles: 10, andZip: zipcode as! String)
+                        }
+                    
+                    } else {
+                        
+                        strongSelf.setStoreFilter(forLocation: location, withRadiusInMiles: 10, andZip: "")
+                    }
                 }
-            // TODO - Not sure if rest of if statements are needed. I always want to find valid location coords above or flag error
-            } else if let city = strongSelf.locationInfoDict?["city"], !(strongSelf.locationInfoDict?["city"] as! String).isEmpty {
-                strongSelf.setStoreFilter(forSearchStr: city as! String)
-            } else  if let zipcode = strongSelf.locationInfoDict?["zipcode"], !(strongSelf.locationInfoDict?["zipcode"] as! String).isEmpty {
-                strongSelf.setStoreFilter(forSearchStr: zipcode as! String)
             }
 
             strongSelf.doLoadStores()
@@ -101,7 +113,7 @@ class StoresViewModel {
     }
     
     // Get the approximate area (expects radius to be in units of miles)
-    func setStoreFilter(forLocation location:CLLocationCoordinate2D, withRadiusInMiles radius:Double) {
+    func setStoreFilter(forLocation location:CLLocationCoordinate2D, withRadiusInMiles radius:Double, andZip zip:String) {
         
         // TODO - Not ready for this yet, but once you start notifying user about geofence entries, will need to use CLCircularRegion
         // let region = CLCircularRegion.init(center: location, radius: radius, identifier: "region")
@@ -109,6 +121,10 @@ class StoresViewModel {
         // TODO - Place coord keys in constant class
         
         self.mapLocation = location
+        
+        if !zip.isEmpty {
+             storeFilterStr = "?bizZip=\(zip))"
+        }
         
         // Approximate a region based on location and radius, does not account for curvature of earth but ok for short distances
         let locLat = location.latitude
@@ -157,19 +173,6 @@ class StoresViewModel {
         } else {
             return false
         }
-    }
-    
-    
-    func setStoreFilter(forSearchStr searchStr:String) {
-        
-        // Check if searchStr is a 5 digit zip code
-        let regex = "^([^a-zA-Z][0-9]{4})$"
-        if let range = searchStr.range(of: regex, options: .regularExpression) {
-            storeFilterStr = "?bizZip=\(searchStr.substring(with: range))"
-        } else {
-            storeFilterStr = "?search=\(searchStr)"
-        }
-        doLoadStores()
     }
 }
 

@@ -75,7 +75,7 @@ extension DataLayer {
                         store.locLong = (storeDict["locLong"] as? NSString)?.doubleValue as NSNumber?
                         store.county = storeDict["county"] as? String
                         
-                        print(store.description)
+                        //print(store.description)
                         
                         try store.managedObjectContext?.save()
                     }

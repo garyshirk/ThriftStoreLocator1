@@ -11,23 +11,16 @@ import Alamofire
 import SwiftyJSON
 
 // TODO - constants should use pattern for constants (struct or enum)
-//private let thriftStoreBaseURL = "http://127.0.0.1:8000/thriftstores"
-//private let thriftStoreBaseURL = "http://localhost:3000/stores"
 private let thriftStoreBaseURL = "http://localhost:8000/thriftstores/"
-
 private let locationInfoBaseURL = "http://maps.googleapis.com/maps/api/geocode/json?address=<location>&sensor=false"
-//private let locationInfoBaseURL = "http://maps.googleapis.com/maps/api/geocode/json?address=houston&sensor=false"
-
-
-var isLoadingLocal = false
 
 class NetworkLayer {
+    
+    var isLoadingLocal = false
     
     var locationDict = [String:Any]()
     
     var storesArrayOfDicts = [[String:Any]]() // Array of Dictionaries
-    
-    
     
     func getLocationInfo(forSearchStr: String, modelManagerLocationUpdater: @escaping ([String:Any]) -> Void) {
         
@@ -91,8 +84,6 @@ class NetworkLayer {
                     
                     let json = JSON(value)
                     
-                    print("JSON: \(json)")
-                    
                     if let jsonArray = json.array {
                         
                         for item in jsonArray {
@@ -131,8 +122,6 @@ class NetworkLayer {
     
     func processLocationJSON(json: JSON) -> Bool {
         
-        print("JSON: \(json)")
-        
         if json["status"].stringValue != "OK" {
             self.locationDict["error"] = "Error Google api json location info returned not OK"
             return false
@@ -140,12 +129,7 @@ class NetworkLayer {
         
         if let json = json["results"].array?[0] {
             
-            //print("ResultArray: \(json)")
-            
             for (index, subJson):(String, JSON) in json {
-                
-                //print("INDEX: \(index), subJson: \(subJson)")
-                
                 
                 if index == "geometry" {
                     
@@ -162,11 +146,8 @@ class NetworkLayer {
                 } else if index == "address_components" {
                     
                     // Get address, city, zip, country information
-                    //print("INDEX: \(index), subJson: \(subJson)")
-                    
-                    for (addrIndex, addrJson): (String, JSON) in subJson {
+                    for (_, addrJson): (String, JSON) in subJson {
                         
-                        print("addrIndex: \(addrIndex), addrJson: \(addrJson)")
                         
                         if let types = addrJson["types"].arrayObject {
                             
@@ -209,6 +190,11 @@ class NetworkLayer {
         print(locationDict["long"] as! String)
         print(locationDict["city"] as! String)
         print(locationDict["state"] as! String)
+        
+        if let zip = locationDict["zip"] {
+            print((zip as! String))
+        }
+        
     
         self.locationDict["error"] = ""
         

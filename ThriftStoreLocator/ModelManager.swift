@@ -16,8 +16,6 @@ class ModelManager {
     static var sharedInstance = ModelManager()
     
     var networkLayer = NetworkLayer()
-    var storeFilterStr = ""
-    
     var dataLayer = DataLayer()
     
     func getStoresOnMainThread() -> [Store] {
@@ -30,12 +28,9 @@ class ModelManager {
             
             locationViewModelUpdater(locationDict)
         })
-    
     }
     
     func loadStores(storeFilter: String, storesViewModelUpdater: @escaping ([Store]) -> Void) {
-        
-        //storeFilterStr = storeFilter
         
         networkLayer.loadStoresFromServer(filterString: storeFilter, modelManagerStoreUpdater: {stores in
             

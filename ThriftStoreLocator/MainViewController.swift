@@ -16,7 +16,6 @@ import Alamofire
 import SwiftyJSON
 
 // TODO - MapView initial height should be proportional to device height
-
 // TODO - Define a CLCicularRegion based on user's current location and update store map and list when user leaves that region
 
 class MainViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UITextFieldDelegate, MKMapViewDelegate, CLLocationManagerDelegate, StoresViewModelDelegate {
@@ -94,7 +93,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         
         // Set up StoresViewModel
         // TODO - Use dependency injection for setting viewModel
-        viewModel = StoresViewModel(delegate: self, withLoadStores: false)
+        viewModel = StoresViewModel(delegate: self)
         
         // DEBUG
         if isTestingPost == true {
@@ -152,7 +151,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
                 
                 myLocation = loc
             
-                viewModel.setStoreFilter(forLocation: myLocation!, withRadiusInMiles: 10)
+                viewModel.setStoreFilter(forLocation: myLocation!, withRadiusInMiles: 10, andZip: "")
                 
                 viewModel.doLoadStores()
             }
@@ -176,9 +175,8 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     func zoomToLocation(at location: CLLocationCoordinate2D) {
         let region = MKCoordinateRegionMakeWithDistance(location, 20000, 20000)
         mapView.setRegion(region, animated: true)
-        //isLocationReceived = true
         
-        print("LOCATION - Lat:\(myLocation?.latitude), Long:\(myLocation?.longitude)")
+        //print("LOCATION - Lat:\(myLocation?.latitude), Long:\(myLocation?.longitude)")
     }
     
     
@@ -298,8 +296,6 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     }
     
     @IBAction func searchButtonPressed(_ sender: Any) {
-        print("search button pressed")
-        
         if isSearching {
             setSearchEnabledMode(doSet: false)
         } else {
