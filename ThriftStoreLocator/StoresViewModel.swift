@@ -26,6 +26,8 @@ class StoresViewModel {
     
     var storeFilterPredicate: NSPredicate?
     
+    var storeFilterTracker = [String:NSPredicate]()
+    
     var locationInfoDict: [String: Any]?
     
     var mapLocation: CLLocationCoordinate2D?
@@ -93,14 +95,23 @@ class StoresViewModel {
                     }
                 }
             }
-
-            strongSelf.doLoadStores(deleteOld: false)
+            
+            // Have we seen this search string before? If yes, maybe no need to load from server
+            if strongSelf.storeFilterTracker[searchStr] != nil {
+                strongSelf.stores = strongSelf.modelManager.getAllStoresOnMainThread()
+                let filteredStores = (strongSelf.stores as NSArray).filtered(using: strongSelf.storeFilterTracker[searchStr]!)
+                strongSelf.stores = filteredStores as! [Store]
+                strongSelf.delegate?.handleStoresUpdated(forLocation: strongSelf.mapLocation!)
+            } else {
+                strongSelf.storeFilterTracker[searchStr] = strongSelf.storeFilterPredicate
+                strongSelf.doLoadStores(deleteOld: false)
+            }
         })
     }
     
     func doLoadStores(deleteOld: Bool) {
         
-        stores.removeAll()
+        //stores.removeAll()
         
         modelManager.loadStoresFromServer(storeFilter: storeFilterStr, withDeleteOld: deleteOld, storesViewModelUpdater: { [weak self] storeEntities -> Void in
             
@@ -109,10 +120,7 @@ class StoresViewModel {
             }
             
             let filteredStores = (storeEntities as NSArray).filtered(using: strongSelf.storeFilterPredicate!)
-            
             strongSelf.stores = filteredStores as! [Store]
-            //strongSelf.stores.forEach {print("Store Name: \($0.name)")}
-            
             strongSelf.delegate?.handleStoresUpdated(forLocation: strongSelf.mapLocation!)
         })
     }
