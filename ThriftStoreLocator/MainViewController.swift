@@ -11,6 +11,7 @@ import MapKit
 import CoreLocation
 import SideMenu
 import FBSDKLoginKit
+import Firebase
 
 // DEBUG
 import Alamofire
@@ -557,6 +558,14 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         if isLoggedIn() {
             let fbLoginManager: FBSDKLoginManager = FBSDKLoginManager()
             fbLoginManager.logOut()
+            
+            let firebaseAuth = FIRAuth.auth()
+            do {
+                try firebaseAuth?.signOut()
+            } catch let signOutError as NSError {
+                print ("Error signing out: %@", signOutError)
+            }
+
         } else {
             performSegue(withIdentifier: "presentFacebookLoginView", sender: nil)
         }

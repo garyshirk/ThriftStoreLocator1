@@ -13,6 +13,7 @@
 		E12F1C941E663E81006371A9 /* NetworkLayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = E12F1C931E663E81006371A9 /* NetworkLayer.swift */; };
 		E12F1C971E664D87006371A9 /* Store.swift in Sources */ = {isa = PBXBuildFile; fileRef = E12F1C951E664D87006371A9 /* Store.swift */; };
 		E12F1C981E664D87006371A9 /* Store+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = E12F1C961E664D87006371A9 /* Store+CoreDataProperties.swift */; };
+		E160B1641E808BE800D9C2FC /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = E160B1631E808BE800D9C2FC /* GoogleService-Info.plist */; };
 		E16BFB681E6777E8007438C8 /* AboutViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E16BFB671E6777E8007438C8 /* AboutViewController.swift */; };
 		E1724D101E5B732F00E71909 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1724D0F1E5B732F00E71909 /* AppDelegate.swift */; };
 		E1724D151E5B732F00E71909 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = E1724D131E5B732F00E71909 /* Main.storyboard */; };
@@ -41,6 +42,7 @@
 		E12F1C931E663E81006371A9 /* NetworkLayer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NetworkLayer.swift; sourceTree = "<group>"; };
 		E12F1C951E664D87006371A9 /* Store.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Store.swift; sourceTree = "<group>"; };
 		E12F1C961E664D87006371A9 /* Store+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Store+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		E160B1631E808BE800D9C2FC /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		E16BFB671E6777E8007438C8 /* AboutViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AboutViewController.swift; sourceTree = "<group>"; };
 		E1724D0C1E5B732F00E71909 /* ThriftStoreLocator.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ThriftStoreLocator.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E1724D0F1E5B732F00E71909 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -127,6 +129,7 @@
 				E1724D131E5B732F00E71909 /* Main.storyboard */,
 				E1724D1B1E5B732F00E71909 /* LaunchScreen.storyboard */,
 				E1724D1E1E5B732F00E71909 /* Info.plist */,
+				E160B1631E808BE800D9C2FC /* GoogleService-Info.plist */,
 				E1724D191E5B732F00E71909 /* Assets.xcassets */,
 				E12F1C8F1E662DD1006371A9 /* Data */,
 				E12F1C921E663E21006371A9 /* NetworkLayer */,
@@ -249,6 +252,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				E1724D1D1E5B732F00E71909 /* LaunchScreen.storyboard in Resources */,
+				E160B1641E808BE800D9C2FC /* GoogleService-Info.plist in Resources */,
 				E1724D1A1E5B732F00E71909 /* Assets.xcassets in Resources */,
 				E1724D151E5B732F00E71909 /* Main.storyboard in Resources */,
 			);

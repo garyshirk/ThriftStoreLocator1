@@ -13,5 +13,14 @@ target 'ThriftStoreLocator' do
   pod 'FacebookCore'
   pod 'FacebookLogin'
   pod 'FacebookShare'
+  pod 'Firebase/Core'
+  pod 'FirebaseUI', '~> 3.0'
+  pod 'FirebaseUI/Database', '~> 3.0'
+  pod 'FirebaseUI/Facebook', '~> 3.0'
+  pod 'FirebaseUI/Auth', '~> 3.0'
+  pod 'FacebookCore'
+  pod 'FacebookLogin'
+  pod 'FacebookShare'
+
 
 end

@@ -11,6 +11,9 @@ import CoreData
 import FacebookLogin
 import FacebookCore
 import FBSDKCoreKit
+import Firebase
+import FBSDKLoginKit
+
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -26,14 +29,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // This method along with some changes to color attributes on storyboard and MainViewController can be used to change nav bar appearance
         // setNavBarAppearance()
         
-        let isFbLoginUrlAvailable = FBSDKApplicationDelegate.sharedInstance().application(application, didFinishLaunchingWithOptions: launchOptions)
-               
-        return isFbLoginUrlAvailable
+        FIRApp.configure()
+        
+        return FBSDKApplicationDelegate.sharedInstance().application(application, didFinishLaunchingWithOptions: launchOptions)
     }
         
     func application(_ application: UIApplication, open url: URL, sourceApplication: String?, annotation: Any) -> Bool {
-        let isFbLoginUrlAvailable = FBSDKApplicationDelegate.sharedInstance().application(application, open: url, sourceApplication: sourceApplication, annotation: annotation)
-        return isFbLoginUrlAvailable
+        return FBSDKApplicationDelegate.sharedInstance().application(application, open: url, sourceApplication: sourceApplication, annotation: annotation)
     }
     
     
@@ -64,7 +66,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Use this method to pause ongoing tasks, disable timers, and invalidate graphics rendering callbacks. Games should use this method to pause the game.
         
         // For fb SSO implementation
-        //FBSDKAppEvents.activateApp()
+        FBSDKAppEvents.activateApp()
     }
 
     func applicationDidEnterBackground(_ application: UIApplication) {

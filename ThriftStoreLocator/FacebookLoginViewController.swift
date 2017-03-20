@@ -10,6 +10,7 @@ import UIKit
 //import FacebookLogin
 //import FacebookCore
 import FBSDKLoginKit
+import Firebase
 
 protocol FacebookLogInDelegate {
     
@@ -46,12 +47,12 @@ class FacebookLoginViewController: UIViewController {
         fbLoginManager!.logIn(withReadPermissions: ["email"], from: self) { (result, error) in
             if (error == nil){
                 
-                print("User is logged in")
-                print("Access Token")
-                print("String      : \(FBSDKAccessToken.current().tokenString)")
-                print("User ID     : \(FBSDKAccessToken.current().userID)")
-                print("App ID      : \(FBSDKAccessToken.current().appID)")
-                print("Refresh Date: \(FBSDKAccessToken.current().refreshDate)")
+//                print("User is logged in")
+//                print("Access Token")
+//                print("String      : \(FBSDKAccessToken.current().tokenString)")
+//                print("User ID     : \(FBSDKAccessToken.current().userID)")
+//                print("App ID      : \(FBSDKAccessToken.current().appID)")
+//                print("Refresh Date: \(FBSDKAccessToken.current().refreshDate)")
                 
                 let fbloginresult : FBSDKLoginManagerLoginResult = result!
                 if fbloginresult.grantedPermissions != nil {
@@ -66,6 +67,7 @@ class FacebookLoginViewController: UIViewController {
         }
     }
     
+    // TODO - StrongSelf?
     func getFBUserData(){
         if((FBSDKAccessToken.current()) != nil){
             FBSDKGraphRequest(graphPath: "me", parameters: ["fields": "id, name, first_name, last_name, picture.type(large), email"]).start(completionHandler: { (connection, result, error) -> Void in
@@ -74,11 +76,23 @@ class FacebookLoginViewController: UIViewController {
                     print("RESULT: \(result!)")
                     print("DICT: \(self.dict)")
                     
-                    FBSDKProfilePictureView.
-                    
                     //imageView.downloadedFrom(link: "http://www.apple.com/euro/ios/ios8/a/generic/images/og.png")
+                    
+                    self.signInToFirebase()
                 }
             })
+        }
+    }
+    
+    func signInToFirebase() {
+        let credential = FIRFacebookAuthProvider.credential(withAccessToken: FBSDKAccessToken.current().tokenString)
+        
+        FIRAuth.auth()?.signIn(with: credential) { (user, error) in
+            // ...
+            if let error = error {
+                print("Firebase signin error: \(error.localizedDescription)")
+                return
+            }
         }
     }
 
