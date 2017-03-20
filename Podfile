@@ -10,5 +10,8 @@ target 'ThriftStoreLocator' do
   pod 'SideMenu'
   pod 'Alamofire', '~> 4.4'
   pod 'SwiftyJSON'
+  pod 'FacebookCore'
+  pod 'FacebookLogin'
+  pod 'FacebookShare'
 
 end

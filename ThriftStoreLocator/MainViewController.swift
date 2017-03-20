@@ -10,15 +10,17 @@ import UIKit
 import MapKit
 import CoreLocation
 import SideMenu
+import FBSDKLoginKit
 
 // DEBUG
 import Alamofire
 import SwiftyJSON
 
+
 // TODO - MapView initial height should be proportional to device height
 // TODO - Define a CLCicularRegion based on user's current location and update store map and list when user leaves that region
 
-class MainViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UITextFieldDelegate, MKMapViewDelegate, CLLocationManagerDelegate, StoresViewModelDelegate {
+class MainViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UITextFieldDelegate, MKMapViewDelegate, CLLocationManagerDelegate, StoresViewModelDelegate, FacebookLogInDelegate {
     
     var isTestingPost: Bool = false
     
@@ -37,6 +39,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     var barButtonDefaultTintColor: UIColor?
     
     var myLocation: CLLocationCoordinate2D?
+    
     var mapLocation: CLLocationCoordinate2D?
     
     lazy var geocoder = CLGeocoder()
@@ -44,7 +47,8 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     let locationManager = CLLocationManager()
     
     var isLocationReceived = false
-
+    
+    
     @IBOutlet weak var tableView: UITableView!
     @IBOutlet weak var titleLabel: UILabel!
     @IBOutlet weak var searchView: UIView!
@@ -95,11 +99,29 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         // TODO - Use dependency injection for setting viewModel
         viewModel = StoresViewModel(delegate: self)
         
+        //
+        if let _ = FBSDKAccessToken.current() {
+            print("User is logged in")
+        } else {
+            print("User is logged out")
+            performSegue(withIdentifier: "presentFacebookLoginView", sender: nil)
+        }
+        
+        
+        
         // DEBUG
         if isTestingPost == true {
             testPost()
             return
         }
+    }
+    
+    // TODO - This will be moved to SideMenu
+    @IBAction func logoutButton(_ sender: Any) {
+        let fbLoginManager: FBSDKLoginManager = FBSDKLoginManager()
+        fbLoginManager.logOut()
+        performSegue(withIdentifier: "presentFacebookLoginView", sender: nil)
+        
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -110,7 +132,6 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
     }
-    
     
     @IBAction func didPressSideMenuButton(_ sender: Any) {
         
@@ -133,7 +154,6 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         
         present(SideMenuManager.menuLeftNavigationController!, animated: true, completion: nil)
     }
-    
     
     // TODO - Need new arrow location image; current one has white background
     @IBAction func didPressLocArrow(_ sender: Any) {
@@ -519,7 +539,18 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
                 let locLong = selectedStore.locLong as! Double
                 detailViewController.storeLocation = (locLat, locLong)
             }
+        
+        } else if segue.identifier == "presentFacebookLoginView" {
+            
+            if let loginVC = segue.destination as? FacebookLoginViewController {
+                
+                loginVC.logInDelegate = self
+            }
         }
+    }
+    
+    func handleUserLoggedInViaFacebook() {
+        dismiss(animated: true, completion: nil)
     }
 
     override func didReceiveMemoryWarning() {

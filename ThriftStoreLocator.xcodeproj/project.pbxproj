@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		314D2EADF3C475E290BC2116 /* Pods_ThriftStoreLocator.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 796EB802B8425583242F5A32 /* Pods_ThriftStoreLocator.framework */; };
+		E121A4E11E7F1833009AB717 /* FacebookLoginViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E121A4E01E7F1833009AB717 /* FacebookLoginViewController.swift */; };
 		E12F1C911E66304B006371A9 /* DataLayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = E12F1C901E66304B006371A9 /* DataLayer.swift */; };
 		E12F1C941E663E81006371A9 /* NetworkLayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = E12F1C931E663E81006371A9 /* NetworkLayer.swift */; };
 		E12F1C971E664D87006371A9 /* Store.swift in Sources */ = {isa = PBXBuildFile; fileRef = E12F1C951E664D87006371A9 /* Store.swift */; };
@@ -34,6 +35,8 @@
 		1CE09159045F46D114E86841 /* Pods-ThriftStoreLocator.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ThriftStoreLocator.release.xcconfig"; path = "Pods/Target Support Files/Pods-ThriftStoreLocator/Pods-ThriftStoreLocator.release.xcconfig"; sourceTree = "<group>"; };
 		796EB802B8425583242F5A32 /* Pods_ThriftStoreLocator.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_ThriftStoreLocator.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		AE5829B3E21A93676FAE59BF /* Pods-ThriftStoreLocator.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ThriftStoreLocator.debug.xcconfig"; path = "Pods/Target Support Files/Pods-ThriftStoreLocator/Pods-ThriftStoreLocator.debug.xcconfig"; sourceTree = "<group>"; };
+		E121A4E01E7F1833009AB717 /* FacebookLoginViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FacebookLoginViewController.swift; sourceTree = "<group>"; };
+		E121A4E21E7F3379009AB717 /* ThriftStoreLocator.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ThriftStoreLocator.entitlements; sourceTree = "<group>"; };
 		E12F1C901E66304B006371A9 /* DataLayer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DataLayer.swift; sourceTree = "<group>"; };
 		E12F1C931E663E81006371A9 /* NetworkLayer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NetworkLayer.swift; sourceTree = "<group>"; };
 		E12F1C951E664D87006371A9 /* Store.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Store.swift; sourceTree = "<group>"; };
@@ -119,6 +122,7 @@
 		E1724D0E1E5B732F00E71909 /* ThriftStoreLocator */ = {
 			isa = PBXGroup;
 			children = (
+				E121A4E21E7F3379009AB717 /* ThriftStoreLocator.entitlements */,
 				E1724D0F1E5B732F00E71909 /* AppDelegate.swift */,
 				E1724D131E5B732F00E71909 /* Main.storyboard */,
 				E1724D1B1E5B732F00E71909 /* LaunchScreen.storyboard */,
@@ -143,6 +147,7 @@
 				E173E98A1E5BAAC6001FF201 /* SettingsViewController.swift */,
 				E16BFB671E6777E8007438C8 /* AboutViewController.swift */,
 				E1C20C431E7842F5004CEEDD /* StoreCell.swift */,
+				E121A4E01E7F1833009AB717 /* FacebookLoginViewController.swift */,
 			);
 			name = Controllers;
 			sourceTree = "<group>";
@@ -212,6 +217,11 @@
 						CreatedOnToolsVersion = 8.2.1;
 						DevelopmentTeam = 5T6QA6HZRH;
 						ProvisioningStyle = Automatic;
+						SystemCapabilities = {
+							com.apple.Keychain = {
+								enabled = 1;
+							};
+						};
 					};
 				};
 			};
@@ -309,6 +319,7 @@
 				E1724D291E5B7E2500E71909 /* MapViewController.swift in Sources */,
 				E1F93D151E662A7100660A36 /* ModelManager.swift in Sources */,
 				E1724D271E5B7BAC00E71909 /* DetailViewController.swift in Sources */,
+				E121A4E11E7F1833009AB717 /* FacebookLoginViewController.swift in Sources */,
 				E16BFB681E6777E8007438C8 /* AboutViewController.swift in Sources */,
 				E1C20C441E7842F5004CEEDD /* StoreCell.swift in Sources */,
 				E12F1C981E664D87006371A9 /* Store+CoreDataProperties.swift in Sources */,
@@ -435,6 +446,7 @@
 			baseConfigurationReference = AE5829B3E21A93676FAE59BF /* Pods-ThriftStoreLocator.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = ThriftStoreLocator/ThriftStoreLocator.entitlements;
 				DEVELOPMENT_TEAM = 5T6QA6HZRH;
 				INFOPLIST_FILE = ThriftStoreLocator/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
@@ -449,6 +461,7 @@
 			baseConfigurationReference = 1CE09159045F46D114E86841 /* Pods-ThriftStoreLocator.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = ThriftStoreLocator/ThriftStoreLocator.entitlements;
 				DEVELOPMENT_TEAM = 5T6QA6HZRH;
 				INFOPLIST_FILE = ThriftStoreLocator/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
