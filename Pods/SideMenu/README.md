@@ -13,11 +13,12 @@
 
 SideMenu is a simple and versatile side menu control written in Swift.
 * **It can be implemented in storyboard without a single line of [code](#code-less-storyboard-implementation).**
-* Four standard animation styles to choose from (even parallax if you want to get weird).
+* Four standard animation styles to choose from (there's even a parallax effect if you want to get weird).
 * Highly customizable without needing to write tons of custom code.
 * Supports continuous swiping between side menus on boths sides in a single gesture.
 * Global menu configuration. Set-up once and be done for all screens.
-* Menus can be presented and dismissed the same as any other View Controller since this control uses custom transitions.
+* Menus can be presented and dismissed the same as any other view controller since this control uses [custom transitions](https://developer.apple.com/library/content/featuredarticles/ViewControllerPGforiPhoneOS/CustomizingtheTransitionAnimations.html).
+* Animations use your view controllers, not snapshots.
 
 Check out the example project to see it in action!
 ### Preview Samples
@@ -46,7 +47,7 @@ use_frameworks!
 
 pod 'SideMenu'
 
-# For Swift 2.3, use:
+# For Swift 2.3 (no longer maintained), use:
 # pod 'SideMenu', '~> 1.2.1'
 ```
 
@@ -75,13 +76,13 @@ github "jonkykong/SideMenu" "master"
 
 ## Usage
 ### Code-less Storyboard Implementation
-1. Create a Navigation Controller for a side menu. Set the custom class of the Navigation Controller to be `UISideMenuNavigationController` in the **Identity Inspector**. Create a Root View Controller for the Navigation Controller (shown as a UITableViewController below). Set up any Triggered Segues you want in that View Controller.
+1. Create a Navigation Controller for a side menu. Set the `Custom Class` of the Navigation Controller to be `UISideMenuNavigationController` in the **Identity Inspector**. Set the `Module` to `SideMenu` (ignore this step if you've manually added SideMenu to your project). Create a Root View Controller for the Navigation Controller (shown as a UITableViewController below). Set up any Triggered Segues you want in that view controller.
 ![](etc/Screenshot1.png)
 
 2. Set the `Left Side` property of the `UISideMenuNavigationController` to On if you want it to appear from the left side of the screen, or Off/Default if you want it to appear from the right side.
 ![](etc/Screenshot2.png)
 
-3. Add a UIButton or UIBarButton to a View Controller that you want to display the menu from. Set that button's Triggered Segues action to modally present the Navigation Controller from step 1.
+3. Add a UIButton or UIBarButton to a view controller that you want to display the menu from. Set that button's Triggered Segues action to modally present the Navigation Controller from step 1.
 ![](etc/Screenshot3.png)
 
 That's it. *Note: you can only enable gestures in code.*
@@ -91,24 +92,24 @@ First:
 import SideMenu
 ```
 
-In your View Controller's `viewDidLoad` event, do something like this:
+In your view controller's `viewDidLoad` event, do something like this (**IMPORTANT: If you're seeing a black menu when you use gestures, read this section carefully!**):
 ``` swift
 // Define the menus
-let menuLeftNavigationController = UISideMenuNavigationController()
+let menuLeftNavigationController = UISideMenuNavigationController(rootViewController: YourViewController)
 menuLeftNavigationController.leftSide = true
 // UISideMenuNavigationController is a subclass of UINavigationController, so do any additional configuration 
 // of it here like setting its viewControllers. If you're using storyboards, you'll want to do something like:
 // let menuLeftNavigationController = storyboard!.instantiateViewController(withIdentifier: "LeftMenuNavigationController") as! UISideMenuNavigationController
 SideMenuManager.menuLeftNavigationController = menuLeftNavigationController
 
-let menuRightNavigationController = UISideMenuNavigationController()
+let menuRightNavigationController = UISideMenuNavigationController(rootViewController: YourViewController)
 // UISideMenuNavigationController is a subclass of UINavigationController, so do any additional configuration
 // of it here like setting its viewControllers. If you're using storyboards, you'll want to do something like:
 // let menuRightNavigationController = storyboard!.instantiateViewController(withIdentifier: "RightMenuNavigationController") as! UISideMenuNavigationController
 SideMenuManager.menuRightNavigationController = menuRightNavigationController
 
 // Enable gestures. The left and/or right menus must be set up above for these to work.
-// Note that these continue to work on the Navigation Controller independent of the View Controller it displays!
+// Note that these continue to work on the Navigation Controller independent of the view controller it displays!
 SideMenuManager.menuAddPanGestureToPresent(toView: self.navigationController!.navigationBar)
 SideMenuManager.menuAddScreenEdgePanGesturesToPresent(toView: self.navigationController!.view)
 ```
@@ -119,7 +120,7 @@ present(SideMenuManager.menuLeftNavigationController!, animated: true, completio
 // Similarly, to dismiss a menu programmatically, you would do this:
 dismiss(animated: true, completion: nil)
 
-// For Swift 2.3, use:
+// For Swift 2.3 (no longer maintained), use:
 // presentViewController(SideMenuManager.menuLeftNavigationController!, animated: true, completion: nil)
 ```
 That's it.
@@ -186,7 +187,7 @@ open static weak var menuLeftSwipeToDismissGesture: UIPanGestureRecognizer?
 /// The right menu swipe to dismiss gesture.
 open static weak var menuRightSwipeToDismissGesture: UIPanGestureRecognizer?
 
-/// Enable or disable gestures that would swipe to present or dismiss the menu. Default is true.
+/// Enable or disable gestures that would swipe to dismiss the menu. Default is true.
 open static var menuEnableSwipeGestures: Bool = true
 
 /// Enable or disable interaction with the presenting view controller while the menu is displayed. Enabling may make it difficult to dismiss the menu or cause exceptions if the user tries to present and already presented menu. Default is false.

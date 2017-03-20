@@ -102,6 +102,12 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         }
     }
     
+    @IBAction func tempLoginButtonPressed(_ sender: Any) {
+        
+        performSegue(withIdentifier: "presentFacebookLoginView", sender: nil)
+    }
+    
+    
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         tableView.isUserInteractionEnabled = true
@@ -518,6 +524,12 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
                 let locLat = selectedStore.locLat as! Double
                 let locLong = selectedStore.locLong as! Double
                 detailViewController.storeLocation = (locLat, locLong)
+            }
+        
+        } else if segue.identifier == "presentFacebookLoginView" {
+            
+            if segue.destination is FacebookLoginViewController {
+                
             }
         }
     }
