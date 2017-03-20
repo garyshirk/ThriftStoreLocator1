@@ -33,7 +33,7 @@ class FacebookLoginViewController: UIViewController {
         fbLoginManager = FBSDKLoginManager()
         
         if let _ = FBSDKAccessToken.current() {
-            print("User is logged in")
+            
             
         } else{
             print("User is logged out")
@@ -45,6 +45,14 @@ class FacebookLoginViewController: UIViewController {
         // TODO - strongSelf
         fbLoginManager!.logIn(withReadPermissions: ["email"], from: self) { (result, error) in
             if (error == nil){
+                
+                print("User is logged in")
+                print("Access Token")
+                print("String      : \(FBSDKAccessToken.current().tokenString)")
+                print("User ID     : \(FBSDKAccessToken.current().userID)")
+                print("App ID      : \(FBSDKAccessToken.current().appID)")
+                print("Refresh Date: \(FBSDKAccessToken.current().refreshDate)")
+                
                 let fbloginresult : FBSDKLoginManagerLoginResult = result!
                 if fbloginresult.grantedPermissions != nil {
                     if(fbloginresult.grantedPermissions.contains("email"))
@@ -63,8 +71,8 @@ class FacebookLoginViewController: UIViewController {
             FBSDKGraphRequest(graphPath: "me", parameters: ["fields": "id, name, first_name, last_name, picture.type(large), email"]).start(completionHandler: { (connection, result, error) -> Void in
                 if (error == nil){
                     self.dict = result as! [String : AnyObject]
-                    print(result!)
-                    print(self.dict)
+                    print("RESULT: \(result!)")
+                    print("DICT: \(self.dict)")
                 }
             })
         }

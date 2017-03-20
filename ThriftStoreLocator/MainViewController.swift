@@ -20,7 +20,7 @@ import SwiftyJSON
 // TODO - MapView initial height should be proportional to device height
 // TODO - Define a CLCicularRegion based on user's current location and update store map and list when user leaves that region
 
-class MainViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UITextFieldDelegate, MKMapViewDelegate, CLLocationManagerDelegate, StoresViewModelDelegate, FacebookLogInDelegate {
+class MainViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UITextFieldDelegate, MKMapViewDelegate, CLLocationManagerDelegate, StoresViewModelDelegate, FacebookLogInDelegate, MenuViewDelegate {
     
     var isTestingPost: Bool = false
     
@@ -99,14 +99,10 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         // TODO - Use dependency injection for setting viewModel
         viewModel = StoresViewModel(delegate: self)
         
-        //
-        if let _ = FBSDKAccessToken.current() {
-            print("User is logged in")
-        } else {
-            print("User is logged out")
-            performSegue(withIdentifier: "presentFacebookLoginView", sender: nil)
+        // TODO - Don't go to FacebookLoginView except for first time; allow anonymous users
+        if !isLoggedIn() {
+            //performSegue(withIdentifier: "presentFacebookLoginView", sender: nil)
         }
-        
         
         
         // DEBUG
@@ -114,14 +110,6 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
             testPost()
             return
         }
-    }
-    
-    // TODO - This will be moved to SideMenu
-    @IBAction func logoutButton(_ sender: Any) {
-        let fbLoginManager: FBSDKLoginManager = FBSDKLoginManager()
-        fbLoginManager.logOut()
-        performSegue(withIdentifier: "presentFacebookLoginView", sender: nil)
-        
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -150,7 +138,8 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         SideMenuManager.menuPresentMode = .viewSlideOut
         
         let sideMenuViewController = menuRightNavigationController.viewControllers[0] as! MenuTableViewController
-        sideMenuViewController.someString = "HELLO WORLD"
+        sideMenuViewController.isLoggedIn = isLoggedIn()
+        sideMenuViewController.menuViewDelegate = self
         
         present(SideMenuManager.menuLeftNavigationController!, animated: true, completion: nil)
     }
@@ -549,9 +538,35 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         }
     }
     
-    func handleUserLoggedInViaFacebook() {
-        dismiss(animated: true, completion: nil)
+    
+    func isLoggedIn() -> Bool {
+        if let _ = FBSDKAccessToken.current() {
+            return true
+        } else {
+            return false
+        }
     }
+
+    
+    func handleUserLoggedInViaFacebook() {
+        dismiss(animated: false, completion: nil)
+    }
+    
+    func userSelectedMenuLoginCell() {
+        dismiss(animated: true, completion: nil)
+        if isLoggedIn() {
+            let fbLoginManager: FBSDKLoginManager = FBSDKLoginManager()
+            fbLoginManager.logOut()
+        } else {
+            performSegue(withIdentifier: "presentFacebookLoginView", sender: nil)
+        }
+    }
+
+    
+    
+    
+    
+    
 
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()

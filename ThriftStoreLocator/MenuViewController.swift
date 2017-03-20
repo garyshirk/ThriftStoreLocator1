@@ -8,22 +8,32 @@
 
 import UIKit
 
+protocol MenuViewDelegate {
+    
+    func userSelectedMenuLoginCell()
+}
+
 class MenuTableViewController: UITableViewController {
     
-    var menuItems:[String] = ["Settings", "About"]
+    var menuViewDelegate: MenuViewDelegate?
     
-    var someString: String = "Empty"
+    var isLoggedIn: Bool?
+    
+    @IBOutlet weak var loginCell: UILabel!
+    
 
     override func viewDidLoad() {
         super.viewDidLoad()
 
         // Uncomment the following line to preserve selection between presentations
         // self.clearsSelectionOnViewWillAppear = false
-
-        // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
-        // self.navigationItem.rightBarButtonItem = self.editButtonItem()
         
-        self.navigationItem.title = "Menu"
+        
+        if isLoggedIn! {
+            loginCell.text = "Sign Out"
+        } else {
+            loginCell.text = "Sign In"
+        }
         
         // Do not show empty tableView cells
         tableView.tableFooterView = UIView()
@@ -44,10 +54,38 @@ class MenuTableViewController: UITableViewController {
 //        imageView.backgroundColor = UIColor.black.withAlphaComponent(0.2)
 //        tableView.backgroundView = imageView
         
-        
-        
-        print(someString)
+    }
+    
+//    override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
+//        return "Menu"
+//    }
+    
+    override func tableView(_ tableView: UITableView, willDisplayHeaderView view: UIView, forSection section: Int) {
+        let appDelegate = UIApplication.shared.delegate as! AppDelegate
+        let header = view as! UITableViewHeaderFooterView
+        header.textLabel?.textColor = appDelegate.uicolorFromHex(rgbValue: UInt32(AppDelegate.DEFAULT_BLUE_COLOR))
+        header.textLabel?.font = UIFont(name: "Helvetica Neue", size: 18)
+        header.textLabel?.text = "MENU"
+        header.textLabel?.frame = header.frame
+        header.textLabel?.textAlignment = NSTextAlignment.center
+    }
+    
 
+    enum MenuRow: Int {
+        case login = 0
+        case settings
+    }
+    
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        print(indexPath.row)
+        
+        switch indexPath.row {
+        case MenuRow.login.rawValue:
+            self.menuViewDelegate?.userSelectedMenuLoginCell()
+            break
+        default: break
+        }
+        
     }
 
 
