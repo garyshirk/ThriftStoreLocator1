@@ -532,7 +532,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         
         } else if segue.identifier == "presentFacebookLoginView" {
             
-            if let loginVC = segue.destination as? FacebookLoginViewController {
+            if let loginVC = segue.destination as? LoginViewController {
                 
                 loginVC.logInDelegate = self
             }

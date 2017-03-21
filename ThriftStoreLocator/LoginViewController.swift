@@ -1,5 +1,5 @@
 //
-//  FacebookLoginViewController.swift
+//  LoginViewController.swift
 //  ThriftStoreLocator
 //
 //  Created by Gary Shirk on 3/19/17.
@@ -19,7 +19,7 @@ protocol FacebookLogInDelegate {
 
 // TODO add fb App Events after you get login working
 
-class FacebookLoginViewController: UIViewController {
+class LoginViewController: UIViewController {
     
     var logInDelegate: FacebookLogInDelegate?
     
@@ -47,12 +47,15 @@ class FacebookLoginViewController: UIViewController {
         fbLoginManager!.logIn(withReadPermissions: ["email"], from: self) { (result, error) in
             if (error == nil){
                 
-//                print("User is logged in")
-//                print("Access Token")
-//                print("String      : \(FBSDKAccessToken.current().tokenString)")
-//                print("User ID     : \(FBSDKAccessToken.current().userID)")
-//                print("App ID      : \(FBSDKAccessToken.current().appID)")
-//                print("Refresh Date: \(FBSDKAccessToken.current().refreshDate)")
+                if let current = FBSDKAccessToken.current() {
+                
+                    print("User is logged in")
+                    print("Access Token")
+                    print("String      : \(current.tokenString)")
+                    print("User ID     : \(current.userID)")
+                    print("App ID      : \(current.appID)")
+                    print("Refresh Date: \(current.refreshDate)")
+                }
                 
                 let fbloginresult : FBSDKLoginManagerLoginResult = result!
                 if fbloginresult.grantedPermissions != nil {
