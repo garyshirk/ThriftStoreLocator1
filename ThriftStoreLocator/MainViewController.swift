@@ -17,11 +17,19 @@ import Firebase
 import Alamofire
 import SwiftyJSON
 
+enum RegistrationType {
+    static let registered = "registered"
+    static let firstTimeInApp = "first_time_in_app"
+    static let anonymous = "anonymous"
+    static let regKey = "reg_key"
+}
+
 
 // TODO - MapView initial height should be proportional to device height
 // TODO - Define a CLCicularRegion based on user's current location and update store map and list when user leaves that region
-
 class MainViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UITextFieldDelegate, MKMapViewDelegate, CLLocationManagerDelegate, StoresViewModelDelegate, LogInDelegate, MenuViewDelegate {
+    
+    
     
     enum LogInType {
         case isNotLoggedIn
@@ -108,54 +116,27 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         // TODO - Use dependency injection for setting viewModel
         viewModel = StoresViewModel(delegate: self)
         
-        // TODO - Don't go to FacebookLoginView except for first time; allow anonymous users
-        if !isLoggedIn() {
-            //performSegue(withIdentifier: "presentLoginView", sender: nil)
-        }
-        
         let user = FIRAuth.auth()?.currentUser
-        if user != nil {
-            if let providerData = user?.providerData {
-                for userInfo in providerData {
-                    switch userInfo.providerID {
-                    case "facebook.com":
-                        loginType = .facebook
-                    default:
-                        loginType = .email
-                    }
-                }
-            }
-            
-        } else {
-            
-            loginType = .isNotLoggedIn
-        }
+        updateLoginStatus(forUser: user)
         
         // TODO - strongSelf
+//        {[weak self] () -> void in
+//            guard let self = self else { return }
+//            self.doSomething()
+//        }
         FIRAuth.auth()!.addStateDidChangeListener() { auth, user in
-            if user != nil {
-                // TODO - Setting loginType here is a bit redundant, but maybe better to set here than in handle callback method
-                if let providerData = user?.providerData {
-                    for userInfo in providerData {
-                        switch userInfo.providerID {
-                        case "facebook.com":
-                            self.loginType = .facebook
-                        default:
-                            self.loginType = .email
-                        }
-                    }
-                }
-            } else {
-                // TODO - If we get here it means user must be logged out (need to confirm)
-                // TODO - strongSelf?
-                self.loginType = .isNotLoggedIn
-            }
+            self.updateLoginStatus(forUser: user)
         }
         
         // DEBUG
         if isTestingPost == true {
             testPost()
             return
+        }
+        
+        let regType = getRegistrationType()
+        if regType == RegistrationType.firstTimeInApp {
+            performSegue(withIdentifier: "presentLoginView", sender: nil)
         }
     }
     
@@ -214,7 +195,6 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         }
     }
     
-    // TODO - Don't need to pass back store array here because view is populated via viewModel.stores
     func handleStoresUpdated(forLocation location:CLLocationCoordinate2D) {
         tableView.reloadData()
         zoomToLocation(at: location)
@@ -509,11 +489,6 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         }
         
         return viewModel.stores.count
-//        if isSearching {
-//            return searchedStores.count
-//        } else {
-//            return viewModel.stores.count
-//        }
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -523,11 +498,6 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         var selectedStore: Store
         
         selectedStore = viewModel.stores[indexPath.row]
-//        if isSearching {
-//            selectedStore = searchedStores[indexPath.row]
-//        } else {
-//            selectedStore = viewModel.stores[indexPath.row]
-//        }
         
         cell.storeLabel.text = selectedStore.name
         if let city = selectedStore.city, let state = selectedStore.state {
@@ -576,9 +546,45 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         }
     }
     
+    func getRegistrationType() -> String {
+        
+        let regStatus = UserDefaults.standard.value(forKey: RegistrationType.regKey) as? String
+        if regStatus != nil {
+            if regStatus == RegistrationType.firstTimeInApp {
+                return RegistrationType.anonymous
+            } else {
+                return regStatus!
+            }
+        } else {
+            return RegistrationType.firstTimeInApp
+        }
+    }
+    
+    func setRegistrationType(with regType: String) {
+        UserDefaults.standard.setValue(regType, forKey: RegistrationType.regKey)
+    }
     
     func isLoggedIn() -> Bool {
         return loginType != .isNotLoggedIn
+    }
+    
+    func updateLoginStatus(forUser user: FIRUser?) {
+        if user != nil {
+            if let providerData = user?.providerData {
+                for userInfo in providerData {
+                    switch userInfo.providerID {
+                    case "facebook.com":
+                        loginType = .facebook
+                    default:
+                        loginType = .email
+                    }
+                }
+            }
+            
+        } else {
+            
+            loginType = .isNotLoggedIn
+        }
     }
 
     

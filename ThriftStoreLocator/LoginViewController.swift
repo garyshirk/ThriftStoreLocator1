@@ -13,6 +13,10 @@ import Firebase
 protocol LogInDelegate {
     
     func handleUserLoggedIn(via loginType:MainViewController.LogInType)
+    
+    func getRegistrationType() -> String
+    
+    func setRegistrationType(with regType: String)
 }
 
 // TODO add fb App Events after you get login working
@@ -25,15 +29,26 @@ class LoginViewController: UIViewController {
     
     @IBOutlet weak var emailTextfield: UITextField!
     @IBOutlet weak var passwordTextfield: UITextField!
+    @IBOutlet weak var maybeRegLaterButton: UIButton!
  
     override func viewDidLoad() {
+        
         super.viewDidLoad()
+        
         fbLoginManager = FBSDKLoginManager()
+        
+        let regType = logInDelegate?.getRegistrationType()
+        if regType != RegistrationType.registered {
+            maybeRegLaterButton.setTitle("Maybe later", for: .normal)
+        } else {
+            maybeRegLaterButton.setTitle("Cancel", for: .normal)
+        }
     }
     
     @IBAction func usernameLoginPressed(_ sender: Any) {
         FIRAuth.auth()?.signIn(withEmail: emailTextfield.text!, password: passwordTextfield.text!) { (user, error) in
             if error == nil {
+                self.logInDelegate?.setRegistrationType(with: RegistrationType.registered)
                 self.logInDelegate?.handleUserLoggedIn(via: MainViewController.LogInType.email)
             } else {
                 print("Signin error: \(error)")
@@ -56,6 +71,8 @@ class LoginViewController: UIViewController {
             FIRAuth.auth()!.createUser(withEmail: emailField.text!,
                                        password: passwordField.text!) { user, error in
                 if error == nil {
+                    
+                    self.logInDelegate?.setRegistrationType(with: RegistrationType.registered)
                     
                     FIRAuth.auth()?.signIn(withEmail: emailField.text!, password: passwordField.text!) { (user, error) in
                         if error == nil {
@@ -88,6 +105,12 @@ class LoginViewController: UIViewController {
     }
     
     @IBAction func maybeLaterPressed(_ sender: Any) {
+        
+        let regType = logInDelegate?.getRegistrationType()
+        if regType == RegistrationType.firstTimeInApp {
+            // TODO - Anonymously log in the user
+            self.logInDelegate?.setRegistrationType(with: RegistrationType.anonymous)
+        }
         self.dismiss(animated: true, completion: nil)
     }
     
@@ -96,6 +119,8 @@ class LoginViewController: UIViewController {
         // TODO - strongSelf?
         fbLoginManager!.logIn(withReadPermissions: ["email"], from: self) { (result, error) in
             if (error == nil){
+                
+                self.logInDelegate?.setRegistrationType(with: RegistrationType.registered)
                 
                 if let current = FBSDKAccessToken.current() {
                 
