@@ -7,49 +7,99 @@
 //
 
 import UIKit
-//import FacebookLogin
-//import FacebookCore
 import FBSDKLoginKit
 import Firebase
 
-protocol FacebookLogInDelegate {
+protocol LogInDelegate {
     
-    func handleUserLoggedInViaFacebook()
+    func handleUserLoggedIn(via loginType:MainViewController.LogInType)
 }
 
 // TODO add fb App Events after you get login working
 
 class LoginViewController: UIViewController {
     
-    var logInDelegate: FacebookLogInDelegate?
-    
+    var logInDelegate: LogInDelegate?
     var fbLoginManager: FBSDKLoginManager?
-   
     var dict : [String : Any]!
+    
+    @IBOutlet weak var emailTextfield: UITextField!
+    @IBOutlet weak var passwordTextfield: UITextField!
  
     override func viewDidLoad() {
-        
         super.viewDidLoad()
-    
         fbLoginManager = FBSDKLoginManager()
-        
-        if let _ = FBSDKAccessToken.current() {
-            
-            
-        } else{
-            print("User is logged out")
+    }
+    
+    @IBAction func usernameLoginPressed(_ sender: Any) {
+        FIRAuth.auth()?.signIn(withEmail: emailTextfield.text!, password: passwordTextfield.text!) { (user, error) in
+            if error == nil {
+                self.logInDelegate?.handleUserLoggedIn(via: MainViewController.LogInType.email)
+            } else {
+                print("Signin error: \(error)")
+            }
         }
+    }
+    
+    // TODO - strongSelf
+    @IBAction func registerPressed(_ sender: Any) {
+        let alert = UIAlertController(title: "Register",
+                                      message: "Register",
+                                      preferredStyle: .alert)
+        
+        let saveAction = UIAlertAction(title: "Save",
+                                       style: .default) { action in
+                                
+            let emailField = alert.textFields![0]
+            let passwordField = alert.textFields![1]
+           
+            FIRAuth.auth()!.createUser(withEmail: emailField.text!,
+                                       password: passwordField.text!) { user, error in
+                if error == nil {
+                    
+                    FIRAuth.auth()?.signIn(withEmail: emailField.text!, password: passwordField.text!) { (user, error) in
+                        if error == nil {
+                            self.logInDelegate?.handleUserLoggedIn(via: MainViewController.LogInType.email)
+                        } else {
+                            print("Signin error: \(error)")
+                        }
+                    }
+                }
+            }
+        }
+        
+        let cancelAction = UIAlertAction(title: "Cancel",
+                                        style: .default)
+        
+        alert.addTextField { textEmail in
+            textEmail.placeholder = "Enter your email"
+        }
+        
+        alert.addTextField { textPassword in
+            textPassword.isSecureTextEntry = true
+            textPassword.placeholder = "Enter your password"
+        }
+        
+        alert.addAction(saveAction)
+        alert.addAction(cancelAction)
+        
+        present(alert, animated: true, completion: nil)
+
+    }
+    
+    @IBAction func maybeLaterPressed(_ sender: Any) {
+        self.dismiss(animated: true, completion: nil)
     }
     
     @IBAction func fbLoginButtonPressed(_ sender: Any) {
         
-        // TODO - strongSelf
+        // TODO - strongSelf?
         fbLoginManager!.logIn(withReadPermissions: ["email"], from: self) { (result, error) in
             if (error == nil){
                 
                 if let current = FBSDKAccessToken.current() {
                 
-                    print("User is logged in")
+                    print("Facebook user is logged in")
                     print("Access Token")
                     print("String      : \(current.tokenString)")
                     print("User ID     : \(current.userID)")
@@ -58,11 +108,24 @@ class LoginViewController: UIViewController {
                 }
                 
                 let fbloginresult : FBSDKLoginManagerLoginResult = result!
+                
                 if fbloginresult.grantedPermissions != nil {
+                
                     if(fbloginresult.grantedPermissions.contains("email"))
                     {
                         self.getFBUserData()
-                        self.logInDelegate?.handleUserLoggedInViaFacebook()
+                        
+                        let credential = FIRFacebookAuthProvider.credential(withAccessToken: FBSDKAccessToken.current().tokenString)
+                        
+                        FIRAuth.auth()?.signIn(with: credential) { (user, error) in
+                            if let error = error {
+                                print("Firebase signin error: \(error.localizedDescription)")
+                                return
+                            }
+                        }
+                        
+                        self.logInDelegate?.handleUserLoggedIn(via: MainViewController.LogInType.facebook)
+                        
                         print("FB logged in with email permisions")
                     }
                 }
@@ -80,24 +143,11 @@ class LoginViewController: UIViewController {
                     print("DICT: \(self.dict)")
                     
                     //imageView.downloadedFrom(link: "http://www.apple.com/euro/ios/ios8/a/generic/images/og.png")
-                    
-                    self.signInToFirebase()
                 }
             })
         }
     }
     
-    func signInToFirebase() {
-        let credential = FIRFacebookAuthProvider.credential(withAccessToken: FBSDKAccessToken.current().tokenString)
-        
-        FIRAuth.auth()?.signIn(with: credential) { (user, error) in
-            // ...
-            if let error = error {
-                print("Firebase signin error: \(error.localizedDescription)")
-                return
-            }
-        }
-    }
 
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
@@ -124,5 +174,18 @@ extension UIImageView {
     func downloadedFrom(link: String, contentMode mode: UIViewContentMode = .scaleAspectFit) {
         guard let url = URL(string: link) else { return }
         downloadedFrom(url: url, contentMode: mode)
+    }
+}
+
+extension LoginViewController: UITextFieldDelegate {
+    
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        if textField == emailTextfield {
+            passwordTextfield.becomeFirstResponder()
+        }
+        if textField == passwordTextfield {
+            textField.resignFirstResponder()
+        }
+        return true
     }
 }

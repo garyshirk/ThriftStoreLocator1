@@ -21,7 +21,15 @@ import SwiftyJSON
 // TODO - MapView initial height should be proportional to device height
 // TODO - Define a CLCicularRegion based on user's current location and update store map and list when user leaves that region
 
-class MainViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UITextFieldDelegate, MKMapViewDelegate, CLLocationManagerDelegate, StoresViewModelDelegate, FacebookLogInDelegate, MenuViewDelegate {
+class MainViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UITextFieldDelegate, MKMapViewDelegate, CLLocationManagerDelegate, StoresViewModelDelegate, LogInDelegate, MenuViewDelegate {
+    
+    enum LogInType {
+        case isNotLoggedIn
+        case facebook
+        case email
+    }
+    
+    var loginType: LogInType?
     
     var isTestingPost: Bool = false
     
@@ -102,9 +110,47 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         
         // TODO - Don't go to FacebookLoginView except for first time; allow anonymous users
         if !isLoggedIn() {
-            //performSegue(withIdentifier: "presentFacebookLoginView", sender: nil)
+            //performSegue(withIdentifier: "presentLoginView", sender: nil)
         }
         
+        let user = FIRAuth.auth()?.currentUser
+        if user != nil {
+            if let providerData = user?.providerData {
+                for userInfo in providerData {
+                    switch userInfo.providerID {
+                    case "facebook.com":
+                        loginType = .facebook
+                    default:
+                        loginType = .email
+                    }
+                }
+            }
+            
+        } else {
+            
+            loginType = .isNotLoggedIn
+        }
+        
+        // TODO - strongSelf
+        FIRAuth.auth()!.addStateDidChangeListener() { auth, user in
+            if user != nil {
+                // TODO - Setting loginType here is a bit redundant, but maybe better to set here than in handle callback method
+                if let providerData = user?.providerData {
+                    for userInfo in providerData {
+                        switch userInfo.providerID {
+                        case "facebook.com":
+                            self.loginType = .facebook
+                        default:
+                            self.loginType = .email
+                        }
+                    }
+                }
+            } else {
+                // TODO - If we get here it means user must be logged out (need to confirm)
+                // TODO - strongSelf?
+                self.loginType = .isNotLoggedIn
+            }
+        }
         
         // DEBUG
         if isTestingPost == true {
@@ -184,8 +230,6 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     func zoomToLocation(at location: CLLocationCoordinate2D) {
         let region = MKCoordinateRegionMakeWithDistance(location, milesToMeters(for: 10), milesToMeters(for: 10))
         mapView.setRegion(region, animated: true)
-        
-        //print("LOCATION - Lat:\(myLocation?.latitude), Long:\(myLocation?.longitude)")
     }
     
     
@@ -194,8 +238,6 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         let locationCoords: CLLocation = CLLocation(latitude: myLocation!.latitude, longitude: myLocation!.longitude)
     
         geocoder.reverseGeocodeLocation(locationCoords) { (placemarks, error) in
-    
-            print(locationCoords)
     
             if error != nil {
                 print("Reverse geocoder failed with error" + (error?.localizedDescription)!)
@@ -510,11 +552,6 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
             if let indexPath = tableView.indexPathForSelectedRow {
                 
                 selectedStore = viewModel.stores[(indexPath.row)]
-//                if isSearching {
-//                    selectedStore = searchedStores[(indexPath.row)]
-//                } else {
-//                    selectedStore = viewModel.stores[(indexPath.row)]
-//                }
             }
             
             if let detailViewController = segue.destination as? DetailViewController {
@@ -530,7 +567,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
                 detailViewController.storeLocation = (locLat, locLong)
             }
         
-        } else if segue.identifier == "presentFacebookLoginView" {
+        } else if segue.identifier == "presentLoginView" {
             
             if let loginVC = segue.destination as? LoginViewController {
                 
@@ -541,23 +578,25 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     
     
     func isLoggedIn() -> Bool {
-        if let _ = FBSDKAccessToken.current() {
-            return true
-        } else {
-            return false
-        }
+        return loginType != .isNotLoggedIn
     }
 
     
-    func handleUserLoggedInViaFacebook() {
+    func handleUserLoggedIn(via loginType: LogInType) {
+        self.loginType = loginType
         dismiss(animated: false, completion: nil)
     }
     
     func userSelectedMenuLoginCell() {
+        
         dismiss(animated: true, completion: nil)
+        
         if isLoggedIn() {
-            let fbLoginManager: FBSDKLoginManager = FBSDKLoginManager()
-            fbLoginManager.logOut()
+        
+            if loginType == .facebook {
+                let fbLoginManager: FBSDKLoginManager = FBSDKLoginManager()
+                fbLoginManager.logOut()
+            }
             
             let firebaseAuth = FIRAuth.auth()
             do {
@@ -565,9 +604,11 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
             } catch let signOutError as NSError {
                 print ("Error signing out: %@", signOutError)
             }
+            
+            loginType = .isNotLoggedIn
 
         } else {
-            performSegue(withIdentifier: "presentFacebookLoginView", sender: nil)
+            performSegue(withIdentifier: "presentLoginView", sender: nil)
         }
     }
 

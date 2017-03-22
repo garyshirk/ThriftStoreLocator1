@@ -196,7 +196,7 @@
                         <outlet property="searchView" destination="fsL-CZ-vjs" id="OJN-pa-EsZ"/>
                         <outlet property="tableView" destination="wgO-5x-fvO" id="fp6-SG-Ddi"/>
                         <outlet property="titleLabel" destination="U5f-Kr-vqX" id="xvX-Ua-1Kx"/>
-                        <segue destination="24f-H1-2dd" kind="presentation" identifier="presentFacebookLoginView" modalTransitionStyle="coverVertical" id="mbf-aY-2ef"/>
+                        <segue destination="24f-H1-2dd" kind="presentation" identifier="presentLoginView" modalTransitionStyle="coverVertical" id="mbf-aY-2ef"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="oef-6y-ye7" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -400,6 +400,9 @@
                                 <state key="normal" title="Login">
                                     <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 </state>
+                                <connections>
+                                    <action selector="usernameLoginPressed:" destination="24f-H1-2dd" eventType="touchUpInside" id="5Sg-RG-0Zt"/>
+                                </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="94T-G3-f4v">
                                 <rect key="frame" x="101" y="325" width="215" height="30"/>
@@ -411,6 +414,9 @@
                                 <state key="normal" title="Register">
                                     <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 </state>
+                                <connections>
+                                    <action selector="registerPressed:" destination="24f-H1-2dd" eventType="touchUpInside" id="eMe-25-Dro"/>
+                                </connections>
                             </button>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="OR" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="InS-1n-bOu">
                                 <rect key="frame" x="196" y="386" width="24" height="21"/>
@@ -443,6 +449,9 @@
                                 <state key="normal" title="Maybe later">
                                     <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 </state>
+                                <connections>
+                                    <action selector="maybeLaterPressed:" destination="24f-H1-2dd" eventType="touchUpInside" id="PZ2-KL-NcQ"/>
+                                </connections>
                             </button>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
@@ -469,6 +478,10 @@
                         </constraints>
                     </view>
                     <navigationItem key="navigationItem" id="MG6-7U-VPK"/>
+                    <connections>
+                        <outlet property="emailTextfield" destination="6pX-aO-BR1" id="twJ-uy-HNI"/>
+                        <outlet property="passwordTextfield" destination="AK6-Ml-53Z" id="Y2b-4a-aSM"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="PLR-jh-2qS" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
@@ -563,7 +576,7 @@
         <scene sceneID="s6x-78-fNU">
             <objects>
                 <navigationController storyboardIdentifier="sideMenuNavigationController" navigationBarHidden="YES" id="M2D-kd-UKs" customClass="UISideMenuNavigationController" customModule="SideMenu" sceneMemberID="viewController">
-                    <navigationBar key="navigationBar" contentMode="scaleToFill" id="tMY-b7-DOf">
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" misplaced="YES" id="tMY-b7-DOf">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="44"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </navigationBar>
@@ -620,7 +633,7 @@
             <objects>
                 <navigationController automaticallyAdjustsScrollViewInsets="NO" id="Nve-Pp-RNN" sceneMemberID="viewController">
                     <toolbarItems/>
-                    <navigationBar key="navigationBar" contentMode="scaleToFill" id="8d6-qg-N03">
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" misplaced="YES" id="8d6-qg-N03">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="44"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </navigationBar>
@@ -638,7 +651,7 @@
             <objects>
                 <navigationController automaticallyAdjustsScrollViewInsets="NO" id="M85-Lg-EYw" sceneMemberID="viewController">
                     <toolbarItems/>
-                    <navigationBar key="navigationBar" contentMode="scaleToFill" id="hpo-bN-3mx">
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" misplaced="YES" id="hpo-bN-3mx">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="44"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </navigationBar>
