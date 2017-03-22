@@ -24,20 +24,18 @@ enum RegistrationType {
     static let regKey = "reg_key"
 }
 
+enum LogInType {
+    static let isNotLoggedIn = "is_not_logged_in"
+    static let facebook = "facebook"
+    static let email = "email"
+}
+
 
 // TODO - MapView initial height should be proportional to device height
 // TODO - Define a CLCicularRegion based on user's current location and update store map and list when user leaves that region
 class MainViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UITextFieldDelegate, MKMapViewDelegate, CLLocationManagerDelegate, StoresViewModelDelegate, LogInDelegate, MenuViewDelegate {
     
-    
-    
-    enum LogInType {
-        case isNotLoggedIn
-        case facebook
-        case email
-    }
-    
-    var loginType: LogInType?
+    var loginType: String?
     
     var isTestingPost: Bool = false
     
@@ -135,7 +133,8 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         }
         
         let regType = getRegistrationType()
-        if regType == RegistrationType.firstTimeInApp {
+        if regType == RegistrationType.firstTimeInApp ||
+                      (regType == RegistrationType.registered && loginType == LogInType.isNotLoggedIn) {
             performSegue(withIdentifier: "presentLoginView", sender: nil)
         }
     }
@@ -565,7 +564,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     }
     
     func isLoggedIn() -> Bool {
-        return loginType != .isNotLoggedIn
+        return loginType != LogInType.isNotLoggedIn as String
     }
     
     func updateLoginStatus(forUser user: FIRUser?) {
@@ -574,21 +573,22 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
                 for userInfo in providerData {
                     switch userInfo.providerID {
                     case "facebook.com":
-                        loginType = .facebook
+                        loginType = LogInType.facebook as String
                     default:
-                        loginType = .email
+                        loginType = LogInType.email as String
                     }
+                    // TODO - Probably need case for anonymous once that's implemented
                 }
             }
             
         } else {
             
-            loginType = .isNotLoggedIn
+            loginType = LogInType.isNotLoggedIn as String
         }
     }
 
     
-    func handleUserLoggedIn(via loginType: LogInType) {
+    func handleUserLoggedIn(via loginType: String) {
         self.loginType = loginType
         dismiss(animated: false, completion: nil)
     }
@@ -599,7 +599,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         
         if isLoggedIn() {
         
-            if loginType == .facebook {
+            if loginType == LogInType.facebook as String {
                 let fbLoginManager: FBSDKLoginManager = FBSDKLoginManager()
                 fbLoginManager.logOut()
             }
@@ -611,11 +611,10 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
                 print ("Error signing out: %@", signOutError)
             }
             
-            loginType = .isNotLoggedIn
+            loginType = LogInType.isNotLoggedIn as String
 
-        } else {
-            performSegue(withIdentifier: "presentLoginView", sender: nil)
         }
+        performSegue(withIdentifier: "presentLoginView", sender: nil)
     }
 
     

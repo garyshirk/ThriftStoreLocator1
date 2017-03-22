@@ -12,7 +12,7 @@ import Firebase
 
 protocol LogInDelegate {
     
-    func handleUserLoggedIn(via loginType:MainViewController.LogInType)
+    func handleUserLoggedIn(via loginType: String)
     
     func getRegistrationType() -> String
     
@@ -38,10 +38,11 @@ class LoginViewController: UIViewController {
         fbLoginManager = FBSDKLoginManager()
         
         let regType = logInDelegate?.getRegistrationType()
-        if regType != RegistrationType.registered {
-            maybeRegLaterButton.setTitle("Maybe later", for: .normal)
+        if regType == RegistrationType.registered {
+            maybeRegLaterButton.isHidden = true
         } else {
-            maybeRegLaterButton.setTitle("Cancel", for: .normal)
+            maybeRegLaterButton.setTitle("Maybe later", for: .normal)
+            maybeRegLaterButton.isHidden = false
         }
     }
     
@@ -49,7 +50,7 @@ class LoginViewController: UIViewController {
         FIRAuth.auth()?.signIn(withEmail: emailTextfield.text!, password: passwordTextfield.text!) { (user, error) in
             if error == nil {
                 self.logInDelegate?.setRegistrationType(with: RegistrationType.registered)
-                self.logInDelegate?.handleUserLoggedIn(via: MainViewController.LogInType.email)
+                self.logInDelegate?.handleUserLoggedIn(via: (LogInType.email as String))
             } else {
                 print("Signin error: \(error)")
             }
@@ -76,7 +77,7 @@ class LoginViewController: UIViewController {
                     
                     FIRAuth.auth()?.signIn(withEmail: emailField.text!, password: passwordField.text!) { (user, error) in
                         if error == nil {
-                            self.logInDelegate?.handleUserLoggedIn(via: MainViewController.LogInType.email)
+                            self.logInDelegate?.handleUserLoggedIn(via: (LogInType.email as String))
                         } else {
                             print("Signin error: \(error)")
                         }
@@ -120,8 +121,6 @@ class LoginViewController: UIViewController {
         fbLoginManager!.logIn(withReadPermissions: ["email"], from: self) { (result, error) in
             if (error == nil){
                 
-                self.logInDelegate?.setRegistrationType(with: RegistrationType.registered)
-                
                 if let current = FBSDKAccessToken.current() {
                 
                     print("Facebook user is logged in")
@@ -149,7 +148,8 @@ class LoginViewController: UIViewController {
                             }
                         }
                         
-                        self.logInDelegate?.handleUserLoggedIn(via: MainViewController.LogInType.facebook)
+                        self.logInDelegate?.setRegistrationType(with: RegistrationType.registered)
+                        self.logInDelegate?.handleUserLoggedIn(via: (LogInType.facebook as String))
                         
                         print("FB logged in with email permisions")
                     }
