@@ -20,7 +20,7 @@ import SwiftyJSON
 enum RegistrationType {
     static let registered = "registered"
     static let firstTimeInApp = "first_time_in_app"
-    static let anonymous = "anonymous"
+    static let anonymousUser = "anonymous"
     static let regKey = "reg_key"
 }
 
@@ -28,6 +28,7 @@ enum LogInType {
     static let isNotLoggedIn = "is_not_logged_in"
     static let facebook = "facebook"
     static let email = "email"
+    static let anonymousLogin = "anonymous_login"
 }
 
 
@@ -36,6 +37,8 @@ enum LogInType {
 class MainViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UITextFieldDelegate, MKMapViewDelegate, CLLocationManagerDelegate, StoresViewModelDelegate, LogInDelegate, MenuViewDelegate {
     
     var loginType: String?
+    
+    var currentUser: User?
     
     var isTestingPost: Bool = false
     
@@ -132,6 +135,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
             return
         }
         
+        // Always segue to LoginViewController if user is first time or had previously registered and then logged out
         let regType = getRegistrationType()
         if regType == RegistrationType.firstTimeInApp ||
                       (regType == RegistrationType.registered && loginType == LogInType.isNotLoggedIn) {
@@ -541,6 +545,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
             if let loginVC = segue.destination as? LoginViewController {
                 
                 loginVC.logInDelegate = self
+                loginVC.currentUser = self.currentUser
             }
         }
     }
@@ -550,7 +555,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         let regStatus = UserDefaults.standard.value(forKey: RegistrationType.regKey) as? String
         if regStatus != nil {
             if regStatus == RegistrationType.firstTimeInApp {
-                return RegistrationType.anonymous
+                return RegistrationType.anonymousUser
             } else {
                 return regStatus!
             }
@@ -564,20 +569,28 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     }
     
     func isLoggedIn() -> Bool {
-        return loginType != LogInType.isNotLoggedIn as String
+        return (loginType == LogInType.facebook as String ||
+                loginType == LogInType.email as String)
     }
     
     func updateLoginStatus(forUser user: FIRUser?) {
         if user != nil {
+            
+            self.currentUser = User(authData: user!)
+            print("USER ID==============> \(self.currentUser?.uid), and email: \(self.currentUser?.email ?? "no email")")
+            
             if let providerData = user?.providerData {
                 for userInfo in providerData {
                     switch userInfo.providerID {
                     case "facebook.com":
                         loginType = LogInType.facebook as String
                     default:
-                        loginType = LogInType.email as String
+                        if (user?.isAnonymous)! {
+                            loginType = LogInType.anonymousLogin as String
+                        } else {
+                            loginType = LogInType.email as String
+                        }
                     }
-                    // TODO - Probably need case for anonymous once that's implemented
                 }
             }
             
@@ -608,7 +621,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
             do {
                 try firebaseAuth?.signOut()
             } catch let signOutError as NSError {
-                print ("Error signing out: %@", signOutError)
+                print ("Error logging out: %@", signOutError)
             }
             
             loginType = LogInType.isNotLoggedIn as String

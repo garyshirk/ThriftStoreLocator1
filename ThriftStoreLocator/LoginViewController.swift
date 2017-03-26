@@ -25,6 +25,7 @@ class LoginViewController: UIViewController {
     
     var logInDelegate: LogInDelegate?
     var fbLoginManager: FBSDKLoginManager?
+    var currentUser: User?
     var dict : [String : Any]!
     
     @IBOutlet weak var emailTextfield: UITextField!
@@ -37,6 +38,8 @@ class LoginViewController: UIViewController {
         
         fbLoginManager = FBSDKLoginManager()
         
+        print("Current User in LoginView =======> \(self.currentUser?.uid), \(self.currentUser?.email)")
+        
         let regType = logInDelegate?.getRegistrationType()
         if regType == RegistrationType.registered {
             maybeRegLaterButton.isHidden = true
@@ -47,18 +50,24 @@ class LoginViewController: UIViewController {
     }
     
     @IBAction func usernameLoginPressed(_ sender: Any) {
+        
         FIRAuth.auth()?.signIn(withEmail: emailTextfield.text!, password: passwordTextfield.text!) { (user, error) in
+            
             if error == nil {
+                
+                print("An existing user: \(user?.email), \(user?.uid) logged back in")
                 self.logInDelegate?.setRegistrationType(with: RegistrationType.registered)
                 self.logInDelegate?.handleUserLoggedIn(via: (LogInType.email as String))
+                
             } else {
-                print("Signin error: \(error)")
+                print("Error existing user attempting to login: \(error)")
             }
         }
     }
     
     // TODO - strongSelf
     @IBAction func registerPressed(_ sender: Any) {
+        
         let alert = UIAlertController(title: "Register",
                                       message: "Register",
                                       preferredStyle: .alert)
@@ -68,21 +77,22 @@ class LoginViewController: UIViewController {
                                 
             let emailField = alert.textFields![0]
             let passwordField = alert.textFields![1]
-           
-            FIRAuth.auth()!.createUser(withEmail: emailField.text!,
-                                       password: passwordField.text!) { user, error in
-                if error == nil {
-                    
-                    self.logInDelegate?.setRegistrationType(with: RegistrationType.registered)
-                    
-                    FIRAuth.auth()?.signIn(withEmail: emailField.text!, password: passwordField.text!) { (user, error) in
-                        if error == nil {
-                            self.logInDelegate?.handleUserLoggedIn(via: (LogInType.email as String))
-                        } else {
-                            print("Signin error: \(error)")
-                        }
-                    }
+            
+            
+            if let currentUser = FIRAuth.auth()?.currentUser {
+                
+                // An anonymous user is registering
+                if currentUser.isAnonymous {
+                    self.registerAnonymous(currentUser: currentUser, email: emailField.text!, password: passwordField.text!)
+                
+                } else {
+                    self.registerNewUser(email: emailField.text!, password: passwordField.text!)
                 }
+                
+            } else {
+                
+                // User is registering first time in the app
+                self.registerNewUser(email: emailField.text!, password: passwordField.text!)
             }
         }
         
@@ -105,20 +115,64 @@ class LoginViewController: UIViewController {
 
     }
     
+    func registerAnonymous(currentUser: FIRUser, email: String, password: String) {
+        
+        let credential = FIREmailPasswordAuthProvider.credential(withEmail: email, password: password)
+        currentUser.link(with: credential) { (user, error) in
+            if error == nil {
+                print("Anonymous user: \(currentUser.uid) successfully linked to new registered user: \(user?.email), \(user?.uid)")
+                self.logInDelegate?.setRegistrationType(with: RegistrationType.registered)
+                self.logInDelegate?.handleUserLoggedIn(via: (LogInType.email as String))
+                
+            } else {
+                print("Error linking anonymous user to new registration: \(error)")
+            }
+        }
+    }
+    
+    func registerNewUser(email: String, password: String) {
+        
+        FIRAuth.auth()!.createUser(withEmail: email, password: password) { user, error in
+            if error == nil {
+                self.logInDelegate?.setRegistrationType(with: RegistrationType.registered)
+                FIRAuth.auth()?.signIn(withEmail: email, password: password) { (user, error) in
+                    if error == nil {
+                        print("\(user?.email), \(user?.uid) successfully registered first time in app")
+                        self.logInDelegate?.handleUserLoggedIn(via: (LogInType.email as String))
+                    } else {
+                        print("Error logging in a newly registered user: \(error)")
+                    }
+                }
+            } else {
+                print("Error registering a new user: \(error)")
+            }
+        }
+    }
+    
+    
     @IBAction func maybeLaterPressed(_ sender: Any) {
         
         let regType = logInDelegate?.getRegistrationType()
+        
         if regType == RegistrationType.firstTimeInApp {
-            // TODO - Anonymously log in the user
-            self.logInDelegate?.setRegistrationType(with: RegistrationType.anonymous)
+            
+            FIRAuth.auth()?.signInAnonymously() { (user, error) in
+                if error == nil {
+                    print("A new user: \(user?.email), \(user?.uid) was successfully logged in anonymously")
+                    self.logInDelegate?.setRegistrationType(with: RegistrationType.anonymousUser)
+                    self.logInDelegate?.handleUserLoggedIn(via: (LogInType.anonymousLogin as String))
+                } else {
+                    print("Error logging in a new user as anonymous: \(error)")
+                }
+            }
         }
         self.dismiss(animated: true, completion: nil)
     }
     
     @IBAction func fbLoginButtonPressed(_ sender: Any) {
         
-        // TODO - strongSelf?
         fbLoginManager!.logIn(withReadPermissions: ["email"], from: self) { (result, error) in
+            
             if (error == nil){
                 
                 if let current = FBSDKAccessToken.current() {
@@ -131,29 +185,83 @@ class LoginViewController: UIViewController {
                     print("Refresh Date: \(current.refreshDate)")
                 }
                 
-                let fbloginresult : FBSDKLoginManagerLoginResult = result!
+                let fbLoginResult : FBSDKLoginManagerLoginResult = result!
                 
-                if fbloginresult.grantedPermissions != nil {
+                if fbLoginResult.grantedPermissions != nil {
                 
-                    if(fbloginresult.grantedPermissions.contains("email"))
-                    {
+                    if(fbLoginResult.grantedPermissions.contains("email")) {
+                        
                         self.getFBUserData()
                         
                         let credential = FIRFacebookAuthProvider.credential(withAccessToken: FBSDKAccessToken.current().tokenString)
                         
-                        FIRAuth.auth()?.signIn(with: credential) { (user, error) in
-                            if let error = error {
-                                print("Firebase signin error: \(error.localizedDescription)")
-                                return
+                        if let currentUser = FIRAuth.auth()?.currentUser {
+                            
+                            if currentUser.isAnonymous {
+                                
+                                self.registerAnonymousUserToFacebook(currentUser: currentUser, credential: credential)
+                            
+                            } else {
+                                
+                                self.registerNewUserToFacebook(credential: credential)
                             }
+                            
+                        } else {
+                        
+                            self.registerNewUserToFacebook(credential: credential)
                         }
-                        
-                        self.logInDelegate?.setRegistrationType(with: RegistrationType.registered)
-                        self.logInDelegate?.handleUserLoggedIn(via: (LogInType.facebook as String))
-                        
-                        print("FB logged in with email permisions")
                     }
                 }
+            }
+        }
+    }
+    
+    func registerAnonymousUserToFacebook(currentUser: FIRUser, credential: FIRAuthCredential) {
+        
+        currentUser.link(with: credential) { (user, error) in
+            
+            if error == nil {
+                
+                // TODO - This path needs tested; need new facebook test account
+                print("An anonymous user: \(currentUser.email), \(currentUser.uid) was successfully registered with facebook")
+                self.logInDelegate?.setRegistrationType(with: RegistrationType.registered)
+                self.logInDelegate?.handleUserLoggedIn(via: (LogInType.facebook as String))
+                
+            } else {
+                print("Error when anonymous user attempted to login to Facebook: \(error)")
+                
+                if let errCode = FIRAuthErrorCode(rawValue: error!._code) {
+                    
+                    switch errCode {
+                    case .errorCodeInvalidEmail:
+                        print("Invalid email")
+                    case .errorCodeEmailAlreadyInUse:
+                        print("Email address already in use")
+                    case .errorCodeCredentialAlreadyInUse:
+                        print("Credential already in use")
+                        print("User logged in with a previously used facebook crendential. The anonymouse user credential was ignored: \(currentUser.uid) was successfully registered with facebook")
+                        self.logInDelegate?.setRegistrationType(with: RegistrationType.registered)
+                        self.logInDelegate?.handleUserLoggedIn(via: (LogInType.facebook as String))
+                    default:
+                        print("Create User Error: \(error)")
+                    }    
+                }
+            }
+        }
+    }
+    
+    func registerNewUserToFacebook(credential: FIRAuthCredential) {
+        
+        FIRAuth.auth()?.signIn(with: credential) { (user, error) in
+            
+            if error == nil {
+                
+                print("A new user: \(user?.email), \(user?.uid) was successfully logged in via facebook")
+                self.logInDelegate?.setRegistrationType(with: RegistrationType.registered)
+                self.logInDelegate?.handleUserLoggedIn(via: (LogInType.facebook as String))
+                
+            } else {
+                print("Error when first time user attempted to login via facebook: \(error?.localizedDescription)")
             }
         }
     }
