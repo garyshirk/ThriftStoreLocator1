@@ -8,6 +8,7 @@
 
 import Foundation
 import CoreLocation
+import MapKit
 
 protocol StoresViewModelDelegate: class {
     
@@ -22,6 +23,8 @@ class StoresViewModel {
     
     var stores: [Store] = []
     
+    var county: String = ""
+    
     var storeFilterStr = ""
     
     var storeFilterPredicate: NSPredicate?
@@ -33,6 +36,8 @@ class StoresViewModel {
     var mapLocation: CLLocationCoordinate2D?
     
     var searchType: SearchType
+    
+    lazy var geocoder = CLGeocoder()
     
     enum SearchType {
         case zipcode
@@ -48,15 +53,7 @@ class StoresViewModel {
     
     func doSearch(forSearchStr searchStr:String) {
         
-        let searchStr = searchStr.replacingOccurrences(of: " ", with: "%20")
-        
-        if isZipCode(forSearchStr: searchStr) {
-            searchType = .zipcode
-        } else {
-            searchType = .other
-        }
-        
-        getLocationInfo(forSearchStr: searchStr)
+        setLocationInfo(forAddressStr: searchStr)
     }
     
     
@@ -109,11 +106,17 @@ class StoresViewModel {
         })
     }
     
+    func loadInitialStores(forLocation location:CLLocationCoordinate2D, withRadiusInMiles radius:Double) {
+        
+        setStoreFilters(forLocation: location, withRadiusInMiles: radius, andZip: "")
+        
+        setCounty(forLocation: location, deleteOld: true)
+        
+    }
+    
     func doLoadStores(deleteOld: Bool) {
         
-        //stores.removeAll()
-        
-        modelManager.loadStoresFromServer(storeFilter: storeFilterStr, withDeleteOld: deleteOld, storesViewModelUpdater: { [weak self] storeEntities -> Void in
+        modelManager.loadStoresFromServer(forCounty: county, withDeleteOld: deleteOld, storesViewModelUpdater: { [weak self] storeEntities -> Void in
             
             guard let strongSelf = self else {
                 return
@@ -201,6 +204,59 @@ class StoresViewModel {
             return true
         } else {
             return false
+        }
+    }
+    
+    func setCounty(forLocation location: CLLocationCoordinate2D, deleteOld: Bool) {
+        
+        let locationCoords: CLLocation = CLLocation(latitude: location.latitude, longitude: location.longitude)
+        
+        geocoder.reverseGeocodeLocation(locationCoords) { (placemarks, error) in
+            
+            if error != nil {
+                print("Reverse geocoder failed with error" + (error?.localizedDescription)!)
+                return
+            }
+            
+            if let placemarks = placemarks, let placemark = placemarks.first {
+                
+                self.county = placemark.subAdministrativeArea!.lowercased().replacingOccurrences(of: " ", with: "+")
+                
+                self.doLoadStores(deleteOld: deleteOld)
+            
+            } else {
+                print("Problem getting county")
+            }
+        }
+    }
+    
+    func setLocationInfo(forAddressStr address: String) {
+        
+        geocoder.geocodeAddressString(address) { (placemarks, error) in
+            
+            if error != nil {
+                print("Geocoder failed with error" + (error?.localizedDescription)!)
+                return
+            }
+            
+            if let placemarks = placemarks, let placemark = placemarks.first {
+                
+                self.county = placemark.subAdministrativeArea!.lowercased().replacingOccurrences(of: " ", with: "+")
+                
+                self.mapLocation = placemark.location?.coordinate
+                
+                self.setStoreFilters(forLocation: self.mapLocation!, withRadiusInMiles: 10, andZip: "")
+                
+                
+                print("Placemarks: \(self.county)")
+                
+                
+                self.doLoadStores(deleteOld: false)
+                
+                
+            } else {
+                print("Problem getting county")
+            }
         }
     }
 }

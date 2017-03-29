@@ -9,24 +9,27 @@
 import Foundation
 import Alamofire
 import SwiftyJSON
+import FirebaseDatabase
 
 // TODO - constants should use pattern for constants (struct or enum)
-private let thriftStoreBaseURL = "http://localhost:8000/thriftstores/"
+private let djangoThriftStoreBaseURL = "http://localhost:8000/thriftstores/"
+private let firebaseThriftStoreBaseURL = "https://thrift-store-locator.firebaseio.com/thriftstores/<COUNTY>.json?auth=APnqdk7uneubbRfzoOT2E0NnRDKurz36tW15gOcA"
 private let locationInfoBaseURL = "http://maps.googleapis.com/maps/api/geocode/json?address=<location>&sensor=false"
+
 
 class NetworkLayer {
     
-    var isLoadingLocal = false
+    var rootRef = FIRDatabase.database().reference()
     
     var locationDict = [String:Any]()
     
     var storesArrayOfDicts = [[String:Any]]() // Array of Dictionaries
     
+    
+    
     func getLocationInfo(forSearchStr: String, modelManagerLocationUpdater: @escaping ([String:Any]) -> Void) {
         
-        // DEBUG
         let urlString = locationInfoBaseURL.replacingOccurrences(of: "<location>", with: forSearchStr)
-        //let urlString = locationInfoBaseURL
         
         Alamofire.request(urlString, method: .get).validate()
             
@@ -57,23 +60,18 @@ class NetworkLayer {
             })
     }
     
-    func loadStoresFromServer(filterString: String, modelManagerStoreUpdater: @escaping ([[String:Any]]) -> Void) {
-        
-        // DEBUG
-        if isLoadingLocal {
-            loadStoresLocally()
-            modelManagerStoreUpdater(storesArrayOfDicts)
-            return
-        }
+    func loadStoresFromServer(forCounty county: String, modelManagerStoreUpdater: @escaping ([[String:Any]]) -> Void) {
         
         storesArrayOfDicts.removeAll()
         
-        let urlString = "\(thriftStoreBaseURL)\(filterString)"
+       // let urlString = "\(djangoThriftStoreBaseURL)\(filterString)"
+        
+        let urlString = firebaseThriftStoreBaseURL.replacingOccurrences(of: "<COUNTY>", with: county)
+        
         
         
         Alamofire.request(urlString, method: .get).validate()
             
-            // TODO - Using [weak self] here; is it required?
             .responseJSON(completionHandler: { [weak self] response in
                 
                 guard let strongSelf = self else { return }
@@ -84,31 +82,28 @@ class NetworkLayer {
                     
                     let json = JSON(value)
                     
-                    if let jsonArray = json.array {
+                    for (_, subJson):(String, JSON) in json {
                         
-                        for item in jsonArray {
-                            if let jsonDict = item.dictionary {
-                                
-                                var itemDict = [String:String]()
-                                
-                                itemDict["name"] = jsonDict["bizName"]?.stringValue
-                                itemDict["storeId"] = jsonDict["bizID"]?.stringValue
-                                itemDict["categoryMain"] = jsonDict["bizCat"]?.stringValue
-                                itemDict["categorySub"] = jsonDict["bizCatSub"]?.stringValue
-                                itemDict["address"] = jsonDict["bizAddr"]?.stringValue
-                                itemDict["city"] = jsonDict["bizCity"]?.stringValue
-                                itemDict["state"] = jsonDict["bizState"]?.stringValue
-                                itemDict["zip"] = jsonDict["bizZip"]?.stringValue
-                                itemDict["phone"] = jsonDict["bizPhone"]?.stringValue
-                                itemDict["email"] = jsonDict["bizEmail"]?.stringValue
-                                itemDict["website"] = jsonDict["bizURL"]?.stringValue
-                                itemDict["locLat"] = jsonDict["locLat"]?.stringValue
-                                itemDict["locLong"] = jsonDict["locLong"]?.stringValue
-                                itemDict["county"] = jsonDict["locCounty"]?.stringValue
-                                
-                                strongSelf.storesArrayOfDicts.append(itemDict as [String : Any])
-                            }
-                        }
+                        print(subJson)
+                        
+                        var itemDict = [String:String]()
+                        
+                        itemDict["name"] = subJson["bizName"].stringValue
+                        itemDict["storeId"] = subJson["bizID"].stringValue
+                        itemDict["categoryMain"] = subJson["bizCat"].stringValue
+                        itemDict["categorySub"] = subJson["bizCatSub"].stringValue
+                        itemDict["address"] = subJson["bizAddr"].stringValue
+                        itemDict["city"] = subJson["bizCity"].stringValue
+                        itemDict["state"] = subJson["bizState"].stringValue
+                        itemDict["zip"] = subJson["bizZip"].stringValue
+                        itemDict["phone"] = subJson["bizPhone"].stringValue
+                        itemDict["email"] = subJson["bizEmail"].stringValue
+                        itemDict["website"] = subJson["bizURL"].stringValue
+                        itemDict["locLat"] = subJson["locLat"].stringValue
+                        itemDict["locLong"] = subJson["locLong"].stringValue
+                        itemDict["county"] = subJson["locCounty"].stringValue
+                        
+                        strongSelf.storesArrayOfDicts.append(itemDict as [String : Any])
                     }
                     
                     modelManagerStoreUpdater(strongSelf.storesArrayOfDicts)
@@ -197,57 +192,5 @@ class NetworkLayer {
         self.locationDict["error"] = ""
         
         return true
-    }
-    
-    // FOR DEBUG
-    func loadStoresLocally() {
-        
-        let storeDict1  = [
-            "name": "Goodwill Algonquin",
-            "storeId": "1",
-            "address": "1430 E Algonquin Rd",
-            "city": "Algonquin",
-            "state": "IL",
-            "zip": "60102",
-            "phone": "630-772-1345",
-            "email": "",
-            "website": "",
-            "locLat": "42.160150",
-            "locLong": "-88.273972",
-        ] as [String : Any]
-        
-        storesArrayOfDicts.append(storeDict1)
-        
-        let storeDict2  = [
-            "name": "Goodwill Crystal Lake",
-            "storeId": "2",
-            "address": "1016 Central Park Dr",
-            "city": "Crystal Lake",
-            "state": "IL",
-            "zip": "60014",
-            "phone": "630-676-1345",
-            "email": "",
-            "website": "",
-            "locLat": "42.211024",
-            "locLong": "-88.283469",
-            ] as [String : Any]
-        
-        storesArrayOfDicts.append(storeDict2)
-        
-        let storeDict3  = [
-            "name": "Goodwill Carpentersville",
-            "storeId": "3",
-            "address": "7777 Miller Rd",
-            "city": "Carpentersville",
-            "state": "IL",
-            "zip": "60110",
-            "phone": "630-676-1345",
-            "email": "",
-            "website": "",
-            "locLat": "42.121406",
-            "locLong": "-88.339040",
-            ] as [String : Any]
-        
-        storesArrayOfDicts.append(storeDict3)
     }
 }

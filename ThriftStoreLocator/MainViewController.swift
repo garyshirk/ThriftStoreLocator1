@@ -58,10 +58,6 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     
     var myLocation: CLLocationCoordinate2D?
     
-    var mapLocation: CLLocationCoordinate2D?
-    
-    lazy var geocoder = CLGeocoder()
-    
     let locationManager = CLLocationManager()
     
     var isLocationReceived = false
@@ -84,11 +80,6 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         super.viewDidLoad()
         
         self.navigationItem.backBarButtonItem = UIBarButtonItem(title:"Back", style:.plain, target:nil, action:nil)
-        
-        // Uncomment the following to preserve selection between presentations
-        // self.clearsSelectionOnViewWillAppear = false
-        // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
-        // self.navigationItem.rightBarButtonItem = self.editButtonItem()
         
         // Scroll view inset adjustment handled by tableView constraints in storyboard
         self.automaticallyAdjustsScrollViewInsets = false
@@ -186,14 +177,9 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         if let loc = manager.location?.coordinate {
             
             if isLocationReceived == false {
-                
                 isLocationReceived = true
-                
                 myLocation = loc
-            
-                viewModel.setStoreFilters(forLocation: myLocation!, withRadiusInMiles: 10, andZip: "")
-                
-                viewModel.doLoadStores(deleteOld: true)
+                viewModel.loadInitialStores(forLocation: myLocation!, withRadiusInMiles: 10)
             }
         }
     }
@@ -201,7 +187,6 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     func handleStoresUpdated(forLocation location:CLLocationCoordinate2D) {
         tableView.reloadData()
         zoomToLocation(at: location)
-        mapLocation = location
         
         for store in viewModel.stores {
             let annotation = MKPointAnnotation()
@@ -215,38 +200,6 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         mapView.setRegion(region, animated: true)
     }
     
-    
-    func lookUpLocation() {
-        
-        let locationCoords: CLLocation = CLLocation(latitude: myLocation!.latitude, longitude: myLocation!.longitude)
-    
-        geocoder.reverseGeocodeLocation(locationCoords) { (placemarks, error) in
-    
-            if error != nil {
-                print("Reverse geocoder failed with error" + (error?.localizedDescription)!)
-                return
-            }
-    
-            if let placemarks = placemarks, let placemark = placemarks.first, let zip = placemark.postalCode {
-                
-                let locality = placemark.locality ?? "No locality found"
-                print("Locality: \(locality)")
-                
-                let subLocality = placemark.subLocality ?? "No sub locality found"
-                print("Sub Locality: \(subLocality)")
-                
-                let name = placemark.name ?? "No name found"
-                print("Name: \(name)")
-                
-                let region = placemark.region?.identifier ?? "No region found"
-                print("Region Identifier: \(region)")
-                
-                print("Zip Code: \(zip)")
-            } else {
-                print("Problem with placemark data")
-            }
-        }
-    }
     
     func distanceFromMyLocation(toLat: NSNumber, long: NSNumber) -> String {
         

@@ -30,9 +30,9 @@ class ModelManager {
         })
     }
     
-    func loadStoresFromServer(storeFilter: String, withDeleteOld: Bool, storesViewModelUpdater: @escaping ([Store]) -> Void) {
+    func loadStoresFromServer(forCounty county: String, withDeleteOld: Bool, storesViewModelUpdater: @escaping ([Store]) -> Void) {
         
-        networkLayer.loadStoresFromServer(filterString: storeFilter, modelManagerStoreUpdater: {stores in
+        networkLayer.loadStoresFromServer(forCounty: county, modelManagerStoreUpdater: {stores in
             
             self.dataLayer.saveInBackground(stores: stores, withDeleteOld: withDeleteOld, saveInBackgroundSuccess: {
             
