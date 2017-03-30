@@ -60,7 +60,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     
     let locationManager = CLLocationManager()
     
-    var isLocationReceived = false
+    var needsInitialStoreLoad = true
     
     
     @IBOutlet weak var tableView: UITableView!
@@ -176,11 +176,28 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         
         if let loc = manager.location?.coordinate {
             
-            if isLocationReceived == false {
-                isLocationReceived = true
-                myLocation = loc
+            myLocation = loc
+            
+            if needsInitialStoreLoad == true {
+                needsInitialStoreLoad = false
                 viewModel.loadInitialStores(forLocation: myLocation!, withRadiusInMiles: 10)
             }
+            locationManager.stopUpdatingLocation()
+        }
+    }
+    
+    func timer() {
+        let when = DispatchTime.now() + 2 // change 2 to desired number of seconds
+        DispatchQueue.main.asyncAfter(deadline: when) {
+            // Your code with delay
+        }
+    }
+    
+    func mapView(_ mapView: MKMapView, regionDidChangeAnimated animated: Bool) {
+        // Allow loadStores forLocation to be called only after loadInitialStores was called in locationManager
+        if needsInitialStoreLoad == false {
+            let newLoc = mapView.centerCoordinate
+            viewModel.loadStores(forLocation: newLoc, withRadiusInMiles: 10)
         }
     }
     
@@ -196,6 +213,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     }
     
     func zoomToLocation(at location: CLLocationCoordinate2D) {
+        setSearchEnabledMode(doSet: false)
         let region = MKCoordinateRegionMakeWithDistance(location, milesToMeters(for: 10), milesToMeters(for: 10))
         mapView.setRegion(region, animated: true)
     }
@@ -237,19 +255,8 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     func textFieldDidEndEditing(_ textField: UITextField) {
         
         if let searchStr = searchTextField.text {
-            
-            viewModel.doSearch(forSearchStr: searchStr)
-            
-//            searchedStores.removeAll()
-//            for store in viewModel.stores {
-//                if let storeStr = store.name {
-//                    if searchStr.isEmpty || (storeStr.localizedCaseInsensitiveContains(searchStr)) {
-//                        searchedStores.append(store)
-//                    }
-//                }
-//            }
+            viewModel.loadStores(forSearchStr: searchStr)
         }
-//        tableView.reloadData()
     }
     
     func setSearchEnabledMode(doSet setToEnabled: Bool) {

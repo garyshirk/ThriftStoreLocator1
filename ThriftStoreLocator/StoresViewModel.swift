@@ -27,9 +27,7 @@ class StoresViewModel {
     
     var storeFilterPredicate: NSPredicate?
     
-    var storeFilterTracker = [String:NSPredicate]()
-    
-    var locationInfoDict: [String: Any]?
+    var storeFilterDict = [String: NSPredicate]()
     
     var mapLocation: CLLocationCoordinate2D?
     
@@ -40,43 +38,52 @@ class StoresViewModel {
         self.modelManager = ModelManager.sharedInstance
     }
     
-    func doSearch(forSearchStr searchStr:String) {
-        
-        setLocationInfo(forAddressStr: searchStr)
+    func loadInitialStores(forLocation location: CLLocationCoordinate2D, withRadiusInMiles radius: Double) {
+        setStoreFilters(forLocation: location, withRadiusInMiles: radius, andZip: "")
+        setCounty(forLocation: location, deleteOld: true)
     }
     
-    func loadInitialStores(forLocation location:CLLocationCoordinate2D, withRadiusInMiles radius:Double) {
-    
+    func loadStores(forLocation location: CLLocationCoordinate2D, withRadiusInMiles radius: Double) {
         setStoreFilters(forLocation: location, withRadiusInMiles: radius, andZip: "")
-        
-        setCounty(forLocation: location, deleteOld: true)
-        
+        setCounty(forLocation: location, deleteOld: false)
+    }
+    
+    func loadStores(forSearchStr searchStr: String) {
+        setLocationInfo(forAddressStr: searchStr)
     }
     
     func doLoadStores(deleteOld: Bool) {
         
-        modelManager.loadStoresFromServer(forCounty: county, withDeleteOld: deleteOld, storesViewModelUpdater: { [weak self] storeEntities -> Void in
+        // Check if we already loaded stores for the current county previously
+        if let _ = storeFilterDict[self.county] {
             
-            guard let strongSelf = self else {
-                return
-            }
+            let stores = modelManager.getAllStoresOnMainThread()
+            filterStoresAndInformMainController(stores: stores)
             
-            let filteredStores = (storeEntities as NSArray).filtered(using: strongSelf.storeFilterPredicate!)
-            strongSelf.stores = filteredStores as! [Store]
-            strongSelf.delegate?.handleStoresUpdated(forLocation: strongSelf.mapLocation!)
-        })
+        } else {
+        
+            modelManager.loadStoresFromServer(forCounty: county, withDeleteOld: deleteOld, storesViewModelUpdater: { [weak self] storeEntities -> Void in
+                
+                guard let strongSelf = self else {
+                    return
+                }
+                
+                strongSelf.storeFilterDict[strongSelf.county] = strongSelf.storeFilterPredicate
+                strongSelf.filterStoresAndInformMainController(stores: storeEntities)
+            })
+        }
+    }
+    
+    func filterStoresAndInformMainController(stores: [Store]) {
+        let filteredStores = (stores as NSArray).filtered(using: self.storeFilterPredicate!)
+        self.stores = filteredStores as! [Store]
+        self.delegate?.handleStoresUpdated(forLocation: self.mapLocation!)
     }
     
     func prepareForZoomToMyLocation(location:CLLocationCoordinate2D) {
         stores = modelManager.getAllStoresOnMainThread()
         setStoreFilters(forLocation: location, withRadiusInMiles: 10, andZip: "")
-        let filteredStores = (stores as NSArray).filtered(using: storeFilterPredicate!)
-        if filteredStores.count > 0 {
-            stores = filteredStores as! [Store]
-            self.delegate?.handleStoresUpdated(forLocation: self.mapLocation!)
-        } else {
-            loadInitialStores(forLocation: location, withRadiusInMiles: 10)
-        }
+        setCounty(forLocation: location, deleteOld: true)
     }
     
     // Get the approximate area (expects radius to be in units of miles)
@@ -227,54 +234,3 @@ extension StoresViewModel {
         return miles / milesPerDeg
     }
 }
-
-//    func getLocationInfo(forSearchStr searchStr:String) {
-//
-//        modelManager.getLocationInfo(filter: searchStr, locationViewModelUpdater: { [weak self] returnedLocationDict -> Void in
-//
-//            guard let strongSelf = self else {
-//                return
-//            }
-//
-//            if (returnedLocationDict["error"] as! String) != "" {
-//                print(returnedLocationDict["error"] as! String)
-//                return
-//            }
-//
-//            strongSelf.locationInfoDict = returnedLocationDict
-//
-//            // Always load stores based on location coordinates unless user specifically searched for a zip code
-//            if let lat = (strongSelf.locationInfoDict?["lat"] as? NSString)?.doubleValue {
-//
-//                if let long = (strongSelf.locationInfoDict?["long"] as? NSString)?.doubleValue {
-//
-//                    let location = CLLocationCoordinate2D(latitude: lat, longitude: long)
-//
-//                    if strongSelf.searchType == .zipcode {
-//
-//                        if let zipcode = strongSelf.locationInfoDict?["zip"], !(strongSelf.locationInfoDict?["zip"] as! String).isEmpty {
-//
-//                            strongSelf.setStoreFilters(forLocation: location, withRadiusInMiles: 10, andZip: zipcode as! String)
-//                        }
-//
-//                    } else {
-//
-//                        strongSelf.setStoreFilters(forLocation: location, withRadiusInMiles: 10, andZip: "")
-//                    }
-//                }
-//            }
-//
-//            // Have we seen this search string before? If yes, maybe no need to load from server
-//            if strongSelf.storeFilterTracker[searchStr] != nil {
-//                strongSelf.stores = strongSelf.modelManager.getAllStoresOnMainThread()
-//                let filteredStores = (strongSelf.stores as NSArray).filtered(using: strongSelf.storeFilterTracker[searchStr]!)
-//                strongSelf.stores = filteredStores as! [Store]
-//                strongSelf.delegate?.handleStoresUpdated(forLocation: strongSelf.mapLocation!)
-//            } else {
-//                strongSelf.storeFilterTracker[searchStr] = strongSelf.storeFilterPredicate
-//                strongSelf.doLoadStores(deleteOld: false)
-//            }
-//        })
-//    }
-
-
