@@ -58,9 +58,13 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     
     var myLocation: CLLocationCoordinate2D?
     
+    var mapLocation: CLLocationCoordinate2D?
+    
     let locationManager = CLLocationManager()
     
     var needsInitialStoreLoad = true
+    
+    var refreshControl: UIRefreshControl?
     
     
     @IBOutlet weak var tableView: UITableView!
@@ -89,6 +93,13 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         titleBackgroundColor = searchView.backgroundColor
         titleLabel.text = "Thrift Store Locator"
         barButtonDefaultTintColor = self.view.tintColor
+        
+        refreshControl = UIRefreshControl()
+        if let refresh = refreshControl {
+            refresh.attributedTitle = NSAttributedString(string: "")
+            refresh.addTarget(self, action: #selector(self.refresh), for: UIControlEvents.valueChanged)
+            tableView.addSubview(refresh)
+        }
         
         setSearchEditMode(doSet: false)
         setSearchEnabledMode(doSet: false)
@@ -143,6 +154,10 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         super.viewWillDisappear(animated)
     }
     
+    func refresh(sender: Any) {
+        viewModel.loadStores(forLocation: mapLocation!, withRefresh: false, withRadiusInMiles: 10)
+    }
+    
     @IBAction func didPressSideMenuButton(_ sender: Any) {
         
         let sb = UIStoryboard(name: "Main", bundle: nil)
@@ -168,6 +183,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     
     // TODO - Need new arrow location image; current one has white background
     @IBAction func didPressLocArrow(_ sender: Any) {
+        setSearchEnabledMode(doSet: false)
         viewModel.prepareForZoomToMyLocation(location: myLocation!)
     }
 
@@ -176,34 +192,35 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         
         if let loc = manager.location?.coordinate {
             
+            self.refreshControl?.endRefreshing()
+            
             myLocation = loc
             
             if needsInitialStoreLoad == true {
                 needsInitialStoreLoad = false
-                viewModel.loadInitialStores(forLocation: myLocation!, withRadiusInMiles: 10)
+                viewModel.loadStores(forLocation: myLocation!, withRefresh: true, withRadiusInMiles: 10)
             }
             locationManager.stopUpdatingLocation()
         }
     }
     
-    func timer() {
-        let when = DispatchTime.now() + 2 // change 2 to desired number of seconds
-        DispatchQueue.main.asyncAfter(deadline: when) {
-            // Your code with delay
-        }
+    func mapView(_ mapView: MKMapView, regionDidChangeAnimated animated: Bool) {
+        mapLocation = mapView.centerCoordinate
     }
     
-    func mapView(_ mapView: MKMapView, regionDidChangeAnimated animated: Bool) {
-        // Allow loadStores forLocation to be called only after loadInitialStores was called in locationManager
-        if needsInitialStoreLoad == false {
-            let newLoc = mapView.centerCoordinate
-            viewModel.loadStores(forLocation: newLoc, withRadiusInMiles: 10)
-        }
+    func mapView(_ mapView: MKMapView, didSelect view: MKAnnotationView) {
+        print("Did click on annotation: \(mapView.selectedAnnotations.first)")
+    }
+    
+    func timer() {
+        let when = DispatchTime.now() + 1 // seconds
+        DispatchQueue.main.asyncAfter(deadline: when) {}
     }
     
     func handleStoresUpdated(forLocation location:CLLocationCoordinate2D) {
+        self.refreshControl?.endRefreshing()
         tableView.reloadData()
-        zoomToLocation(at: location)
+        zoomToLocation(at: location, withMiles: 10)
         
         for store in viewModel.stores {
             let annotation = MKPointAnnotation()
@@ -212,9 +229,8 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         }
     }
     
-    func zoomToLocation(at location: CLLocationCoordinate2D) {
-        setSearchEnabledMode(doSet: false)
-        let region = MKCoordinateRegionMakeWithDistance(location, milesToMeters(for: 10), milesToMeters(for: 10))
+    func zoomToLocation(at location: CLLocationCoordinate2D, withMiles miles: Double) {
+        let region = MKCoordinateRegionMakeWithDistance(location, milesToMeters(for: miles), milesToMeters(for: miles))
         mapView.setRegion(region, animated: true)
     }
     
@@ -468,11 +484,22 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         }
         cell.distanceLabel.text = ("\(distanceFromMyLocation(toLat: selectedStore.locLat!, long: selectedStore.locLong!)) away")
         
+        cell.locationButton.tag = indexPath.row
+        cell.locationButton.addTarget(self, action: #selector(locationButtonPressed), for: .touchUpInside)
+        
         return cell
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
             tableView.deselectRow(at: indexPath, animated: true)
+    }
+    
+    func locationButtonPressed(sender: Any) {
+        let button = sender as! UIButton
+        print("Location button pressed: \(button.tag)")
+        let selectedStore = viewModel.stores[button.tag]
+        let location = CLLocationCoordinate2DMake(selectedStore.locLat as! CLLocationDegrees, selectedStore.locLong as! CLLocationDegrees)
+        zoomToLocation(at: location, withMiles: 1)
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {

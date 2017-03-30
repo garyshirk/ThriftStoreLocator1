@@ -38,14 +38,9 @@ class StoresViewModel {
         self.modelManager = ModelManager.sharedInstance
     }
     
-    func loadInitialStores(forLocation location: CLLocationCoordinate2D, withRadiusInMiles radius: Double) {
+    func loadStores(forLocation location: CLLocationCoordinate2D, withRefresh isRefresh: Bool, withRadiusInMiles radius: Double) {
         setStoreFilters(forLocation: location, withRadiusInMiles: radius, andZip: "")
-        setCounty(forLocation: location, deleteOld: true)
-    }
-    
-    func loadStores(forLocation location: CLLocationCoordinate2D, withRadiusInMiles radius: Double) {
-        setStoreFilters(forLocation: location, withRadiusInMiles: radius, andZip: "")
-        setCounty(forLocation: location, deleteOld: false)
+        setCounty(forLocation: location, deleteOld: isRefresh)
     }
     
     func loadStores(forSearchStr searchStr: String) {
@@ -114,8 +109,8 @@ class StoresViewModel {
             let predicateWestLong = NSPredicate(format: "%K > %@", "locLong", NSNumber(value: westLong))
             storeFilterPredicate = NSCompoundPredicate(andPredicateWithSubpredicates: [predicateNorthLat, predicateSouthLat, predicateEastLong, predicateWestLong])
             
-            print("RegionLong: westLong: \(westLong), centerLong: \(locLong), eastLong: \(eastLong)")
-            print("RegionLat : northLat: \(northLat), centerLat: \(locLat), southLat: \(southLat)")
+            //print("RegionLong: westLong: \(westLong), centerLong: \(locLong), eastLong: \(eastLong)")
+            //print("RegionLat : northLat: \(northLat), centerLat: \(locLat), southLat: \(southLat)")
             
         } else {
             
@@ -146,6 +141,8 @@ class StoresViewModel {
             if let placemarks = placemarks, let placemark = placemarks.first {
                 
                 self.county = placemark.subAdministrativeArea!.lowercased().replacingOccurrences(of: " ", with: "+")
+                
+                print("County: \(self.county)")
                 
                 self.doLoadStores(deleteOld: deleteOld)
             

@@ -22,14 +22,6 @@ class ModelManager {
         return dataLayer.getAllStoresOnMainThread()
     }
     
-    func getLocationInfo(filter: String, locationViewModelUpdater: @escaping ([String:Any]) -> Void) {
-        
-        networkLayer.getLocationInfo(forSearchStr: filter, modelManagerLocationUpdater: { locationDict in
-            
-            locationViewModelUpdater(locationDict)
-        })
-    }
-    
     func loadStoresFromServer(forCounty county: String, withDeleteOld: Bool, storesViewModelUpdater: @escaping ([Store]) -> Void) {
         
         networkLayer.loadStoresFromServer(forCounty: county, modelManagerStoreUpdater: {stores in
