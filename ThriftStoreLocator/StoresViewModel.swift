@@ -167,6 +167,7 @@ class StoresViewModel {
             
             if let placemarks = placemarks, let placemark = placemarks.first {
                 
+                // TODO - check for nil county; handle case where user searches a state
                 let cty = placemark.subAdministrativeArea!.lowercased().replacingOccurrences(of: " ", with: "+")
                 self.state = placemark.administrativeArea!
                 self.county = self.state + "/" + cty
