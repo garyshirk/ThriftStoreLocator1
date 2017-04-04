@@ -29,37 +29,88 @@ class DataLayer {
 extension DataLayer {
     
     // TODO - Is weak self required here?
-    func saveInBackground(stores: [[String:String]], saveInBackgroundSuccess: VoidBlock? = nil) {
+    func saveInBackground(stores: [[String:Any]], withDeleteOld:Bool, saveInBackgroundSuccess: VoidBlock? = nil) {
         
         // On background thread
         persistentContainer.performBackgroundTask( {context in
             
-            // TODO - Should I alway remove current stores in CoreData whenever I go to the server
             let fetchRequest: NSFetchRequest<Store> = Store.fetchRequest()
-            let deleteRequst = NSBatchDeleteRequest(fetchRequest: fetchRequest as! NSFetchRequest<NSFetchRequestResult>)
             
-            do {
-                let initialCount = try? context.count(for: fetchRequest)
-                try context.persistentStoreCoordinator?.execute(deleteRequst, with: context)
-                let finalCount = try? context.count(for: fetchRequest)
+            var uniqueStores = [[String:Any]]()
+            
+            if withDeleteOld {
                 
-                print("Deleting existing Stores: InitialCount: \(initialCount) --- FinalCount: \(finalCount)")
+                // Delete all stores currently in core data before loading new stores
                 
-            } catch _ as NSError {
-                // TODO - Error handling
+                uniqueStores = stores
+                
+                let deleteRequst = NSBatchDeleteRequest(fetchRequest: fetchRequest as! NSFetchRequest<NSFetchRequestResult>)
+                
+                do {
+                    let initialCount = try? context.count(for: fetchRequest)
+                    try context.persistentStoreCoordinator?.execute(deleteRequst, with: context)
+                    let finalCount = try? context.count(for: fetchRequest)
+                    
+                    print("Deleting existing Stores: InitialCount: \(initialCount) --- FinalCount: \(finalCount)")
+                    
+                } catch _ as NSError {
+                    // TODO - Error handling
+                }
+                
+            } else {
+                
+                // Do not delete stores currently in core data, but before saving new ones, eliminate duplicates
+                
+                if let entityStores = try? context.fetch(fetchRequest) {
+                    
+                    for storeDict in stores {
+                        
+                        var duplicate = false
+                        
+                        for entityStore in entityStores {
+                            
+                            if ((storeDict["storeId"] as! NSString).integerValue as NSNumber) == entityStore.storeId {
+                                
+                                duplicate = true
+                                
+                                break
+                            }
+                        }
+                        
+                        if !duplicate {
+                            uniqueStores.append(storeDict)
+                        }
+                    }
+                }
             }
             
             // Save stores downloaded from server to Core Data
             do {
             
-                for storeDict:[String:String] in stores {
+                for storeDict:[String:Any] in uniqueStores {
                 
                     let entity = NSEntityDescription.entity(forEntityName: "Store", in: context)
                 
                     if let entity = entity {
+                        
                         let store = Store(entity: entity, insertInto: context)
-                        store.name = storeDict["name"]
-                        store.storeId = storeDict["storeId"]
+                        
+                        store.name = storeDict["name"] as? String
+                        store.storeId = (storeDict["storeId"] as! NSString).integerValue as NSNumber?
+                        store.categoryMain = storeDict["categoryMain"] as? String
+                        store.categorySub = storeDict["categorySub"] as? String
+                        store.address = storeDict["address"] as? String
+                        store.city = storeDict["city"] as? String
+                        store.state = storeDict["state"] as? String
+                        store.zip = storeDict["zip"] as? String
+                        store.phone = storeDict["phone"] as? String
+                        store.email = storeDict["email"] as? String
+                        store.website = storeDict["website"] as? String
+                        store.locLat = (storeDict["locLat"] as? NSString)?.doubleValue as NSNumber?
+                        store.locLong = (storeDict["locLong"] as? NSString)?.doubleValue as NSNumber?
+                        store.county = storeDict["county"] as? String
+                        
+                        //print(store.description)
                         
                         try store.managedObjectContext?.save()
                     }
@@ -75,7 +126,7 @@ extension DataLayer {
         })
     }
     
-    func getStoresOnMainThread() -> [Store] {
+    func getAllStoresOnMainThread() -> [Store] {
         
         let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "Store")
         

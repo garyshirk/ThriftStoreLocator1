@@ -18,18 +18,18 @@ class ModelManager {
     var networkLayer = NetworkLayer()
     var dataLayer = DataLayer()
     
-    func getStoresOnMainThread() -> [Store] {
-        return dataLayer.getStoresOnMainThread()
+    func getAllStoresOnMainThread() -> [Store] {
+        return dataLayer.getAllStoresOnMainThread()
     }
     
-    func loadStores(viewModelUpdater: @escaping ([Store]) -> Void) {
+    func loadStoresFromServer(forCounty county: String, withDeleteOld: Bool, storesViewModelUpdater: @escaping ([Store]) -> Void) {
         
-        networkLayer.loadStoresFromServer(modelManagerUpdater: {stores in
+        networkLayer.loadStoresFromServer(forCounty: county, modelManagerStoreUpdater: {stores in
             
-            self.dataLayer.saveInBackground(stores: stores, saveInBackgroundSuccess: {
+            self.dataLayer.saveInBackground(stores: stores, withDeleteOld: withDeleteOld, saveInBackgroundSuccess: {
             
-                let storeEntities = self.getStoresOnMainThread()
-                viewModelUpdater(storeEntities)
+                let storeEntities = self.getAllStoresOnMainThread()
+                storesViewModelUpdater(storeEntities)
             })
         })
     }

@@ -8,20 +8,28 @@
 
 import UIKit
 
+protocol MenuViewDelegate {
+    
+    func userSelectedMenuLoginCell()
+}
+
 class MenuTableViewController: UITableViewController {
     
-    var menuItems:[String] = ["Settings", "About"]
+    var menuViewDelegate: MenuViewDelegate?
+    
+    var isLoggedIn: Bool?
+    
+    @IBOutlet weak var loginCell: UILabel!
+    
 
     override func viewDidLoad() {
         super.viewDidLoad()
-
-        // Uncomment the following line to preserve selection between presentations
-        // self.clearsSelectionOnViewWillAppear = false
-
-        // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
-        // self.navigationItem.rightBarButtonItem = self.editButtonItem()
         
-        self.navigationItem.title = "Menu"
+        if isLoggedIn! {
+            loginCell.text = "Sign Out"
+        } else {
+            loginCell.text = "Sign In"
+        }
         
         // Do not show empty tableView cells
         tableView.tableFooterView = UIView()
@@ -31,7 +39,7 @@ class MenuTableViewController: UITableViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
-        // this will be non-nil if a blur effect is applied
+        // This will be non-nil if a blur effect is applied
 //        guard tableView.backgroundView == nil else {
 //            return
 //        }
@@ -41,6 +49,36 @@ class MenuTableViewController: UITableViewController {
 //        imageView.contentMode = .scaleAspectFit
 //        imageView.backgroundColor = UIColor.black.withAlphaComponent(0.2)
 //        tableView.backgroundView = imageView
+        
+    }
+    
+//    override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
+//        return "Menu"
+//    }
+    
+    override func tableView(_ tableView: UITableView, willDisplayHeaderView view: UIView, forSection section: Int) {
+        let appDelegate = UIApplication.shared.delegate as! AppDelegate
+        let header = view as! UITableViewHeaderFooterView
+        header.textLabel?.textColor = appDelegate.uicolorFromHex(rgbValue: UInt32(AppDelegate.DEFAULT_BLUE_COLOR))
+        header.textLabel?.font = UIFont(name: "Helvetica Neue", size: 18)
+        header.textLabel?.text = "MENU"
+        header.textLabel?.frame = header.frame
+        header.textLabel?.textAlignment = NSTextAlignment.center
+    }
+    
+
+    enum MenuRow: Int {
+        case login = 0
+        case settings
+    }
+    
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        switch indexPath.row {
+        case MenuRow.login.rawValue:
+            self.menuViewDelegate?.userSelectedMenuLoginCell()
+            break
+        default: break
+        }
     }
 
 
@@ -48,72 +86,5 @@ class MenuTableViewController: UITableViewController {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
-
-    // MARK: - Table view data source
-
-//    override func numberOfSections(in tableView: UITableView) -> Int {
-//        // #warning Incomplete implementation, return the number of sections
-//        return 1
-//    }
-//
-//    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-//        // #warning Incomplete implementation, return the number of rows
-//        return menuItems.count
-//    }
-//
-//    
-//    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-//        let cell = tableView.dequeueReusableCell(withIdentifier: "menuCell", for: indexPath)
-//
-//        cell.textLabel?.text = menuItems[indexPath.row]
-//
-//        return cell
-//    }
-
-
-    /*
-    // Override to support conditional editing of the table view.
-    override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
-        // Return false if you do not want the specified item to be editable.
-        return true
-    }
-    */
-
-    /*
-    // Override to support editing the table view.
-    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
-        if editingStyle == .delete {
-            // Delete the row from the data source
-            tableView.deleteRows(at: [indexPath], with: .fade)
-        } else if editingStyle == .insert {
-            // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view
-        }    
-    }
-    */
-
-    /*
-    // Override to support rearranging the table view.
-    override func tableView(_ tableView: UITableView, moveRowAt fromIndexPath: IndexPath, to: IndexPath) {
-
-    }
-    */
-
-    /*
-    // Override to support conditional rearranging of the table view.
-    override func tableView(_ tableView: UITableView, canMoveRowAt indexPath: IndexPath) -> Bool {
-        // Return false if you do not want the item to be re-orderable.
-        return true
-    }
-    */
-
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destinationViewController.
-        // Pass the selected object to the new view controller.
-    }
-    */
 
 }

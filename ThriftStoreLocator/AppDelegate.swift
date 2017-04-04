@@ -8,24 +8,36 @@
 
 import UIKit
 import CoreData
+import FacebookLogin
+import FacebookCore
+import FBSDKCoreKit
+import Firebase
+import FBSDKLoginKit
+
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
     
     static let NAV_TINT_COLOR = 0xffffff
-    static let NAV_BAR_TINT_COLOR = 0x034517
+    static let NAV_BAR_TINT_COLOR = 0x034517 // green
+    static let DEFAULT_BLUE_COLOR = 0x007AFF // ios default blue
 
     var window: UIWindow?
-
-
+    
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
-        // Override point for customization after application launch.
         
         // This method along with some changes to color attributes on storyboard and MainViewController can be used to change nav bar appearance
-        //setNavBarAppearance()
+        // setNavBarAppearance()
         
-        return true
+        FIRApp.configure()
+        
+        return FBSDKApplicationDelegate.sharedInstance().application(application, didFinishLaunchingWithOptions: launchOptions)
     }
+        
+    func application(_ application: UIApplication, open url: URL, sourceApplication: String?, annotation: Any) -> Bool {
+        return FBSDKApplicationDelegate.sharedInstance().application(application, open: url, sourceApplication: sourceApplication, annotation: annotation)
+    }
+    
     
     func setNavBarAppearance() {
         // Set color of app's navigation bars
@@ -52,6 +64,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func applicationWillResignActive(_ application: UIApplication) {
         // Sent when the application is about to move from active to inactive state. This can occur for certain types of temporary interruptions (such as an incoming phone call or SMS message) or when the user quits the application and it begins the transition to the background state.
         // Use this method to pause ongoing tasks, disable timers, and invalidate graphics rendering callbacks. Games should use this method to pause the game.
+        
+        // For fb SSO implementation
+        FBSDKAppEvents.activateApp()
     }
 
     func applicationDidEnterBackground(_ application: UIApplication) {
