@@ -20,13 +20,12 @@ private let locationInfoBaseURL = "http://maps.googleapis.com/maps/api/geocode/j
 class NetworkLayer {
     
     var rootRef = FIRDatabase.database().reference()
-    var locationDict = [String:Any]()
     var storesArrayOfDicts = [[String:Any]]() // Array of Dictionaries
     
     
     func loadStoresFromServer(forCounty county: String, modelManagerStoreUpdater: @escaping ([[String:Any]]) -> Void) {
         
-        storesArrayOfDicts.removeAll()
+        self.storesArrayOfDicts.removeAll()
         
         let urlString = firebaseThriftStoreBaseURL.replacingOccurrences(of: "<COUNTY>", with: county)
         

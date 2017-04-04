@@ -25,6 +25,8 @@ class StoresViewModel {
     
     var county: String = ""
     
+    var state: String = ""
+    
     var storeFilterPredicate: NSPredicate?
     
     var storeFilterDict = [String: NSPredicate]()
@@ -140,9 +142,11 @@ class StoresViewModel {
             
             if let placemarks = placemarks, let placemark = placemarks.first {
                 
-                self.county = placemark.subAdministrativeArea!.lowercased().replacingOccurrences(of: " ", with: "+")
+                let cty = placemark.subAdministrativeArea!.lowercased().replacingOccurrences(of: " ", with: "+")
+                self.state = placemark.administrativeArea!
+                self.county = self.state + "/" + cty
                 
-                print("County: \(self.county)")
+                print(self.county)
                 
                 self.doLoadStores(deleteOld: deleteOld)
             
@@ -163,7 +167,9 @@ class StoresViewModel {
             
             if let placemarks = placemarks, let placemark = placemarks.first {
                 
-                self.county = placemark.subAdministrativeArea!.lowercased().replacingOccurrences(of: " ", with: "+")
+                let cty = placemark.subAdministrativeArea!.lowercased().replacingOccurrences(of: " ", with: "+")
+                self.state = placemark.administrativeArea!
+                self.county = self.state + "/" + cty
                 
                 self.mapLocation = placemark.location?.coordinate
                 

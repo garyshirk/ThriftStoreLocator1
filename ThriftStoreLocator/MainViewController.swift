@@ -17,21 +17,6 @@ import Firebase
 import Alamofire
 import SwiftyJSON
 
-enum RegistrationType {
-    static let registered = "registered"
-    static let firstTimeInApp = "first_time_in_app"
-    static let anonymousUser = "anonymous"
-    static let regKey = "reg_key"
-}
-
-enum LogInType {
-    static let isNotLoggedIn = "is_not_logged_in"
-    static let facebook = "facebook"
-    static let email = "email"
-    static let anonymousLogin = "anonymous_login"
-}
-
-
 // TODO - MapView initial height should be proportional to device height
 // TODO - Define a CLCicularRegion based on user's current location and update store map and list when user leaves that region
 class MainViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UITextFieldDelegate, MKMapViewDelegate, CLLocationManagerDelegate, StoresViewModelDelegate, LogInDelegate, MenuViewDelegate {
@@ -133,7 +118,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         
         // DEBUG
         if isTestingPost == true {
-            testPost()
+            //testPost()
             return
         }
         
@@ -537,6 +522,8 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         }
     }
     
+    // MARK - LogInDelegates
+    
     func getRegistrationType() -> String {
         
         let regStatus = UserDefaults.standard.value(forKey: RegistrationType.regKey) as? String
@@ -629,41 +616,41 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     }
     
     // DEBUG 
-    func testPost() {
-        let thriftStoreUrl: String = "http://localhost:8000/thriftstores/"
-        
-        let newPost: [String: Any] = ["bizID": 66,
-                                      "bizName": "Play It Again Store",
-                                      "bizAddr": "113 Allen Rd",
-                                      "bizCity": "Niles",
-                                      "bizState": "IL",
-                                      "bizZip": "61275",
-                                      "locLat": 41.343,
-                                      "locLong": -66.676]
-        
-        Alamofire.request(thriftStoreUrl, method: .post, parameters: newPost,
-                          encoding: JSONEncoding.default)
-            .responseJSON { response in
-                guard response.result.error == nil else {
-                    // got an error in getting the data, need to handle it
-                    print("error calling POST on /todos/1")
-                    print(response.result.error!)
-                    return
-                }
-                // make sure we got some JSON since that's what we expect
-                guard let json = response.result.value as? [String: Any] else {
-                    print("didn't get todo object as JSON from API")
-                    print("Error: \(response.result.error)")
-                    return
-                }
-                // get and print the title
-                guard let storeName = json["bizName"] as? String else {
-                    print("Could not get store name from JSON")
-                    return
-                }
-                print("The store name is: " + storeName)
-        }
-    }
+//    func testPost() {
+//        let thriftStoreUrl: String = "http://localhost:8000/thriftstores/"
+//        
+//        let newPost: [String: Any] = ["bizID": 66,
+//                                      "bizName": "Play It Again Store",
+//                                      "bizAddr": "113 Allen Rd",
+//                                      "bizCity": "Niles",
+//                                      "bizState": "IL",
+//                                      "bizZip": "61275",
+//                                      "locLat": 41.343,
+//                                      "locLong": -66.676]
+//        
+//        Alamofire.request(thriftStoreUrl, method: .post, parameters: newPost,
+//                          encoding: JSONEncoding.default)
+//            .responseJSON { response in
+//                guard response.result.error == nil else {
+//                    // got an error in getting the data, need to handle it
+//                    print("error calling POST on /todos/1")
+//                    print(response.result.error!)
+//                    return
+//                }
+//                // make sure we got some JSON since that's what we expect
+//                guard let json = response.result.value as? [String: Any] else {
+//                    print("didn't get todo object as JSON from API")
+//                    print("Error: \(response.result.error)")
+//                    return
+//                }
+//                // get and print the title
+//                guard let storeName = json["bizName"] as? String else {
+//                    print("Could not get store name from JSON")
+//                    return
+//                }
+//                print("The store name is: " + storeName)
+//        }
+//    }
 
 }
 

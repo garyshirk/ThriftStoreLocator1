@@ -19,9 +19,23 @@ protocol LogInDelegate {
     func setRegistrationType(with regType: String)
 }
 
+enum RegistrationType {
+    static let registered = "registered"
+    static let firstTimeInApp = "first_time_in_app"
+    static let anonymousUser = "anonymous"
+    static let regKey = "reg_key"
+}
+
+enum LogInType {
+    static let isNotLoggedIn = "is_not_logged_in"
+    static let facebook = "facebook"
+    static let email = "email"
+    static let anonymousLogin = "anonymous_login"
+}
+
 // TODO add fb App Events after you get login working
 
-class LoginViewController: UIViewController {
+class LoginViewController: UITableViewController, UITextFieldDelegate {
     
     var logInDelegate: LogInDelegate?
     var fbLoginManager: FBSDKLoginManager?
@@ -36,6 +50,9 @@ class LoginViewController: UIViewController {
         
         super.viewDidLoad()
         
+        emailTextfield.delegate = self
+        passwordTextfield.delegate = self
+        
         fbLoginManager = FBSDKLoginManager()
         
         print("Current User in LoginView =======> \(self.currentUser?.uid), \(self.currentUser?.email)")
@@ -49,7 +66,24 @@ class LoginViewController: UIViewController {
         }
     }
     
-    @IBAction func usernameLoginPressed(_ sender: Any) {
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+    }
+        
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        textField.resignFirstResponder()
+        return true
+    }
+    
+    @IBAction func userNameLoginPressed(_ sender: Any) {
         
         FIRAuth.auth()?.signIn(withEmail: emailTextfield.text!, password: passwordTextfield.text!) { (user, error) in
             
@@ -65,7 +99,6 @@ class LoginViewController: UIViewController {
         }
     }
     
-    // TODO - strongSelf
     @IBAction func registerPressed(_ sender: Any) {
         
         let alert = UIAlertController(title: "Register",
@@ -74,30 +107,30 @@ class LoginViewController: UIViewController {
         
         let saveAction = UIAlertAction(title: "Save",
                                        style: .default) { action in
-                                
-            let emailField = alert.textFields![0]
-            let passwordField = alert.textFields![1]
-            
-            
-            if let currentUser = FIRAuth.auth()?.currentUser {
-                
-                // An anonymous user is registering
-                if currentUser.isAnonymous {
-                    self.registerAnonymous(currentUser: currentUser, email: emailField.text!, password: passwordField.text!)
-                
-                } else {
-                    self.registerNewUser(email: emailField.text!, password: passwordField.text!)
-                }
-                
-            } else {
-                
-                // User is registering first time in the app
-                self.registerNewUser(email: emailField.text!, password: passwordField.text!)
-            }
+                                        
+                                        let emailField = alert.textFields![0]
+                                        let passwordField = alert.textFields![1]
+                                        
+                                        
+                                        if let currentUser = FIRAuth.auth()?.currentUser {
+                                            
+                                            // An anonymous user is registering
+                                            if currentUser.isAnonymous {
+                                                self.registerAnonymous(currentUser: currentUser, email: emailField.text!, password: passwordField.text!)
+                                                
+                                            } else {
+                                                self.registerNewUser(email: emailField.text!, password: passwordField.text!)
+                                            }
+                                            
+                                        } else {
+                                            
+                                            // User is registering first time in the app
+                                            self.registerNewUser(email: emailField.text!, password: passwordField.text!)
+                                        }
         }
         
         let cancelAction = UIAlertAction(title: "Cancel",
-                                        style: .default)
+                                         style: .default)
         
         alert.addTextField { textEmail in
             textEmail.placeholder = "Enter your email"
@@ -112,8 +145,9 @@ class LoginViewController: UIViewController {
         alert.addAction(cancelAction)
         
         present(alert, animated: true, completion: nil)
-
+        
     }
+    
     
     func registerAnonymous(currentUser: FIRUser, email: String, password: String) {
         
@@ -149,7 +183,6 @@ class LoginViewController: UIViewController {
         }
     }
     
-    
     @IBAction func maybeLaterPressed(_ sender: Any) {
         
         let regType = logInDelegate?.getRegistrationType()
@@ -167,7 +200,9 @@ class LoginViewController: UIViewController {
             }
         }
         self.dismiss(animated: true, completion: nil)
+        
     }
+    
     
     @IBAction func fbLoginButtonPressed(_ sender: Any) {
         
@@ -176,7 +211,7 @@ class LoginViewController: UIViewController {
             if (error == nil){
                 
                 if let current = FBSDKAccessToken.current() {
-                
+                    
                     print("Facebook user is logged in")
                     print("Access Token")
                     print("String      : \(current.tokenString)")
@@ -188,7 +223,7 @@ class LoginViewController: UIViewController {
                 let fbLoginResult : FBSDKLoginManagerLoginResult = result!
                 
                 if fbLoginResult.grantedPermissions != nil {
-                
+                    
                     if(fbLoginResult.grantedPermissions.contains("email")) {
                         
                         self.getFBUserData()
@@ -200,21 +235,23 @@ class LoginViewController: UIViewController {
                             if currentUser.isAnonymous {
                                 
                                 self.registerAnonymousUserToFacebook(currentUser: currentUser, credential: credential)
-                            
+                                
                             } else {
                                 
                                 self.registerNewUserToFacebook(credential: credential)
                             }
                             
                         } else {
-                        
+                            
                             self.registerNewUserToFacebook(credential: credential)
                         }
                     }
                 }
             }
         }
+        
     }
+    
     
     func registerAnonymousUserToFacebook(currentUser: FIRUser, credential: FIRAuthCredential) {
         
@@ -280,7 +317,6 @@ class LoginViewController: UIViewController {
             })
         }
     }
-    
 
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
@@ -307,18 +343,5 @@ extension UIImageView {
     func downloadedFrom(link: String, contentMode mode: UIViewContentMode = .scaleAspectFit) {
         guard let url = URL(string: link) else { return }
         downloadedFrom(url: url, contentMode: mode)
-    }
-}
-
-extension LoginViewController: UITextFieldDelegate {
-    
-    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
-        if textField == emailTextfield {
-            passwordTextfield.becomeFirstResponder()
-        }
-        if textField == passwordTextfield {
-            textField.resignFirstResponder()
-        }
-        return true
     }
 }
