@@ -22,9 +22,20 @@ class ModelManager {
         return dataLayer.getAllStoresOnMainThread()
     }
     
-    func loadStoresFromServer(forCounty county: String, withDeleteOld: Bool, storesViewModelUpdater: @escaping ([Store]) -> Void) {
+    func loadFavoritesFromServer(forUser user: String, favoritesViewModelUpdater: @escaping([Store]) -> Void) {
         
-        networkLayer.loadStoresFromServer(forCounty: county, modelManagerStoreUpdater: {stores in
+        networkLayer.loadFavoritesFromServer(forUser: user, modelManagerFavoriteUpdater: {stores in
+        
+            self.dataLayer.saveInBackground(stores: stores, withDeleteOld: false, saveInBackgroundSuccess: {
+            
+                
+            })
+        })
+    }
+    
+    func loadStoresFromServer(forQuery query: String, withDeleteOld: Bool, storesViewModelUpdater: @escaping ([Store]) -> Void) {
+        
+        networkLayer.loadStoresFromServer(forQuery: query, modelManagerStoreUpdater: {stores in
             
             self.dataLayer.saveInBackground(stores: stores, withDeleteOld: withDeleteOld, saveInBackgroundSuccess: {
             

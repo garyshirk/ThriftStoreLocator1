@@ -19,7 +19,7 @@ import SwiftyJSON
 
 // TODO - MapView initial height should be proportional to device height
 // TODO - Define a CLCicularRegion based on user's current location and update store map and list when user leaves that region
-class MainViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UITextFieldDelegate, MKMapViewDelegate, CLLocationManagerDelegate, StoresViewModelDelegate, LogInDelegate, MenuViewDelegate {
+class MainViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UITextFieldDelegate, MKMapViewDelegate, CLLocationManagerDelegate, StoresViewModelDelegate, LogInDelegate, MenuViewDelegate, DetailViewControllerDelegate {
     
     var loginType: String?
     
@@ -497,21 +497,23 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
             if let indexPath = tableView.indexPathForSelectedRow {
                 
                 selectedStore = viewModel.stores[(indexPath.row)]
+                
+                if let detailViewController = segue.destination as? DetailViewController {
+                    detailViewController.delegate = self
+                    detailViewController.selectedStoreIndex = indexPath.row
+                    detailViewController.storeNameStr = selectedStore.name
+                    detailViewController.isFav = false
+                    detailViewController.streetStr = selectedStore.address
+                    detailViewController.cityStr = selectedStore.city
+                    detailViewController.stateStr = selectedStore.state
+                    detailViewController.zipStr = selectedStore.zip
+                    detailViewController.distanceStr = ("\(distanceFromMyLocation(toLat: selectedStore.locLat!, long: selectedStore.locLong!)) away")
+                    let locLat = selectedStore.locLat as! Double
+                    let locLong = selectedStore.locLong as! Double
+                    detailViewController.storeLocation = (locLat, locLong)
+                }
             }
             
-            if let detailViewController = segue.destination as? DetailViewController {
-                detailViewController.storeNameStr = selectedStore.name
-                detailViewController.isFav = false
-                detailViewController.streetStr = selectedStore.address
-                detailViewController.cityStr = selectedStore.city
-                detailViewController.stateStr = selectedStore.state
-                detailViewController.zipStr = selectedStore.zip
-                detailViewController.distanceStr = ("\(distanceFromMyLocation(toLat: selectedStore.locLat!, long: selectedStore.locLong!)) away")
-                let locLat = selectedStore.locLat as! Double
-                let locLong = selectedStore.locLong as! Double
-                detailViewController.storeLocation = (locLat, locLong)
-            }
-        
         } else if segue.identifier == "presentLoginView" {
             
             if let loginVC = segue.destination as? LoginViewController {
@@ -520,6 +522,12 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
                 loginVC.currentUser = self.currentUser
             }
         }
+    }
+    
+    // MARK - DetailViewControllerDelegate
+    
+    func favoriteButtonPressed(forStore index: Int, isFav: Bool) {
+        print("Store \(index) selected, isFav: \(isFav)")
     }
     
     // MARK - LogInDelegates

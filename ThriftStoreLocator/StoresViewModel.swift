@@ -27,6 +27,8 @@ class StoresViewModel {
     
     var state: String = ""
     
+    var query: String = ""
+    
     var storeFilterPredicate: NSPredicate?
     
     var storeFilterDict = [String: NSPredicate]()
@@ -38,6 +40,18 @@ class StoresViewModel {
     init(delegate: StoresViewModelDelegate?) {
         self.delegate = delegate
         self.modelManager = ModelManager.sharedInstance
+    }
+    
+    func loadFavorites(forUser user: String) {
+        modelManager.loadFavoritesFromServer(forUser: user, favoritesViewModelUpdater: { [weak self] storeEntities -> Void in
+        
+            guard let strongSelf = self else {
+                return
+            }
+            
+            // TODO - Inform MainVC that favorites have been loaded
+        
+        })
     }
     
     func loadStores(forLocation location: CLLocationCoordinate2D, withRefresh isRefresh: Bool, withRadiusInMiles radius: Double) {
@@ -59,7 +73,7 @@ class StoresViewModel {
             
         } else {
         
-            modelManager.loadStoresFromServer(forCounty: county, withDeleteOld: deleteOld, storesViewModelUpdater: { [weak self] storeEntities -> Void in
+            modelManager.loadStoresFromServer(forQuery: query, withDeleteOld: deleteOld, storesViewModelUpdater: { [weak self] storeEntities -> Void in
                 
                 guard let strongSelf = self else {
                     return
@@ -142,13 +156,13 @@ class StoresViewModel {
             
             if let placemarks = placemarks, let placemark = placemarks.first {
                 
-                let cty = placemark.subAdministrativeArea!.lowercased().replacingOccurrences(of: " ", with: "+")
-                self.state = placemark.administrativeArea!
-                self.county = self.state + "/" + cty
-                
-                print(self.county)
-                
-                self.doLoadStores(deleteOld: deleteOld)
+                if let cty = placemark.subAdministrativeArea?.lowercased().replacingOccurrences(of: " ", with: "+") {
+                    self.county = cty
+                    self.state = placemark.administrativeArea!
+                    self.query = self.state + "/" + self.county
+                    
+                    self.doLoadStores(deleteOld: deleteOld)
+                }
             
             } else {
                 print("Problem getting county")
@@ -167,22 +181,23 @@ class StoresViewModel {
             
             if let placemarks = placemarks, let placemark = placemarks.first {
                 
-                // TODO - check for nil county; handle case where user searches a state
-                let cty = placemark.subAdministrativeArea!.lowercased().replacingOccurrences(of: " ", with: "+")
-                self.state = placemark.administrativeArea!
-                self.county = self.state + "/" + cty
-                
-                self.mapLocation = placemark.location?.coordinate
-                
-                var zip = ""
-                let isZip = self.isZipCode(forSearchStr: address)
-                if isZip == true {
-                    zip = address
+                // If user's search did not yield a county, eg user searched for a state, then do not allow the search
+                if let cty = placemark.subAdministrativeArea?.lowercased().replacingOccurrences(of: " ", with: "+") {
+                    self.county = cty
+                    self.state = placemark.administrativeArea!
+                    self.query = self.state + "/" + self.county
+                    self.mapLocation = placemark.location?.coordinate
+                    
+                    var zip = ""
+                    let isZip = self.isZipCode(forSearchStr: address)
+                    if isZip == true {
+                        zip = address
+                    }
+                    
+                    self.setStoreFilters(forLocation: self.mapLocation!, withRadiusInMiles: 10, andZip: zip)
+                    
+                    self.doLoadStores(deleteOld: false)
                 }
-                
-                self.setStoreFilters(forLocation: self.mapLocation!, withRadiusInMiles: 10, andZip: zip)
-                
-                self.doLoadStores(deleteOld: false)
                 
             } else {
                 print("Problem getting county")

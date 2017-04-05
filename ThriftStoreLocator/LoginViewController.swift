@@ -10,7 +10,7 @@ import UIKit
 import FBSDKLoginKit
 import Firebase
 
-protocol LogInDelegate {
+protocol LogInDelegate: class {
     
     func handleUserLoggedIn(via loginType: String)
     
@@ -37,7 +37,7 @@ enum LogInType {
 
 class LoginViewController: UITableViewController, UITextFieldDelegate {
     
-    var logInDelegate: LogInDelegate?
+    weak var logInDelegate: LogInDelegate?
     var fbLoginManager: FBSDKLoginManager?
     var currentUser: User?
     var dict : [String : Any]!

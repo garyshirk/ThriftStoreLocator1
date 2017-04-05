@@ -8,20 +8,19 @@
 
 import UIKit
 
-protocol MenuViewDelegate {
+protocol MenuViewDelegate: class {
     
     func userSelectedMenuLoginCell()
 }
 
 class MenuTableViewController: UITableViewController {
     
-    var menuViewDelegate: MenuViewDelegate?
+    weak var menuViewDelegate: MenuViewDelegate?
     
     var isLoggedIn: Bool?
     
     @IBOutlet weak var loginCell: UILabel!
     
-
     override func viewDidLoad() {
         super.viewDidLoad()
         
