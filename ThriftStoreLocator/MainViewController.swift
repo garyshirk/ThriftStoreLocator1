@@ -517,6 +517,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
                     detailViewController.delegate = self
                     detailViewController.selectedStoreIndex = indexPath.row
                     detailViewController.storeNameStr = selectedStore.name
+                    print("selected store isFav: \(selectedStore.isFavorite)")
                     detailViewController.isFav = false
                     detailViewController.streetStr = selectedStore.address
                     detailViewController.cityStr = selectedStore.city
