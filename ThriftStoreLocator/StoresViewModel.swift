@@ -13,6 +13,8 @@ import MapKit
 protocol StoresViewModelDelegate: class {
     
     func handleStoresUpdated(forLocation location:CLLocationCoordinate2D)
+    
+    func handleFavoritesLoaded()
 }
 
 class StoresViewModel {
@@ -42,14 +44,24 @@ class StoresViewModel {
         self.modelManager = ModelManager.sharedInstance
     }
     
+    func postFavorite(forStore store: Store, user: String) {
+        
+        modelManager.postFavoriteToServer(store: store, forUser: user, modelManagerPostFavUpdater: {
+        
+            print("modelManagerPostFavUpdater ran - setting of Fav to db and updating store core data object complete")
+        
+        })
+    }
+    
     func loadFavorites(forUser user: String) {
-        modelManager.loadFavoritesFromServer(forUser: user, favoritesViewModelUpdater: { [weak self] storeEntities -> Void in
+        
+        modelManager.loadFavoritesFromServer(forUser: user, modelManagerLoadFavoritesUpdater: { [weak self] storeEntities -> Void in
         
             guard let strongSelf = self else {
                 return
             }
             
-            // TODO - Inform MainVC that favorites have been loaded
+            strongSelf.delegate?.handleFavoritesLoaded()
         
         })
     }
@@ -73,7 +85,7 @@ class StoresViewModel {
             
         } else {
         
-            modelManager.loadStoresFromServer(forQuery: query, withDeleteOld: deleteOld, storesViewModelUpdater: { [weak self] storeEntities -> Void in
+            modelManager.loadStoresFromServer(forQuery: query, withDeleteOld: deleteOld, modelManagerStoresUpdater: { [weak self] storeEntities -> Void in
                 
                 guard let strongSelf = self else {
                     return

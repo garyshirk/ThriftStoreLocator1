@@ -17,13 +17,98 @@ private let firebaseThriftStoreBaseURL = "https://thrift-store-locator.firebasei
 private let firebaseFavoritesBaseURL = "https://thrift-store-locator.firebaseio.com/favorites/<QUERY>.json?auth=APnqdk7uneubbRfzoOT2E0NnRDKurz36tW15gOcA"
 private let locationInfoBaseURL = "http://maps.googleapis.com/maps/api/geocode/json?address=<location>&sensor=false"
 
+var dbFavoritesRef: FIRDatabaseReference?
 
 class NetworkLayer {
     
     var rootRef = FIRDatabase.database().reference()
     var storesArrayOfDicts = [[String:Any]]()
     
-    func loadFavoritesFromServer(forUser user: String, modelManagerFavoriteUpdater: @escaping ([[String: Any]]) -> Void) {
+    func postFavorite(store: Store, forUser user: String, networkLayerPostFavUpdater: () -> Void) {
+        
+        dbFavoritesRef = FIRDatabase.database().reference(withPath: "favorites")
+        
+        // Set user uid key
+        let userRef = dbFavoritesRef!.child(user)
+        
+        // Set bizID key
+        let bizIdStr = (store.storeId?.stringValue)!
+        let storeIdRef = userRef.child(bizIdStr)
+        
+        // Set bizID
+        let bizIdInt = store.storeId?.intValue
+        let bizIdRef = storeIdRef.child("bizID")
+        bizIdRef.setValue(bizIdInt)
+        
+        // Set bizName
+        let bizName = store.name
+        let bizNameRef = storeIdRef.child("bizName")
+        bizNameRef.setValue(bizName)
+        
+        // Set bizCat
+        let bizCat = store.categoryMain ?? ""
+        let bizCatRef = storeIdRef.child("bizCat")
+        bizCatRef.setValue(bizCat)
+        
+        // Set bizCatSub
+        let bizCatSub = store.categorySub ?? ""
+        let bizCatSubRef = storeIdRef.child("bizCatSub")
+        bizCatSubRef.setValue(bizCatSub)
+        
+        // Set bizAddr
+        let bizAddr = store.address
+        let bizAddrRef = storeIdRef.child("bizAddr")
+        bizAddrRef.setValue(bizAddr)
+        
+        // Set bizCity
+        let bizCity = store.city
+        let bizCityRef = storeIdRef.child("bizCity")
+        bizCityRef.setValue(bizCity)
+        
+        // Set bizState
+        let bizState = store.state
+        let bizStateRef = storeIdRef.child("bizState")
+        bizStateRef.setValue(bizState)
+
+        // Set bizZip
+        let bizZip = store.zip
+        let bizZipRef = storeIdRef.child("bizZip")
+        bizZipRef.setValue(bizZip)
+        
+        // Set bizPhone
+        let bizPhone = store.phone ?? ""
+        let bizPhoneRef = storeIdRef.child("bizPhone")
+        bizPhoneRef.setValue(bizPhone)
+        
+        // Set bizEmail
+        let bizEmail = store.email ?? ""
+        let bizEmailRef = storeIdRef.child("bizEmail")
+        bizEmailRef.setValue(bizEmail)
+        
+        // Set bizURL
+        let bizUrl = store.website ?? ""
+        let bizUrlRef = storeIdRef.child("bizURL")
+        bizUrlRef.setValue(bizUrl)
+        
+        // Set bizLat
+        let bizLat = store.locLat?.doubleValue
+        let bizLatRef = storeIdRef.child("locLat")
+        bizLatRef.setValue(bizLat)
+        
+        // Set bizLong
+        let bizLong = store.locLong?.doubleValue
+        let bizLongRef = storeIdRef.child("locLong")
+        bizLongRef.setValue(bizLong)
+        
+        // Set bizCounty
+        let bizCounty = store.county
+        let bizCountyRef = storeIdRef.child("locCounty")
+        bizCountyRef.setValue(bizCounty)
+        
+        networkLayerPostFavUpdater()
+    }
+    
+    func loadFavoritesFromServer(forUser user: String, networkLayerLoadFavoritesUpdater: @escaping ([[String: Any]]) -> Void) {
         
         self.storesArrayOfDicts.removeAll()
         
@@ -65,7 +150,7 @@ class NetworkLayer {
                         strongSelf.storesArrayOfDicts.append(itemDict as [String : Any])
                     }
                     
-                    modelManagerFavoriteUpdater(strongSelf.storesArrayOfDicts)
+                    networkLayerLoadFavoritesUpdater(strongSelf.storesArrayOfDicts)
                     
                 case .failure(let error):
                     // TODO - Proper error handling
@@ -75,7 +160,7 @@ class NetworkLayer {
     }
     
     
-    func loadStoresFromServer(forQuery query: String, modelManagerStoreUpdater: @escaping ([[String: Any]]) -> Void) {
+    func loadStoresFromServer(forQuery query: String, networkLayerStoreUpdater: @escaping ([[String: Any]]) -> Void) {
         
         self.storesArrayOfDicts.removeAll()
         
@@ -117,7 +202,7 @@ class NetworkLayer {
                         strongSelf.storesArrayOfDicts.append(itemDict as [String : Any])
                     }
                     
-                    modelManagerStoreUpdater(strongSelf.storesArrayOfDicts)
+                    networkLayerStoreUpdater(strongSelf.storesArrayOfDicts)
                 
                 case .failure(let error):
                     // TODO - Proper error handling

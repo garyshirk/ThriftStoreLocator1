@@ -22,25 +22,41 @@ class ModelManager {
         return dataLayer.getAllStoresOnMainThread()
     }
     
-    func loadFavoritesFromServer(forUser user: String, favoritesViewModelUpdater: @escaping([Store]) -> Void) {
+    
+    // TODO - add weak self to below closures
+    
+    
+    func postFavoriteToServer(store: Store, forUser user: String, modelManagerPostFavUpdater: @escaping () -> Void) {
         
-        networkLayer.loadFavoritesFromServer(forUser: user, modelManagerFavoriteUpdater: {stores in
+        self.networkLayer.postFavorite(store: store, forUser: user, networkLayerPostFavUpdater: {
         
-            self.dataLayer.saveInBackground(stores: stores, withDeleteOld: false, saveInBackgroundSuccess: {
+            self.dataLayer.setAsFavorite(toStoreEntity: store, saveInBackgroundSuccess: {
             
-                
+                modelManagerPostFavUpdater()
             })
         })
     }
     
-    func loadStoresFromServer(forQuery query: String, withDeleteOld: Bool, storesViewModelUpdater: @escaping ([Store]) -> Void) {
+    func loadFavoritesFromServer(forUser user: String, modelManagerLoadFavoritesUpdater: @escaping([Store]) -> Void) {
         
-        networkLayer.loadStoresFromServer(forQuery: query, modelManagerStoreUpdater: {stores in
-            
-            self.dataLayer.saveInBackground(stores: stores, withDeleteOld: withDeleteOld, saveInBackgroundSuccess: {
+        self.networkLayer.loadFavoritesFromServer(forUser: user, networkLayerLoadFavoritesUpdater: {stores in
+        
+            self.dataLayer.saveInBackground(stores: stores, withDeleteOld: true, isFavs: true, saveInBackgroundSuccess: {
             
                 let storeEntities = self.getAllStoresOnMainThread()
-                storesViewModelUpdater(storeEntities)
+                modelManagerLoadFavoritesUpdater(storeEntities)
+            })
+        })
+    }
+    
+    func loadStoresFromServer(forQuery query: String, withDeleteOld deleteOld: Bool, modelManagerStoresUpdater: @escaping ([Store]) -> Void) {
+        
+        self.networkLayer.loadStoresFromServer(forQuery: query, networkLayerStoreUpdater: {stores in
+            
+            self.dataLayer.saveInBackground(stores: stores, withDeleteOld: deleteOld, isFavs: false, saveInBackgroundSuccess: {
+            
+                let storeEntities = self.getAllStoresOnMainThread()
+                modelManagerStoresUpdater(storeEntities)
             })
         })
     }

@@ -31,5 +31,6 @@ extension Store {
     @NSManaged public var categoryMain: String?
     @NSManaged public var categorySub: String?
     @NSManaged public var storeId: NSNumber?
+    @NSManaged public var isFavorite: NSNumber?
 
 }

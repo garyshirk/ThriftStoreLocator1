@@ -47,9 +47,13 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     
     let locationManager = CLLocationManager()
     
-    var needsInitialStoreLoad = true
+    var needsInitialStoreLoad = false
     
     var refreshControl: UIRefreshControl?
+    
+    
+    
+    
     
     
     @IBOutlet weak var tableView: UITableView!
@@ -128,6 +132,13 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
                       (regType == RegistrationType.registered && loginType == LogInType.isNotLoggedIn) {
             performSegue(withIdentifier: "presentLoginView", sender: nil)
         }
+        
+        // If user is already registered, then load favorites before loading stores for current location
+        if regType == RegistrationType.registered {
+            viewModel.loadFavorites(forUser: (user?.uid)!)
+        } else {
+            needsInitialStoreLoad = true
+        }
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -183,9 +194,9 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
             
             if needsInitialStoreLoad == true {
                 needsInitialStoreLoad = false
-                viewModel.loadStores(forLocation: myLocation!, withRefresh: true, withRadiusInMiles: 10)
+                locationManager.stopUpdatingLocation()
+                viewModel.loadStores(forLocation: myLocation!, withRefresh: false, withRadiusInMiles: 10)
             }
-            locationManager.stopUpdatingLocation()
         }
     }
     
@@ -200,6 +211,10 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     func timer() {
         let when = DispatchTime.now() + 1 // seconds
         DispatchQueue.main.asyncAfter(deadline: when) {}
+    }
+    
+    func handleFavoritesLoaded() {
+        needsInitialStoreLoad = true
     }
     
     func handleStoresUpdated(forLocation location:CLLocationCoordinate2D) {
@@ -526,8 +541,20 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     
     // MARK - DetailViewControllerDelegate
     
+    
+    
     func favoriteButtonPressed(forStore index: Int, isFav: Bool) {
-        print("Store \(index) selected, isFav: \(isFav)")
+        
+        let user = FIRAuth.auth()?.currentUser
+        
+        if  isFav == true {
+            
+            // POST new favorite to db and update Store entity in core data
+            viewModel.postFavorite(forStore: viewModel.stores[index], user: (user?.uid)!)
+            
+        } else {
+            // DELETE favorite from db and update Store entity in core data
+        }
     }
     
     // MARK - LogInDelegates
@@ -612,54 +639,11 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         performSegue(withIdentifier: "presentLoginView", sender: nil)
     }
 
-    
-    
-    
-    
-    
-
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
     
-    // DEBUG 
-//    func testPost() {
-//        let thriftStoreUrl: String = "http://localhost:8000/thriftstores/"
-//        
-//        let newPost: [String: Any] = ["bizID": 66,
-//                                      "bizName": "Play It Again Store",
-//                                      "bizAddr": "113 Allen Rd",
-//                                      "bizCity": "Niles",
-//                                      "bizState": "IL",
-//                                      "bizZip": "61275",
-//                                      "locLat": 41.343,
-//                                      "locLong": -66.676]
-//        
-//        Alamofire.request(thriftStoreUrl, method: .post, parameters: newPost,
-//                          encoding: JSONEncoding.default)
-//            .responseJSON { response in
-//                guard response.result.error == nil else {
-//                    // got an error in getting the data, need to handle it
-//                    print("error calling POST on /todos/1")
-//                    print(response.result.error!)
-//                    return
-//                }
-//                // make sure we got some JSON since that's what we expect
-//                guard let json = response.result.value as? [String: Any] else {
-//                    print("didn't get todo object as JSON from API")
-//                    print("Error: \(response.result.error)")
-//                    return
-//                }
-//                // get and print the title
-//                guard let storeName = json["bizName"] as? String else {
-//                    print("Could not get store name from JSON")
-//                    return
-//                }
-//                print("The store name is: " + storeName)
-//        }
-//    }
-
 }
 
 extension MainViewController {
@@ -678,5 +662,34 @@ extension Double {
     func roundTo(places: Int) -> Double {
         let divisor = pow(10.0, Double(places))
         return (self * divisor).rounded() / divisor
+    }
+}
+
+struct UserFav {
+    let key: String
+    let username: String
+    let uid: String
+    let ref: FIRDatabaseReference?
+    
+    init(username: String, uid: String, key: String = "") {
+        self.key = key
+        self.username = username
+        self.uid = uid
+        self.ref = nil
+    }
+    
+    init(snapshot: FIRDataSnapshot) {
+        key = snapshot.key
+        let snapshotValue = snapshot.value as! [String: AnyObject]
+        username = snapshotValue["username"] as! String
+        uid = snapshotValue["uid"] as! String
+        ref = snapshot.ref
+    }
+    
+    func toAnyObject() -> Any {
+        return [
+            "username": username,
+            "uid": uid,
+        ]
     }
 }
