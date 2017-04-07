@@ -13,10 +13,6 @@ import SideMenu
 import FBSDKLoginKit
 import Firebase
 
-// DEBUG
-import Alamofire
-import SwiftyJSON
-
 // TODO - MapView initial height should be proportional to device height
 // TODO - Define a CLCicularRegion based on user's current location and update store map and list when user leaves that region
 class MainViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UITextFieldDelegate, MKMapViewDelegate, CLLocationManagerDelegate, StoresViewModelDelegate, LogInDelegate, MenuViewDelegate, DetailViewControllerDelegate {
@@ -465,7 +461,14 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         cell.distanceLabel.text = ("\(distanceFromMyLocation(toLat: selectedStore.locLat!, long: selectedStore.locLong!)) away")
         
         cell.locationButton.tag = indexPath.row
+        
         cell.locationButton.addTarget(self, action: #selector(locationButtonPressed), for: .touchUpInside)
+       
+        if selectedStore.isFavorite == true {
+            cell.favImgView.isHidden = false
+        } else {
+            cell.favImgView.isHidden = true
+        }
         
         return cell
     }
@@ -589,7 +592,6 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
             loginType = LogInType.isNotLoggedIn as String
         }
     }
-
     
     func handleUserLoggedIn(via loginType: String) {
         self.loginType = loginType

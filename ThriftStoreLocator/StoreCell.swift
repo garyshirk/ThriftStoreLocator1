@@ -15,6 +15,7 @@ class StoreCell: UITableViewCell {
     @IBOutlet weak var cityStateLabel: UILabel!
     @IBOutlet weak var distanceLabel: UILabel!
     @IBOutlet weak var locationButton: UIButton!
+    @IBOutlet weak var favImgView: UIImageView!
     
     override func awakeFromNib() {
         super.awakeFromNib()

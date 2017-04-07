@@ -72,25 +72,34 @@
                                                         <constraint firstAttribute="height" constant="40" id="T4H-D1-aBb"/>
                                                         <constraint firstAttribute="width" constant="40" id="UbP-rX-7U4"/>
                                                     </constraints>
-                                                    <state key="normal" image="location-indicator"/>
+                                                    <state key="normal" backgroundImage="location-indicator"/>
                                                 </button>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="kLs-sd-jMa">
-                                                    <rect key="frame" x="20" y="13" width="325" height="24"/>
+                                                    <rect key="frame" x="20" y="13" width="49" height="24"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="20"/>
                                                     <color key="textColor" red="0.0" green="0.47843137250000001" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
+                                                <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="fav_on" translatesAutoresizingMaskIntoConstraints="NO" id="ni2-Be-uYa">
+                                                    <rect key="frame" x="80" y="15" width="20" height="20"/>
+                                                    <constraints>
+                                                        <constraint firstAttribute="height" constant="20" id="Sp5-Qx-vzt"/>
+                                                        <constraint firstAttribute="width" constant="20" id="WQX-4P-jQY"/>
+                                                    </constraints>
+                                                </imageView>
                                             </subviews>
                                             <constraints>
                                                 <constraint firstItem="OvW-qQ-Gsh" firstAttribute="top" secondItem="9rP-81-UeE" secondAttribute="bottom" constant="3" id="C4C-9N-p3G"/>
                                                 <constraint firstItem="kLs-sd-jMa" firstAttribute="leading" secondItem="IGt-If-wwB" secondAttribute="leadingMargin" constant="12" id="CMR-wy-UlA"/>
                                                 <constraint firstItem="OvW-qQ-Gsh" firstAttribute="leading" secondItem="IGt-If-wwB" secondAttribute="leadingMargin" constant="12" id="DMe-vi-QyX"/>
-                                                <constraint firstItem="oUS-Ef-lsI" firstAttribute="leading" secondItem="kLs-sd-jMa" secondAttribute="trailing" constant="8" id="K7Q-wK-xh5"/>
                                                 <constraint firstItem="oUS-Ef-lsI" firstAttribute="leading" secondItem="9rP-81-UeE" secondAttribute="trailing" constant="8" id="Rxt-5M-P8x"/>
+                                                <constraint firstItem="oUS-Ef-lsI" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="ni2-Be-uYa" secondAttribute="trailing" constant="5" id="T7y-sz-1th"/>
                                                 <constraint firstItem="9rP-81-UeE" firstAttribute="leading" secondItem="IGt-If-wwB" secondAttribute="leadingMargin" constant="12" id="WrY-WJ-QFw"/>
                                                 <constraint firstItem="9rP-81-UeE" firstAttribute="top" secondItem="kLs-sd-jMa" secondAttribute="bottom" constant="4" id="ZDg-KL-WNH"/>
                                                 <constraint firstAttribute="trailingMargin" secondItem="oUS-Ef-lsI" secondAttribute="trailing" constant="13" id="Zo8-ga-D2m"/>
                                                 <constraint firstItem="oUS-Ef-lsI" firstAttribute="centerY" secondItem="IGt-If-wwB" secondAttribute="centerY" id="ay9-Dz-F4H"/>
+                                                <constraint firstItem="ni2-Be-uYa" firstAttribute="top" secondItem="IGt-If-wwB" secondAttribute="topMargin" constant="7" id="fkI-us-Dd3"/>
+                                                <constraint firstItem="ni2-Be-uYa" firstAttribute="leading" secondItem="kLs-sd-jMa" secondAttribute="trailing" constant="11" id="ljq-zv-95w"/>
                                                 <constraint firstItem="kLs-sd-jMa" firstAttribute="top" secondItem="IGt-If-wwB" secondAttribute="topMargin" constant="5" id="llS-uF-Mha"/>
                                                 <constraint firstItem="oUS-Ef-lsI" firstAttribute="leading" secondItem="OvW-qQ-Gsh" secondAttribute="trailing" constant="8" id="r7t-UA-het"/>
                                             </constraints>
@@ -98,6 +107,7 @@
                                         <connections>
                                             <outlet property="cityStateLabel" destination="9rP-81-UeE" id="7sU-ag-oGv"/>
                                             <outlet property="distanceLabel" destination="OvW-qQ-Gsh" id="M9J-bd-O39"/>
+                                            <outlet property="favImgView" destination="ni2-Be-uYa" id="cKj-bB-3GL"/>
                                             <outlet property="locationButton" destination="oUS-Ef-lsI" id="4ON-nK-ZGA"/>
                                             <outlet property="storeLabel" destination="kLs-sd-jMa" id="RW9-h1-jLR"/>
                                             <segue destination="CxU-8a-578" kind="show" identifier="showStoreDetail" id="zQD-6D-ba5"/>
@@ -798,6 +808,7 @@
         <image name="Map-50" width="25" height="25"/>
         <image name="arrow-1" width="112" height="112"/>
         <image name="fav_off" width="16" height="16"/>
+        <image name="fav_on" width="16" height="16"/>
         <image name="location-indicator" width="112" height="112"/>
         <image name="menuIcon" width="25" height="25"/>
         <image name="searchIcon" width="25" height="25"/>
