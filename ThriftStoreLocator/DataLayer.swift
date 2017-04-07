@@ -71,7 +71,7 @@ extension DataLayer {
             
             let fetchRequest: NSFetchRequest<Store> = Store.fetchRequest()
             
-            //var uniqueStores = [[String:Any]]()
+            var uniqueStores = [[String:Any]]()
             
             if deleteOld {
                 
@@ -100,23 +100,21 @@ extension DataLayer {
                     
                     for storeDict in stores {
                         
-                        //var duplicate = false
+                        var duplicate = false
                         
                         for entityStore in entityStores {
                             
                             if ((storeDict["storeId"] as! NSString).integerValue as NSNumber) == entityStore.storeId {
                                 
-                                //duplicate = true
-                                
-                                context.delete(entityStore)
+                                duplicate = true
                                 
                                 break
                             }
                         }
                         
-//                        if !duplicate {
-//                            uniqueStores.append(storeDict)
-//                        }
+                        if !duplicate {
+                            uniqueStores.append(storeDict)
+                        }
                     }
                 }
             }
@@ -129,7 +127,7 @@ extension DataLayer {
 //                favorite.username = "myuser"
                 
             
-                for storeDict:[String:Any] in stores { //uniqueStores {
+                for storeDict:[String:Any] in uniqueStores {
                 
                     let entity = NSEntityDescription.entity(forEntityName: "Store", in: context)
                 

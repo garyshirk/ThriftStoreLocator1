@@ -25,8 +25,6 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     
     var currentUser: User?
     
-    var isTestingPost: Bool = false
-    
     var viewModel: StoresViewModel!
     
     var searchedStores: [Store] = []
@@ -51,11 +49,6 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     
     var refreshControl: UIRefreshControl?
     
-    
-    
-    
-    
-    
     @IBOutlet weak var tableView: UITableView!
     @IBOutlet weak var titleLabel: UILabel!
     @IBOutlet weak var searchView: UIView!
@@ -65,7 +58,6 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     @IBOutlet weak var mapView: MKMapView!
     @IBOutlet weak var mapViewHeightConstraint: NSLayoutConstraint!
     @IBOutlet weak var mapViewYConstraint: NSLayoutConstraint!
-    
     // TODO - Move dimmerView to front of view on storyboard. Keeping it behind tableView during development
     @IBOutlet weak var dimmerView: UIView!
     
@@ -77,7 +69,6 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         // Scroll view inset adjustment handled by tableView constraints in storyboard
         self.automaticallyAdjustsScrollViewInsets = false
         
-        // Search and Title configuration
         //titleLabel.tintColor = UIColor.white
         titleBackgroundColor = searchView.backgroundColor
         titleLabel.text = "Thrift Store Locator"
@@ -94,36 +85,23 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         setSearchEnabledMode(doSet: false)
         searchTextField.delegate = self
         
-        // Set up Map Kit view
         mapView.mapType = .standard
         mapView.delegate = self
         locationManager.requestWhenInUseAuthorization()
         if CLLocationManager.locationServicesEnabled() {
             locationManager.delegate = self
             locationManager.desiredAccuracy = kCLLocationAccuracyHundredMeters // KCLLocationAccuracyNearestTenMeters
-            locationManager.startUpdatingLocation()
+            //locationManager.startUpdatingLocation()
         }
         
-        // Set up StoresViewModel
-        // TODO - Use dependency injection for setting viewModel
         viewModel = StoresViewModel(delegate: self)
         
         let user = FIRAuth.auth()?.currentUser
         updateLoginStatus(forUser: user)
         
-        // TODO - strongSelf
-//        {[weak self] () -> void in
-//            guard let self = self else { return }
-//            self.doSomething()
-//        }
-        FIRAuth.auth()!.addStateDidChangeListener() { auth, user in
-            self.updateLoginStatus(forUser: user)
-        }
-        
-        // DEBUG
-        if isTestingPost == true {
-            //testPost()
-            return
+        FIRAuth.auth()!.addStateDidChangeListener() { [weak self] auth, user in
+            guard let strongSelf = self else { return }
+            strongSelf.updateLoginStatus(forUser: user)
         }
         
         // Always segue to LoginViewController if user is first time or had previously registered and then logged out
@@ -133,11 +111,12 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
             performSegue(withIdentifier: "presentLoginView", sender: nil)
         }
         
-        // If user is already registered, then load favorites before loading stores for current location
+        // If user is already registered, then always load favorite stores before loading stores for current location
         if regType == RegistrationType.registered {
             viewModel.loadFavorites(forUser: (user?.uid)!)
         } else {
             needsInitialStoreLoad = true
+            locationManager.startUpdatingLocation()
         }
     }
     
@@ -214,6 +193,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     }
     
     func handleFavoritesLoaded() {
+        locationManager.startUpdatingLocation()
         needsInitialStoreLoad = true
     }
     
@@ -518,7 +498,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
                     detailViewController.selectedStoreIndex = indexPath.row
                     detailViewController.storeNameStr = selectedStore.name
                     print("selected store isFav: \(selectedStore.isFavorite)")
-                    detailViewController.isFav = false
+                    detailViewController.isFav = selectedStore.isFavorite as Bool!
                     detailViewController.streetStr = selectedStore.address
                     detailViewController.cityStr = selectedStore.city
                     detailViewController.stateStr = selectedStore.state
@@ -541,8 +521,6 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     }
     
     // MARK - DetailViewControllerDelegate
-    
-    
     
     func favoriteButtonPressed(forStore index: Int, isFav: Bool) {
         
@@ -663,34 +641,5 @@ extension Double {
     func roundTo(places: Int) -> Double {
         let divisor = pow(10.0, Double(places))
         return (self * divisor).rounded() / divisor
-    }
-}
-
-struct UserFav {
-    let key: String
-    let username: String
-    let uid: String
-    let ref: FIRDatabaseReference?
-    
-    init(username: String, uid: String, key: String = "") {
-        self.key = key
-        self.username = username
-        self.uid = uid
-        self.ref = nil
-    }
-    
-    init(snapshot: FIRDataSnapshot) {
-        key = snapshot.key
-        let snapshotValue = snapshot.value as! [String: AnyObject]
-        username = snapshotValue["username"] as! String
-        uid = snapshotValue["uid"] as! String
-        ref = snapshot.ref
-    }
-    
-    func toAnyObject() -> Any {
-        return [
-            "username": username,
-            "uid": uid,
-        ]
     }
 }

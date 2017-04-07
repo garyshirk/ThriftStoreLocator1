@@ -62,7 +62,6 @@ class StoresViewModel {
             }
             
             strongSelf.delegate?.handleFavoritesLoaded()
-        
         })
     }
     
@@ -110,7 +109,7 @@ class StoresViewModel {
     }
     
     // Get the approximate area (expects radius to be in units of miles)
-    func setStoreFilters(forLocation location:CLLocationCoordinate2D, withRadiusInMiles radius:Double, andZip zip:String) {
+    func setStoreFilters(forLocation location: CLLocationCoordinate2D, withRadiusInMiles radius:Double, andZip zip:String) {
         
         // TODO - Not ready for this yet, but once you start notifying user about geofence entries, will need to use CLCircularRegion
         // let region = CLCircularRegion.init(center: location, radius: radius, identifier: "region")

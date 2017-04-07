@@ -39,11 +39,13 @@ class ModelManager {
     
     func loadFavoritesFromServer(forUser user: String, modelManagerLoadFavoritesUpdater: @escaping([Store]) -> Void) {
         
-        self.networkLayer.loadFavoritesFromServer(forUser: user, networkLayerLoadFavoritesUpdater: {stores in
-        
-            self.dataLayer.saveInBackground(stores: stores, withDeleteOld: true, isFavs: true, saveInBackgroundSuccess: {
+        self.networkLayer.loadFavoritesFromServer(forUser: user, networkLayerLoadFavoritesUpdater: { [weak self] stores in
             
-                let storeEntities = self.getAllStoresOnMainThread()
+            guard let strongSelf = self else { return }
+        
+            strongSelf.dataLayer.saveInBackground(stores: stores, withDeleteOld: true, isFavs: true, saveInBackgroundSuccess: {
+            
+                let storeEntities = strongSelf.getAllStoresOnMainThread()
                 modelManagerLoadFavoritesUpdater(storeEntities)
             })
         })
@@ -51,11 +53,13 @@ class ModelManager {
     
     func loadStoresFromServer(forQuery query: String, withDeleteOld deleteOld: Bool, modelManagerStoresUpdater: @escaping ([Store]) -> Void) {
         
-        self.networkLayer.loadStoresFromServer(forQuery: query, networkLayerStoreUpdater: {stores in
+        self.networkLayer.loadStoresFromServer(forQuery: query, networkLayerStoreUpdater: { [weak self] stores in
             
-            self.dataLayer.saveInBackground(stores: stores, withDeleteOld: deleteOld, isFavs: false, saveInBackgroundSuccess: {
+            guard let strongSelf = self else { return }
             
-                let storeEntities = self.getAllStoresOnMainThread()
+            strongSelf.dataLayer.saveInBackground(stores: stores, withDeleteOld: deleteOld, isFavs: false, saveInBackgroundSuccess: {
+            
+                let storeEntities = strongSelf.getAllStoresOnMainThread()
                 modelManagerStoresUpdater(storeEntities)
             })
         })
