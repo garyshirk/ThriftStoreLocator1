@@ -53,6 +53,15 @@ class StoresViewModel {
         })
     }
     
+    func removeFavorite(forStore store: Store, user: String) {
+        
+        modelManager.removeFavoriteFromServer(store: store, forUser: user, modelManagerPostFavUpdater: {
+            
+            print("modelManagerPostFavUpdater ran - removal of Fav from db and updating store core data object complete")
+            
+        })
+    }
+    
     func loadFavorites(forUser user: String) {
         
         modelManager.loadFavoritesFromServer(forUser: user, modelManagerLoadFavoritesUpdater: { [weak self] storeEntities -> Void in

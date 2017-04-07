@@ -24,6 +24,16 @@ class NetworkLayer {
     var rootRef = FIRDatabase.database().reference()
     var storesArrayOfDicts = [[String:Any]]()
     
+    func removeFavorite(store: Store, forUser user: String, networkLayerRemoveFavUpdate: () -> Void) {
+        
+        dbFavoritesRef = FIRDatabase.database().reference(withPath: "favorites")
+        let userRef = dbFavoritesRef!.child(user)
+        let bizIdStr = (store.storeId?.stringValue)!
+        let storeIdRef = userRef.child(bizIdStr)
+        storeIdRef.removeValue()
+        networkLayerRemoveFavUpdate()
+    }
+    
     func postFavorite(store: Store, forUser user: String, networkLayerPostFavUpdater: () -> Void) {
         
         dbFavoritesRef = FIRDatabase.database().reference(withPath: "favorites")
@@ -128,7 +138,7 @@ class NetworkLayer {
                     
                     for (_, subJson):(String, JSON) in json {
                         
-                        print(subJson)
+                        //print(subJson)
                         
                         var itemDict = [String:String]()
                         
@@ -180,7 +190,7 @@ class NetworkLayer {
                     
                     for (_, subJson):(String, JSON) in json {
                         
-                        print(subJson)
+                        //print(subJson)
                         
                         var itemDict = [String:String]()
                         

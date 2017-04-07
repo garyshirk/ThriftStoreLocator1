@@ -525,14 +525,16 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     func favoriteButtonPressed(forStore index: Int, isFav: Bool) {
         
         let user = FIRAuth.auth()?.currentUser
+        let uid = (user?.uid)!
+        let store = viewModel.stores[index]
         
         if  isFav == true {
-            
-            // POST new favorite to db and update Store entity in core data
-            viewModel.postFavorite(forStore: viewModel.stores[index], user: (user?.uid)!)
+            // Write new favorite to db and update Store entity in core data
+            viewModel.postFavorite(forStore: store, user: uid)
             
         } else {
-            // DELETE favorite from db and update Store entity in core data
+            // Delete favorite from db and update Store entity in core data
+            viewModel.removeFavorite(forStore: store, user: uid)
         }
     }
     

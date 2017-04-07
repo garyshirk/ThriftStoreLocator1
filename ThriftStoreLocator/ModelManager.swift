@@ -30,8 +30,19 @@ class ModelManager {
         
         self.networkLayer.postFavorite(store: store, forUser: user, networkLayerPostFavUpdater: {
         
-            self.dataLayer.setAsFavorite(toStoreEntity: store, saveInBackgroundSuccess: {
+            self.dataLayer.updateFavorite(isFavOn: true, forStoreEntity: store, saveInBackgroundSuccess: {
             
+                modelManagerPostFavUpdater()
+            })
+        })
+    }
+    
+    func removeFavoriteFromServer(store: Store, forUser user: String, modelManagerPostFavUpdater: @escaping () -> Void) {
+        
+        self.networkLayer.removeFavorite(store: store, forUser: user, networkLayerRemoveFavUpdate: {
+        
+            self.dataLayer.updateFavorite(isFavOn: false, forStoreEntity: store, saveInBackgroundSuccess: {
+                
                 modelManagerPostFavUpdater()
             })
         })
