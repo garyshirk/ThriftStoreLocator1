@@ -178,10 +178,14 @@ class StoresViewModel {
                 
                 if let cty = placemark.subAdministrativeArea?.lowercased().replacingOccurrences(of: " ", with: "+") {
                     self.county = cty
-                    self.state = placemark.administrativeArea!
-                    self.query = self.state + "/" + self.county
-                    
-                    self.doLoadStores(deleteOld: deleteOld)
+                    if let state = placemark.administrativeArea {
+                        self.state = state
+                        self.query = self.state + "/" + self.county
+                        
+                        self.doLoadStores(deleteOld: deleteOld)
+                    } else {
+                        print("Problem getting state")
+                    }
                 }
             
             } else {

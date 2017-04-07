@@ -32,6 +32,19 @@
                                     <constraint firstAttribute="height" constant="202" id="Syz-MY-Luo"/>
                                 </constraints>
                             </mapView>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="fQ3-Nj-iEk">
+                                <rect key="frame" x="136.66666666666669" y="69" width="141.00000000000006" height="25"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="25" id="5ym-ua-hwJ"/>
+                                    <constraint firstAttribute="width" constant="141" id="fH8-Pn-CcA"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" type="system" pointSize="13"/>
+                                <state key="normal" title="SEARCH THIS AREA"/>
+                                <connections>
+                                    <action selector="didPressSearchAreaBtn:" destination="NLN-iD-Puq" eventType="touchUpInside" id="akd-8R-9ks"/>
+                                </connections>
+                            </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="nti-Rm-l5s" userLabel="locArrowButton">
                                 <rect key="frame" x="356" y="206" width="40" height="40"/>
                                 <constraints>
@@ -127,10 +140,12 @@
                             <constraint firstItem="nti-Rm-l5s" firstAttribute="bottom" secondItem="2RY-6e-AG0" secondAttribute="bottom" constant="-20" id="8sw-DC-ggx"/>
                             <constraint firstAttribute="trailingMargin" secondItem="EoC-M1-kV4" secondAttribute="trailing" constant="-22" id="DlN-qE-9Vu"/>
                             <constraint firstItem="2RY-6e-AG0" firstAttribute="leading" secondItem="EoC-M1-kV4" secondAttribute="leading" id="K9c-2K-GJ3"/>
+                            <constraint firstItem="fQ3-Nj-iEk" firstAttribute="top" secondItem="SHX-PC-eje" secondAttribute="bottom" constant="5" id="OiG-Nd-Jyj"/>
                             <constraint firstItem="EoC-M1-kV4" firstAttribute="top" secondItem="SHX-PC-eje" secondAttribute="bottom" id="TL9-hx-id6"/>
                             <constraint firstItem="2RY-6e-AG0" firstAttribute="trailing" secondItem="EoC-M1-kV4" secondAttribute="trailing" id="UqY-zR-hSk"/>
                             <constraint firstItem="v2w-Sy-8zg" firstAttribute="top" secondItem="EoC-M1-kV4" secondAttribute="bottom" id="WHg-Cf-j8I"/>
                             <constraint firstItem="wgO-5x-fvO" firstAttribute="leading" secondItem="Mcc-wQ-TYf" secondAttribute="leadingMargin" constant="-20" id="Wwg-47-TTg"/>
+                            <constraint firstItem="fQ3-Nj-iEk" firstAttribute="centerX" secondItem="Mcc-wQ-TYf" secondAttribute="centerX" id="XOZ-1E-fc5"/>
                             <constraint firstItem="v2w-Sy-8zg" firstAttribute="top" secondItem="wgO-5x-fvO" secondAttribute="bottom" id="dbv-Xb-bIf"/>
                             <constraint firstAttribute="trailingMargin" secondItem="wgO-5x-fvO" secondAttribute="trailing" constant="-20" id="hoA-qh-TIn"/>
                             <constraint firstItem="wgO-5x-fvO" firstAttribute="top" secondItem="2RY-6e-AG0" secondAttribute="bottom" id="l71-m8-gwZ"/>
@@ -198,6 +213,7 @@
                         <outlet property="menuBarButton" destination="OZb-qO-0Ub" id="5I8-O0-Jpo"/>
                         <outlet property="searchBarButton" destination="4xc-VZ-iq9" id="IkL-o6-TgJ"/>
                         <outlet property="searchTextField" destination="LIg-BT-skl" id="cuE-R1-FKX"/>
+                        <outlet property="searchThisAreaBtn" destination="fQ3-Nj-iEk" id="HIK-tj-LN8"/>
                         <outlet property="searchView" destination="fsL-CZ-vjs" id="OJN-pa-EsZ"/>
                         <outlet property="tableView" destination="wgO-5x-fvO" id="fp6-SG-Ddi"/>
                         <outlet property="titleLabel" destination="U5f-Kr-vqX" id="xvX-Ua-1Kx"/>

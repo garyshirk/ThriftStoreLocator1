@@ -45,6 +45,8 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     
     var refreshControl: UIRefreshControl?
     
+    var showSearchAreaButton = false
+    
     @IBOutlet weak var tableView: UITableView!
     @IBOutlet weak var titleLabel: UILabel!
     @IBOutlet weak var searchView: UIView!
@@ -52,6 +54,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     @IBOutlet weak var menuBarButton: UIBarButtonItem!
     @IBOutlet weak var searchBarButton: UIBarButtonItem!
     @IBOutlet weak var mapView: MKMapView!
+    @IBOutlet weak var searchThisAreaBtn: UIButton!
     @IBOutlet weak var mapViewHeightConstraint: NSLayoutConstraint!
     @IBOutlet weak var mapViewYConstraint: NSLayoutConstraint!
     // TODO - Move dimmerView to front of view on storyboard. Keeping it behind tableView during development
@@ -87,7 +90,6 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         if CLLocationManager.locationServicesEnabled() {
             locationManager.delegate = self
             locationManager.desiredAccuracy = kCLLocationAccuracyHundredMeters // KCLLocationAccuracyNearestTenMeters
-            //locationManager.startUpdatingLocation()
         }
         
         viewModel = StoresViewModel(delegate: self)
@@ -118,6 +120,8 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        setShadowButton(button: self.searchThisAreaBtn)
+        searchThisAreaBtn.isHidden = true
         tableView.isUserInteractionEnabled = true
     }
     
@@ -127,6 +131,14 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     
     func refresh(sender: Any) {
         viewModel.loadStores(forLocation: mapLocation!, withRefresh: false, withRadiusInMiles: 10)
+    }
+    
+    func setShadowButton(button: UIButton) {
+        button.layer.shadowColor = UIColor.black.cgColor
+        button.layer.shadowOffset = CGSize(width: 0.0, height: 2.0)
+        button.layer.masksToBounds = false
+        button.layer.shadowRadius = 1.0
+        button.layer.shadowOpacity = 0.5
     }
     
     @IBAction func didPressSideMenuButton(_ sender: Any) {
@@ -157,7 +169,12 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         setSearchEnabledMode(doSet: false)
         viewModel.prepareForZoomToMyLocation(location: myLocation!)
     }
-
+    
+    @IBAction func didPressSearchAreaBtn(_ sender: Any) {
+        viewModel.loadStores(forLocation: mapLocation!, withRefresh: false, withRadiusInMiles: 10)
+        searchThisAreaBtn.isHidden = true
+    }
+    
     // TODO - Currently no longer getting location after I get it first time; need to change this to update every couple minutes
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         
@@ -166,6 +183,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
             self.refreshControl?.endRefreshing()
             
             myLocation = loc
+            mapLocation = loc
             
             if needsInitialStoreLoad == true {
                 needsInitialStoreLoad = false
@@ -176,7 +194,24 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     }
     
     func mapView(_ mapView: MKMapView, regionDidChangeAnimated animated: Bool) {
-        mapLocation = mapView.centerCoordinate
+        if let previousMapLocation = mapLocation {
+            mapLocation = mapView.centerCoordinate
+            
+            let newLoc = CLLocation(latitude: (mapLocation?.latitude)!, longitude: (mapLocation?.longitude)!)
+            let previousLoc = CLLocation(latitude: previousMapLocation.latitude, longitude: previousMapLocation.longitude)
+            let changeInDistance = newLoc.distance(from: previousLoc) * 0.000621371
+            
+            if showSearchAreaButton == true {
+                if changeInDistance > 0.5 { // miles
+                    searchThisAreaBtn.isHidden = false
+                } else {
+                    searchThisAreaBtn.isHidden = true
+                }
+            } else {
+                searchThisAreaBtn.isHidden = true
+                showSearchAreaButton = true
+            }
+        }
     }
     
     func mapView(_ mapView: MKMapView, didSelect view: MKAnnotationView) {
@@ -208,8 +243,8 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     func zoomToLocation(at location: CLLocationCoordinate2D, withMiles miles: Double) {
         let region = MKCoordinateRegionMakeWithDistance(location, milesToMeters(for: miles), milesToMeters(for: miles))
         mapView.setRegion(region, animated: true)
+        showSearchAreaButton = false
     }
-    
     
     func distanceFromMyLocation(toLat: NSNumber, long: NSNumber) -> String {
         
@@ -479,7 +514,6 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     
     func locationButtonPressed(sender: Any) {
         let button = sender as! UIButton
-        print("Location button pressed: \(button.tag)")
         let selectedStore = viewModel.stores[button.tag]
         let location = CLLocationCoordinate2DMake(selectedStore.locLat as! CLLocationDegrees, selectedStore.locLong as! CLLocationDegrees)
         zoomToLocation(at: location, withMiles: 1)
