@@ -28,8 +28,45 @@ class DataLayer {
 
 extension DataLayer {
     
-    // TODO - Is weak self required here?
-    func saveInBackground(stores: [[String:Any]], withDeleteOld:Bool, saveInBackgroundSuccess: VoidBlock? = nil) {
+    func updateFavorite(isFavOn: Bool, forStoreEntity store: Store, saveInBackgroundSuccess: VoidBlock? = nil) {
+        
+        persistentContainer.performBackgroundTask( {context in
+        
+            let fetchRequest: NSFetchRequest<Store> = Store.fetchRequest()
+            fetchRequest.predicate = NSPredicate(format: "storeId == %@", store.storeId!)
+        
+            var storeEntity: Store?
+            
+            do {
+                
+                let storeEntities = try context.fetch(fetchRequest)
+                storeEntity = storeEntities.first
+                if isFavOn == true {
+                    storeEntity?.isFavorite = 1
+                } else {
+                    storeEntity?.isFavorite = 0
+                }
+
+            } catch _ as NSError {
+                // TODO - Error handling
+            }
+            
+            do {
+                
+                try storeEntity?.managedObjectContext?.save()
+                
+            } catch _ as NSError {
+                // TODO - Error handling
+            }
+            
+            // Update the main thread
+            DispatchQueue.main.sync {
+                saveInBackgroundSuccess?()
+            }
+        })
+    }
+    
+    func saveInBackground(stores: [[String:Any]], withDeleteOld deleteOld: Bool, isFavs: Bool, saveInBackgroundSuccess: VoidBlock? = nil) {
         
         // On background thread
         persistentContainer.performBackgroundTask( {context in
@@ -38,7 +75,7 @@ extension DataLayer {
             
             var uniqueStores = [[String:Any]]()
             
-            if withDeleteOld {
+            if deleteOld {
                 
                 // Delete all stores currently in core data before loading new stores
                 
@@ -86,6 +123,11 @@ extension DataLayer {
             
             // Save stores downloaded from server to Core Data
             do {
+                
+//                let favEntity = NSEntityDescription.entity(forEntityName: "Favorite", in: context)
+//                let favorite = Favorite(entity: favEntity!, insertInto: context)
+//                favorite.username = "myuser"
+                
             
                 for storeDict:[String:Any] in uniqueStores {
                 
@@ -110,14 +152,23 @@ extension DataLayer {
                         store.locLong = (storeDict["locLong"] as? NSString)?.doubleValue as NSNumber?
                         store.county = storeDict["county"] as? String
                         
-                        //print(store.description)
+                        if isFavs == true {
+                            store.isFavorite = 1
+                        } else {
+                            store.isFavorite = 0
+                        }
+                        
+                        //favorite.addToStores(store)
                         
                         try store.managedObjectContext?.save()
                     }
+                    //try favorite.managedObjectContext?.save()
                 }
             } catch {
                 print("Error saving Stores")
             }
+            
+            
             
             // Update the main thread
             DispatchQueue.main.sync {
@@ -137,7 +188,7 @@ extension DataLayer {
         // On main thread
         let stores = try! persistentContainer.viewContext.fetch(fetchRequest)
         
-        // stores.forEach { print($0.title) }
+        //stores.forEach { print(($0 as AnyObject).name as! String) }
     
         return stores as! [Store]
     }

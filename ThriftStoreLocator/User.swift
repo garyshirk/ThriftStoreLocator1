@@ -6,24 +6,24 @@
 //  Copyright © 2017 Gary Shirk. All rights reserved.
 //
 
-import Foundation
-import FirebaseAuth
+//import Foundation
+//import FirebaseAuth
+//
+//struct User {
+//    
+//    let user: FIRUser
+//    let uid: String
+//    let email: String?
+//    
+//    init(authData: FIRUser) {
+//        user = authData
+//        uid = authData.uid
+//        email = authData.email
+//    }
 
-struct User {
-    
-    let user: FIRUser
-    let uid: String
-    let email: String?
-    
-    init(authData: FIRUser) {
-        user = authData
-        uid = authData.uid
-        email = authData.email
-    }
-    
 //    init(uid: String, email: String) {
 //        self.uid = uid
 //        self.email = email
 //    }
     
-}
+//}

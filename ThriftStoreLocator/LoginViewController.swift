@@ -10,7 +10,7 @@ import UIKit
 import FBSDKLoginKit
 import Firebase
 
-protocol LogInDelegate {
+protocol LogInDelegate: class {
     
     func handleUserLoggedIn(via loginType: String)
     
@@ -37,9 +37,8 @@ enum LogInType {
 
 class LoginViewController: UITableViewController, UITextFieldDelegate {
     
-    var logInDelegate: LogInDelegate?
+    weak var logInDelegate: LogInDelegate?
     var fbLoginManager: FBSDKLoginManager?
-    var currentUser: User?
     var dict : [String : Any]!
     
     @IBOutlet weak var emailTextfield: UITextField!
@@ -54,8 +53,6 @@ class LoginViewController: UITableViewController, UITextFieldDelegate {
         passwordTextfield.delegate = self
         
         fbLoginManager = FBSDKLoginManager()
-        
-        print("Current User in LoginView =======> \(self.currentUser?.uid), \(self.currentUser?.email)")
         
         let regType = logInDelegate?.getRegistrationType()
         if regType == RegistrationType.registered {
@@ -251,7 +248,6 @@ class LoginViewController: UITableViewController, UITextFieldDelegate {
         }
         
     }
-    
     
     func registerAnonymousUserToFacebook(currentUser: FIRUser, credential: FIRAuthCredential) {
         

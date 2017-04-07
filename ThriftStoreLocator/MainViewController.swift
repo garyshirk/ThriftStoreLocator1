@@ -13,19 +13,11 @@ import SideMenu
 import FBSDKLoginKit
 import Firebase
 
-// DEBUG
-import Alamofire
-import SwiftyJSON
-
 // TODO - MapView initial height should be proportional to device height
 // TODO - Define a CLCicularRegion based on user's current location and update store map and list when user leaves that region
-class MainViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UITextFieldDelegate, MKMapViewDelegate, CLLocationManagerDelegate, StoresViewModelDelegate, LogInDelegate, MenuViewDelegate {
+class MainViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UITextFieldDelegate, MKMapViewDelegate, CLLocationManagerDelegate, StoresViewModelDelegate, LogInDelegate, MenuViewDelegate, DetailViewControllerDelegate {
     
     var loginType: String?
-    
-    var currentUser: User?
-    
-    var isTestingPost: Bool = false
     
     var viewModel: StoresViewModel!
     
@@ -47,10 +39,11 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     
     let locationManager = CLLocationManager()
     
-    var needsInitialStoreLoad = true
+    var needsInitialStoreLoad = false
     
     var refreshControl: UIRefreshControl?
     
+    var showSearchAreaButton = false
     
     @IBOutlet weak var tableView: UITableView!
     @IBOutlet weak var titleLabel: UILabel!
@@ -59,9 +52,9 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     @IBOutlet weak var menuBarButton: UIBarButtonItem!
     @IBOutlet weak var searchBarButton: UIBarButtonItem!
     @IBOutlet weak var mapView: MKMapView!
+    @IBOutlet weak var searchThisAreaBtn: UIButton!
     @IBOutlet weak var mapViewHeightConstraint: NSLayoutConstraint!
     @IBOutlet weak var mapViewYConstraint: NSLayoutConstraint!
-    
     // TODO - Move dimmerView to front of view on storyboard. Keeping it behind tableView during development
     @IBOutlet weak var dimmerView: UIView!
     
@@ -73,7 +66,6 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         // Scroll view inset adjustment handled by tableView constraints in storyboard
         self.automaticallyAdjustsScrollViewInsets = false
         
-        // Search and Title configuration
         //titleLabel.tintColor = UIColor.white
         titleBackgroundColor = searchView.backgroundColor
         titleLabel.text = "Thrift Store Locator"
@@ -90,36 +82,22 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         setSearchEnabledMode(doSet: false)
         searchTextField.delegate = self
         
-        // Set up Map Kit view
         mapView.mapType = .standard
         mapView.delegate = self
         locationManager.requestWhenInUseAuthorization()
         if CLLocationManager.locationServicesEnabled() {
             locationManager.delegate = self
             locationManager.desiredAccuracy = kCLLocationAccuracyHundredMeters // KCLLocationAccuracyNearestTenMeters
-            locationManager.startUpdatingLocation()
         }
         
-        // Set up StoresViewModel
-        // TODO - Use dependency injection for setting viewModel
         viewModel = StoresViewModel(delegate: self)
         
         let user = FIRAuth.auth()?.currentUser
         updateLoginStatus(forUser: user)
         
-        // TODO - strongSelf
-//        {[weak self] () -> void in
-//            guard let self = self else { return }
-//            self.doSomething()
-//        }
-        FIRAuth.auth()!.addStateDidChangeListener() { auth, user in
-            self.updateLoginStatus(forUser: user)
-        }
-        
-        // DEBUG
-        if isTestingPost == true {
-            //testPost()
-            return
+        FIRAuth.auth()!.addStateDidChangeListener() { [weak self] auth, user in
+            guard let strongSelf = self else { return }
+            strongSelf.updateLoginStatus(forUser: user)
         }
         
         // Always segue to LoginViewController if user is first time or had previously registered and then logged out
@@ -128,10 +106,25 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
                       (regType == RegistrationType.registered && loginType == LogInType.isNotLoggedIn) {
             performSegue(withIdentifier: "presentLoginView", sender: nil)
         }
+        
+        // TODO - I think ok to always doInitialLoad here. If user is not logged in then initial load won't run,
+        // Instead, above code will open login view, and once user logs in, then doInitialLoad will be run
+//        if let nonNilUser = user {
+//            if regType == RegistrationType.registered {
+//                viewModel.loadFavorites(forUser: nonNilUser.uid)
+//            } else {
+//                // TODO - do I need this, why not just always loadFavorites first regardless of reg status?
+//                needsInitialStoreLoad = true
+//                locationManager.startUpdatingLocation()
+//            }
+//        }
+        doInitialLoad()
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        setShadowButton(button: self.searchThisAreaBtn)
+        searchThisAreaBtn.isHidden = true
         tableView.isUserInteractionEnabled = true
     }
     
@@ -139,8 +132,24 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         super.viewWillDisappear(animated)
     }
     
+    func doInitialLoad() {
+        viewModel.resetStoresViewModel()
+        // nil user is not logged in, so not necessary to load stores
+        if let user = FIRAuth.auth()?.currentUser {
+            viewModel.loadFavorites(forUser: user.uid)
+        }
+    }
+    
     func refresh(sender: Any) {
         viewModel.loadStores(forLocation: mapLocation!, withRefresh: false, withRadiusInMiles: 10)
+    }
+    
+    func setShadowButton(button: UIButton) {
+        button.layer.shadowColor = UIColor.black.cgColor
+        button.layer.shadowOffset = CGSize(width: 0.0, height: 2.0)
+        button.layer.masksToBounds = false
+        button.layer.shadowRadius = 1.0
+        button.layer.shadowOpacity = 0.5
     }
     
     @IBAction func didPressSideMenuButton(_ sender: Any) {
@@ -171,7 +180,12 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         setSearchEnabledMode(doSet: false)
         viewModel.prepareForZoomToMyLocation(location: myLocation!)
     }
-
+    
+    @IBAction func didPressSearchAreaBtn(_ sender: Any) {
+        viewModel.loadStores(forLocation: mapLocation!, withRefresh: false, withRadiusInMiles: 10)
+        searchThisAreaBtn.isHidden = true
+    }
+    
     // TODO - Currently no longer getting location after I get it first time; need to change this to update every couple minutes
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         
@@ -180,17 +194,35 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
             self.refreshControl?.endRefreshing()
             
             myLocation = loc
+            mapLocation = loc
             
             if needsInitialStoreLoad == true {
                 needsInitialStoreLoad = false
-                viewModel.loadStores(forLocation: myLocation!, withRefresh: true, withRadiusInMiles: 10)
+                locationManager.stopUpdatingLocation()
+                viewModel.loadStores(forLocation: myLocation!, withRefresh: false, withRadiusInMiles: 10)
             }
-            locationManager.stopUpdatingLocation()
         }
     }
     
     func mapView(_ mapView: MKMapView, regionDidChangeAnimated animated: Bool) {
-        mapLocation = mapView.centerCoordinate
+        if let previousMapLocation = mapLocation {
+            mapLocation = mapView.centerCoordinate
+            
+            let newLoc = CLLocation(latitude: (mapLocation?.latitude)!, longitude: (mapLocation?.longitude)!)
+            let previousLoc = CLLocation(latitude: previousMapLocation.latitude, longitude: previousMapLocation.longitude)
+            let changeInDistance = newLoc.distance(from: previousLoc) * 0.000621371
+            
+            if showSearchAreaButton == true {
+                if changeInDistance > 0.5 { // miles
+                    searchThisAreaBtn.isHidden = false
+                } else {
+                    searchThisAreaBtn.isHidden = true
+                }
+            } else {
+                searchThisAreaBtn.isHidden = true
+                showSearchAreaButton = true
+            }
+        }
     }
     
     func mapView(_ mapView: MKMapView, didSelect view: MKAnnotationView) {
@@ -200,6 +232,15 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     func timer() {
         let when = DispatchTime.now() + 1 // seconds
         DispatchQueue.main.asyncAfter(deadline: when) {}
+    }
+    
+    func handleFavoritesLoaded() {
+        locationManager.startUpdatingLocation()
+        needsInitialStoreLoad = true
+    }
+    
+    func handleFavoriteUpdated() {
+        self.tableView.reloadData()
     }
     
     func handleStoresUpdated(forLocation location:CLLocationCoordinate2D) {
@@ -217,8 +258,8 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     func zoomToLocation(at location: CLLocationCoordinate2D, withMiles miles: Double) {
         let region = MKCoordinateRegionMakeWithDistance(location, milesToMeters(for: miles), milesToMeters(for: miles))
         mapView.setRegion(region, animated: true)
+        showSearchAreaButton = false
     }
-    
     
     func distanceFromMyLocation(toLat: NSNumber, long: NSNumber) -> String {
         
@@ -470,7 +511,14 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         cell.distanceLabel.text = ("\(distanceFromMyLocation(toLat: selectedStore.locLat!, long: selectedStore.locLong!)) away")
         
         cell.locationButton.tag = indexPath.row
+        
         cell.locationButton.addTarget(self, action: #selector(locationButtonPressed), for: .touchUpInside)
+       
+        if selectedStore.isFavorite == true {
+            cell.favImgView.isHidden = false
+        } else {
+            cell.favImgView.isHidden = true
+        }
         
         return cell
     }
@@ -481,7 +529,6 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     
     func locationButtonPressed(sender: Any) {
         let button = sender as! UIButton
-        print("Location button pressed: \(button.tag)")
         let selectedStore = viewModel.stores[button.tag]
         let location = CLLocationCoordinate2DMake(selectedStore.locLat as! CLLocationDegrees, selectedStore.locLong as! CLLocationDegrees)
         zoomToLocation(at: location, withMiles: 1)
@@ -497,28 +544,48 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
             if let indexPath = tableView.indexPathForSelectedRow {
                 
                 selectedStore = viewModel.stores[(indexPath.row)]
+                
+                if let detailViewController = segue.destination as? DetailViewController {
+                    detailViewController.delegate = self
+                    detailViewController.selectedStoreIndex = indexPath.row
+                    detailViewController.storeNameStr = selectedStore.name
+                    print("selected store isFav: \(selectedStore.isFavorite)")
+                    detailViewController.isFav = selectedStore.isFavorite as Bool!
+                    detailViewController.streetStr = selectedStore.address
+                    detailViewController.cityStr = selectedStore.city
+                    detailViewController.stateStr = selectedStore.state
+                    detailViewController.zipStr = selectedStore.zip
+                    detailViewController.distanceStr = ("\(distanceFromMyLocation(toLat: selectedStore.locLat!, long: selectedStore.locLong!)) away")
+                    let locLat = selectedStore.locLat as! Double
+                    let locLong = selectedStore.locLong as! Double
+                    detailViewController.storeLocation = (locLat, locLong)
+                }
             }
             
-            if let detailViewController = segue.destination as? DetailViewController {
-                detailViewController.storeNameStr = selectedStore.name
-                detailViewController.isFav = false
-                detailViewController.streetStr = selectedStore.address
-                detailViewController.cityStr = selectedStore.city
-                detailViewController.stateStr = selectedStore.state
-                detailViewController.zipStr = selectedStore.zip
-                detailViewController.distanceStr = ("\(distanceFromMyLocation(toLat: selectedStore.locLat!, long: selectedStore.locLong!)) away")
-                let locLat = selectedStore.locLat as! Double
-                let locLong = selectedStore.locLong as! Double
-                detailViewController.storeLocation = (locLat, locLong)
-            }
-        
         } else if segue.identifier == "presentLoginView" {
             
             if let loginVC = segue.destination as? LoginViewController {
                 
                 loginVC.logInDelegate = self
-                loginVC.currentUser = self.currentUser
             }
+        }
+    }
+    
+    // MARK - DetailViewControllerDelegate
+    
+    func favoriteButtonPressed(forStore index: Int, isFav: Bool) {
+        
+        let user = FIRAuth.auth()?.currentUser
+        let uid = (user?.uid)!
+        let store = viewModel.stores[index]
+        
+        if  isFav == true {
+            // Write new favorite to db and update Store entity in core data
+            viewModel.postFavorite(forStore: store, user: uid)
+            
+        } else {
+            // Delete favorite from db and update Store entity in core data
+            viewModel.removeFavorite(forStore: store, user: uid)
         }
     }
     
@@ -550,9 +617,6 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     func updateLoginStatus(forUser user: FIRUser?) {
         if user != nil {
             
-            self.currentUser = User(authData: user!)
-            print("USER ID==============> \(self.currentUser?.uid), and email: \(self.currentUser?.email ?? "no email")")
-            
             if let providerData = user?.providerData {
                 for userInfo in providerData {
                     switch userInfo.providerID {
@@ -573,11 +637,11 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
             loginType = LogInType.isNotLoggedIn as String
         }
     }
-
     
     func handleUserLoggedIn(via loginType: String) {
         self.loginType = loginType
         dismiss(animated: false, completion: nil)
+        doInitialLoad()
     }
     
     func userSelectedMenuLoginCell() {
@@ -594,64 +658,19 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
             let firebaseAuth = FIRAuth.auth()
             do {
                 try firebaseAuth?.signOut()
+                loginType = LogInType.isNotLoggedIn as String
             } catch let signOutError as NSError {
                 print ("Error logging out: %@", signOutError)
             }
-            
-            loginType = LogInType.isNotLoggedIn as String
-
         }
         performSegue(withIdentifier: "presentLoginView", sender: nil)
     }
-
-    
-    
-    
-    
-    
 
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
     
-    // DEBUG 
-//    func testPost() {
-//        let thriftStoreUrl: String = "http://localhost:8000/thriftstores/"
-//        
-//        let newPost: [String: Any] = ["bizID": 66,
-//                                      "bizName": "Play It Again Store",
-//                                      "bizAddr": "113 Allen Rd",
-//                                      "bizCity": "Niles",
-//                                      "bizState": "IL",
-//                                      "bizZip": "61275",
-//                                      "locLat": 41.343,
-//                                      "locLong": -66.676]
-//        
-//        Alamofire.request(thriftStoreUrl, method: .post, parameters: newPost,
-//                          encoding: JSONEncoding.default)
-//            .responseJSON { response in
-//                guard response.result.error == nil else {
-//                    // got an error in getting the data, need to handle it
-//                    print("error calling POST on /todos/1")
-//                    print(response.result.error!)
-//                    return
-//                }
-//                // make sure we got some JSON since that's what we expect
-//                guard let json = response.result.value as? [String: Any] else {
-//                    print("didn't get todo object as JSON from API")
-//                    print("Error: \(response.result.error)")
-//                    return
-//                }
-//                // get and print the title
-//                guard let storeName = json["bizName"] as? String else {
-//                    print("Could not get store name from JSON")
-//                    return
-//                }
-//                print("The store name is: " + storeName)
-//        }
-//    }
-
 }
 
 extension MainViewController {

@@ -9,8 +9,16 @@
 import UIKit
 import MapKit
 
+protocol DetailViewControllerDelegate: class {
+    
+    func favoriteButtonPressed(forStore index: Int, isFav: Bool)
+}
+
 class DetailViewController: UIViewController {
     
+    weak var delegate: DetailViewControllerDelegate?
+    
+    var selectedStoreIndex: Int!
     var storeNameStr: String!
     var distanceStr: String!
     var isFav: Bool!
@@ -21,12 +29,12 @@ class DetailViewController: UIViewController {
     var storeLocation: (lat: Double, long: Double)?
 
     @IBOutlet weak var storeName: UILabel!
-    @IBOutlet weak var favImageView: UIImageView!
     @IBOutlet weak var distanceLabel: UILabel!
     @IBOutlet weak var streetLabel: UILabel!
     @IBOutlet weak var cityLabel: UILabel!
     @IBOutlet weak var stateLabel: UILabel!
     @IBOutlet weak var zipLabel: UILabel!
+    @IBOutlet weak var favButton: UIButton!
     
     
     override func viewDidLoad() {
@@ -46,10 +54,13 @@ class DetailViewController: UIViewController {
         stateLabel.text = stateStr
         zipLabel.text = zipStr
         
-        let heartImg: UIImage = (isFav == true ? UIImage(named: "fav_on") : UIImage(named: "fav_off"))!
-        favImageView.image = heartImg
-        
-        
+        var favImg: UIImage?
+        if isFav == true {
+            favImg = UIImage(named: "fav_on")!
+        } else {
+            favImg = UIImage(named: "fav_off")
+        }
+        favButton.setBackgroundImage(favImg, for: .normal)
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -63,6 +74,16 @@ class DetailViewController: UIViewController {
     }
     
     
+    @IBAction func favButtonPressed(_ sender: Any) {
+        if isFav == true {
+            isFav = false
+            favButton.setBackgroundImage(UIImage(named: "fav_off"), for: .normal)
+        } else {
+            isFav = true
+            favButton.setBackgroundImage(UIImage(named: "fav_on"), for: .normal)
+        }
+        self.delegate?.favoriteButtonPressed(forStore: selectedStoreIndex, isFav: isFav)
+    }
   
     func openMapForPlace() {
         
