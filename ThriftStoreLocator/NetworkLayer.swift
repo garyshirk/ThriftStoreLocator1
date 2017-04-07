@@ -138,7 +138,7 @@ class NetworkLayer {
                     
                     for (_, subJson):(String, JSON) in json {
                         
-                        //print(subJson)
+                        print(subJson)
                         
                         var itemDict = [String:String]()
                         
@@ -190,7 +190,7 @@ class NetworkLayer {
                     
                     for (_, subJson):(String, JSON) in json {
                         
-                        //print(subJson)
+                        print(subJson)
                         
                         var itemDict = [String:String]()
                         

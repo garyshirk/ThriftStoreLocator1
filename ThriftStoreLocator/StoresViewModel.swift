@@ -15,6 +15,8 @@ protocol StoresViewModelDelegate: class {
     func handleStoresUpdated(forLocation location:CLLocationCoordinate2D)
     
     func handleFavoritesLoaded()
+    
+    func handleFavoriteUpdated()
 }
 
 class StoresViewModel {
@@ -44,12 +46,19 @@ class StoresViewModel {
         self.modelManager = ModelManager.sharedInstance
     }
     
+    func resetStoresViewModel() {
+        stores.removeAll()
+        county = ""
+        state = ""
+        query = ""
+        storeFilterDict.removeAll()
+    }
+    
     func postFavorite(forStore store: Store, user: String) {
         
         modelManager.postFavoriteToServer(store: store, forUser: user, modelManagerPostFavUpdater: {
         
-            print("modelManagerPostFavUpdater ran - setting of Fav to db and updating store core data object complete")
-        
+            self.delegate?.handleFavoriteUpdated()
         })
     }
     
@@ -57,8 +66,7 @@ class StoresViewModel {
         
         modelManager.removeFavoriteFromServer(store: store, forUser: user, modelManagerPostFavUpdater: {
             
-            print("modelManagerPostFavUpdater ran - removal of Fav from db and updating store core data object complete")
-            
+            self.delegate?.handleFavoriteUpdated()            
         })
     }
     

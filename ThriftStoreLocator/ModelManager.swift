@@ -11,7 +11,6 @@ import CoreData
 
 class ModelManager {
     
-    
     // TODO - Improve singleton implementation
     static var sharedInstance = ModelManager()
     
@@ -21,10 +20,6 @@ class ModelManager {
     func getAllStoresOnMainThread() -> [Store] {
         return dataLayer.getAllStoresOnMainThread()
     }
-    
-    
-    // TODO - add weak self to below closures
-    
     
     func postFavoriteToServer(store: Store, forUser user: String, modelManagerPostFavUpdater: @escaping () -> Void) {
         

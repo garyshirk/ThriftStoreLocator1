@@ -66,41 +66,6 @@ extension DataLayer {
         })
     }
     
-    func setAsFavorite(toStoreEntity store: Store, saveInBackgroundSuccess: VoidBlock? = nil) {
-        
-        persistentContainer.performBackgroundTask( {context in
-        
-            let fetchRequest: NSFetchRequest<Store> = Store.fetchRequest()
-            fetchRequest.predicate = NSPredicate(format: "storeId == %@", store.storeId!)
-            
-            var storeEntity: Store?
-            
-            do {
-                
-                let storeEntities = try context.fetch(fetchRequest)
-                storeEntity = storeEntities.first
-                storeEntity?.isFavorite = 1
-                
-            } catch _ as NSError {
-                // TODO - Error handling
-            }
-            
-            do {
-                
-                try storeEntity?.managedObjectContext?.save()
-                
-            } catch _ as NSError {
-                // TODO - Error handling
-            }
-            
-            // Update the main thread
-            DispatchQueue.main.sync {
-                saveInBackgroundSuccess?()
-            }
-        })
-    }
-    
-    // TODO - Is weak self required here?
     func saveInBackground(stores: [[String:Any]], withDeleteOld deleteOld: Bool, isFavs: Bool, saveInBackgroundSuccess: VoidBlock? = nil) {
         
         // On background thread

@@ -19,8 +19,6 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     
     var loginType: String?
     
-    var currentUser: User?
-    
     var viewModel: StoresViewModel!
     
     var searchedStores: [Store] = []
@@ -109,13 +107,18 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
             performSegue(withIdentifier: "presentLoginView", sender: nil)
         }
         
-        // If user is already registered, then always load favorite stores before loading stores for current location
-        if regType == RegistrationType.registered {
-            viewModel.loadFavorites(forUser: (user?.uid)!)
-        } else {
-            needsInitialStoreLoad = true
-            locationManager.startUpdatingLocation()
-        }
+        // TODO - I think ok to always doInitialLoad here. If user is not logged in then initial load won't run,
+        // Instead, above code will open login view, and once user logs in, then doInitialLoad will be run
+//        if let nonNilUser = user {
+//            if regType == RegistrationType.registered {
+//                viewModel.loadFavorites(forUser: nonNilUser.uid)
+//            } else {
+//                // TODO - do I need this, why not just always loadFavorites first regardless of reg status?
+//                needsInitialStoreLoad = true
+//                locationManager.startUpdatingLocation()
+//            }
+//        }
+        doInitialLoad()
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -127,6 +130,14 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
+    }
+    
+    func doInitialLoad() {
+        viewModel.resetStoresViewModel()
+        // nil user is not logged in, so not necessary to load stores
+        if let user = FIRAuth.auth()?.currentUser {
+            viewModel.loadFavorites(forUser: user.uid)
+        }
     }
     
     func refresh(sender: Any) {
@@ -226,6 +237,10 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     func handleFavoritesLoaded() {
         locationManager.startUpdatingLocation()
         needsInitialStoreLoad = true
+    }
+    
+    func handleFavoriteUpdated() {
+        self.tableView.reloadData()
     }
     
     func handleStoresUpdated(forLocation location:CLLocationCoordinate2D) {
@@ -552,7 +567,6 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
             if let loginVC = segue.destination as? LoginViewController {
                 
                 loginVC.logInDelegate = self
-                loginVC.currentUser = self.currentUser
             }
         }
     }
@@ -603,9 +617,6 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     func updateLoginStatus(forUser user: FIRUser?) {
         if user != nil {
             
-            self.currentUser = User(authData: user!)
-            print("USER ID==============> \(self.currentUser?.uid), and email: \(self.currentUser?.email ?? "no email")")
-            
             if let providerData = user?.providerData {
                 for userInfo in providerData {
                     switch userInfo.providerID {
@@ -630,6 +641,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     func handleUserLoggedIn(via loginType: String) {
         self.loginType = loginType
         dismiss(animated: false, completion: nil)
+        doInitialLoad()
     }
     
     func userSelectedMenuLoginCell() {
@@ -646,12 +658,10 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
             let firebaseAuth = FIRAuth.auth()
             do {
                 try firebaseAuth?.signOut()
+                loginType = LogInType.isNotLoggedIn as String
             } catch let signOutError as NSError {
                 print ("Error logging out: %@", signOutError)
             }
-            
-            loginType = LogInType.isNotLoggedIn as String
-
         }
         performSegue(withIdentifier: "presentLoginView", sender: nil)
     }
