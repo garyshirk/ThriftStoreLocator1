@@ -299,7 +299,6 @@ class LoginViewController: UITableViewController, UITextFieldDelegate {
         }
     }
     
-    // TODO - StrongSelf?
     func getFBUserData(){
         if((FBSDKAccessToken.current()) != nil){
             FBSDKGraphRequest(graphPath: "me", parameters: ["fields": "id, name, first_name, last_name, picture.type(large), email"]).start(completionHandler: { (connection, result, error) -> Void in
@@ -307,7 +306,7 @@ class LoginViewController: UITableViewController, UITextFieldDelegate {
                     self.dict = result as! [String : AnyObject]
                     print("RESULT: \(result!)")
                     print("DICT: \(self.dict)")
-                    
+                
                     //imageView.downloadedFrom(link: "http://www.apple.com/euro/ios/ios8/a/generic/images/og.png")
                 }
             })
