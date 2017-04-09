@@ -636,6 +636,8 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     
     func userSelectedMenuLoginCell() {
         
+        setSearchEnabledMode(doSet: false)
+        
         dismiss(animated: true, completion: nil)
         
         if isLoggedIn() {

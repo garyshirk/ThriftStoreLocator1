@@ -22,108 +22,67 @@ var dbFavoritesRef: FIRDatabaseReference?
 class NetworkLayer {
     
     var rootRef = FIRDatabase.database().reference()
-    var storesArrayOfDicts = [[String:Any]]()
+    var favoritesArrayOfDicts = [[String: Any]]()
+    var storesArrayOfDicts = [[String: Any]]()
     
-    func removeFavorite(store: Store, forUser user: String, networkLayerRemoveFavUpdate: () -> Void) {
+    func removeFavorite(store: Store, forUser user: String, networkLayerRemoveFavUpdater: () -> Void) {
         
         dbFavoritesRef = FIRDatabase.database().reference(withPath: "favorites")
         let userRef = dbFavoritesRef!.child(user)
-        let bizIdStr = (store.storeId?.stringValue)!
-        let storeIdRef = userRef.child(bizIdStr)
-        storeIdRef.removeValue()
-        networkLayerRemoveFavUpdate()
+        if let stateStr = store.state {
+            let stateRef = userRef.child(stateStr)
+            if let countyStr = store.county {
+                let countyRef = stateRef.child(countyStr.lowercased())
+                let storeIdStr = (store.storeId?.stringValue)!
+                let storeIdRef = countyRef.child(storeIdStr)
+                storeIdRef.removeValue()
+            }
+        }
+        networkLayerRemoveFavUpdater()
+        
+        
+//        let bizIdStr = (store.storeId?.stringValue)!
+//        let storeIdRef = userRef.child(bizIdStr)
+//        storeIdRef.removeValue()
+//        networkLayerRemoveFavUpdate()
     }
     
     func postFavorite(store: Store, forUser user: String, networkLayerPostFavUpdater: () -> Void) {
         
         dbFavoritesRef = FIRDatabase.database().reference(withPath: "favorites")
         
-        // Set user uid key
+        // Set json user uid key
         let userRef = dbFavoritesRef!.child(user)
         
-        // Set bizID key
-        let bizIdStr = (store.storeId?.stringValue)!
-        let storeIdRef = userRef.child(bizIdStr)
-        
-        // Set bizID
-        let bizIdInt = store.storeId?.intValue
-        let bizIdRef = storeIdRef.child("bizID")
-        bizIdRef.setValue(bizIdInt)
-        
-        // Set bizName
-        let bizName = store.name
-        let bizNameRef = storeIdRef.child("bizName")
-        bizNameRef.setValue(bizName)
-        
-        // Set bizCat
-        let bizCat = store.categoryMain ?? ""
-        let bizCatRef = storeIdRef.child("bizCat")
-        bizCatRef.setValue(bizCat)
-        
-        // Set bizCatSub
-        let bizCatSub = store.categorySub ?? ""
-        let bizCatSubRef = storeIdRef.child("bizCatSub")
-        bizCatSubRef.setValue(bizCatSub)
-        
-        // Set bizAddr
-        let bizAddr = store.address
-        let bizAddrRef = storeIdRef.child("bizAddr")
-        bizAddrRef.setValue(bizAddr)
-        
-        // Set bizCity
-        let bizCity = store.city
-        let bizCityRef = storeIdRef.child("bizCity")
-        bizCityRef.setValue(bizCity)
-        
-        // Set bizState
-        let bizState = store.state
-        let bizStateRef = storeIdRef.child("bizState")
-        bizStateRef.setValue(bizState)
-
-        // Set bizZip
-        let bizZip = store.zip
-        let bizZipRef = storeIdRef.child("bizZip")
-        bizZipRef.setValue(bizZip)
-        
-        // Set bizPhone
-        let bizPhone = store.phone ?? ""
-        let bizPhoneRef = storeIdRef.child("bizPhone")
-        bizPhoneRef.setValue(bizPhone)
-        
-        // Set bizEmail
-        let bizEmail = store.email ?? ""
-        let bizEmailRef = storeIdRef.child("bizEmail")
-        bizEmailRef.setValue(bizEmail)
-        
-        // Set bizURL
-        let bizUrl = store.website ?? ""
-        let bizUrlRef = storeIdRef.child("bizURL")
-        bizUrlRef.setValue(bizUrl)
-        
-        // Set bizLat
-        let bizLat = store.locLat?.doubleValue
-        let bizLatRef = storeIdRef.child("locLat")
-        bizLatRef.setValue(bizLat)
-        
-        // Set bizLong
-        let bizLong = store.locLong?.doubleValue
-        let bizLongRef = storeIdRef.child("locLong")
-        bizLongRef.setValue(bizLong)
-        
-        // Set bizCounty
-        let bizCounty = store.county
-        let bizCountyRef = storeIdRef.child("locCounty")
-        bizCountyRef.setValue(bizCounty)
+        // Set state key
+        if let storeState = store.state {
+            let storeStateRef = userRef.child(storeState)
+            
+            // Set county key
+            if let storeCounty = store.county {
+                let storeCountyStr = storeCounty.lowercased()
+                let storeCountyRef = storeStateRef.child(storeCountyStr)
+                
+                // Set store id key
+                if let storeId = store.storeId {
+                    let storeIdRef = storeCountyRef.child(storeId.stringValue)
+                    storeIdRef.setValue(storeId)
+                }
+            }
+        }
         
         networkLayerPostFavUpdater()
     }
     
     func loadFavoritesFromServer(forUser user: String, networkLayerLoadFavoritesUpdater: @escaping ([[String: Any]]) -> Void) {
         
-        self.storesArrayOfDicts.removeAll()
+        dbFavoritesRef = FIRDatabase.database().reference(withPath: "favorites")
+        
+        self.favoritesArrayOfDicts.removeAll()
         
         let urlString = firebaseFavoritesBaseURL.replacingOccurrences(of: "<QUERY>", with: user)
         
+        // First: Do a rest GET to get storeId references to all user favorites
         Alamofire.request(urlString, method: .get).validate()
             
             .responseJSON(completionHandler: { [weak self] response in
@@ -136,39 +95,94 @@ class NetworkLayer {
                     
                     let json = JSON(value)
                     
-                    for (_, subJson):(String, JSON) in json {
+                    print(json)
+                    
+                    for (state, subJson):(String, JSON) in json {
                         
-                        print(subJson)
-                        
-                        var itemDict = [String:String]()
-                        
-                        itemDict["name"] = subJson["bizName"].stringValue
-                        itemDict["storeId"] = subJson["bizID"].stringValue
-                        itemDict["categoryMain"] = subJson["bizCat"].stringValue
-                        itemDict["categorySub"] = subJson["bizCatSub"].stringValue
-                        itemDict["address"] = subJson["bizAddr"].stringValue
-                        itemDict["city"] = subJson["bizCity"].stringValue
-                        itemDict["state"] = subJson["bizState"].stringValue
-                        itemDict["zip"] = subJson["bizZip"].stringValue
-                        itemDict["phone"] = subJson["bizPhone"].stringValue
-                        itemDict["email"] = subJson["bizEmail"].stringValue
-                        itemDict["website"] = subJson["bizURL"].stringValue
-                        itemDict["locLat"] = subJson["locLat"].stringValue
-                        itemDict["locLong"] = subJson["locLong"].stringValue
-                        itemDict["county"] = subJson["locCounty"].stringValue
-                        
-                        strongSelf.storesArrayOfDicts.append(itemDict as [String : Any])
+                        for (county, subSubJson):(String, JSON) in subJson {
+                            
+                            for (storeId, _):(String, JSON) in subSubJson {
+                                
+                                var itemDict = [String: String]()
+                                
+                                itemDict["state"] = state
+                                itemDict["county"] = county
+                                itemDict["storeId"] = storeId
+                                
+                                strongSelf.favoritesArrayOfDicts.append(itemDict as [String: Any])
+                            }
+                        }
                     }
                     
-                    networkLayerLoadFavoritesUpdater(strongSelf.storesArrayOfDicts)
+                    // Next: Use firebase event observer to load favorite stores based on references above and pass back to model manager
+                    strongSelf.storesArrayOfDicts.removeAll()
+                    
+                    let dbStoresRef = FIRDatabase.database().reference(withPath: "thriftstores")
+                    
+                    var favoritesCount = strongSelf.favoritesArrayOfDicts.count
+                    
+                    if favoritesCount <= 0 {
+                        // No favorites, return
+                        networkLayerLoadFavoritesUpdater(strongSelf.storesArrayOfDicts)
+                        return
+                    }
+                    
+                    for favorite in strongSelf.favoritesArrayOfDicts {
+                        
+                        if let state = favorite["state"] {
+                            let stateRef = dbStoresRef.child(state as! String)
+                            
+                            if let county = favorite["county"] {
+                                let countyStr = (county as! String).lowercased()
+                                let countyRef = stateRef.child(countyStr)
+                                
+                                if let storeId = favorite["storeId"] {
+                                    let storeIdRef = countyRef.child(storeId as! String)
+                                    
+                                    storeIdRef.observeSingleEvent(of: .value, with: { (snapshot) in
+                                        
+                                        if let value = snapshot.value as? NSDictionary {
+                                        
+                                            var itemDict = [String: String]()
+                                            
+                                            itemDict["name"] = value["bizName"] as? String
+                                            itemDict["storeId"] = String(describing: value["bizID"] as! Int64)
+                                            itemDict["categoryMain"] = value["bizCat"] as? String
+                                            itemDict["categorySub"] = value["bizCatSub"] as? String
+                                            itemDict["address"] = value["bizAddr"] as? String
+                                            itemDict["city"] = value["bizCity"] as? String
+                                            itemDict["state"] = value["bizState"] as? String
+                                            itemDict["zip"] = value["bizZip"] as? String
+                                            itemDict["phone"] = value["bizPhone"] as? String
+                                            itemDict["email"] = value["bizEmail"] as? String
+                                            itemDict["website"] = value["bizURL"] as? String
+                                            itemDict["locLat"] = String(describing: value["locLat"] as! Double)
+                                            itemDict["locLong"] = String(describing: value["locLong"] as! Double)
+                                            itemDict["county"] = value["locCounty"] as? String
+                                            
+                                            strongSelf.storesArrayOfDicts.append(itemDict as [String: Any])
+                                            
+                                            favoritesCount -= 1
+                                            
+                                            if favoritesCount <= 0 {
+                                                networkLayerLoadFavoritesUpdater(strongSelf.storesArrayOfDicts)
+                                            }
+                                        }
+                                        
+                                    }) { (error) in
+                                        print(error.localizedDescription)
+                                    }
+                                }
+                            }
+                        }
+                    }
                     
                 case .failure(let error):
-                    // TODO - Proper error handling
+                    // TODO - Proper error handling for Alamofire request
                     print(error)
                 }
-        })
+            })
     }
-    
     
     func loadStoresFromServer(forQuery query: String, networkLayerStoreUpdater: @escaping ([[String: Any]]) -> Void) {
         
@@ -190,9 +204,7 @@ class NetworkLayer {
                     
                     for (_, subJson):(String, JSON) in json {
                         
-                        print(subJson)
-                        
-                        var itemDict = [String:String]()
+                        var itemDict = [String: String]()
                         
                         itemDict["name"] = subJson["bizName"].stringValue
                         itemDict["storeId"] = subJson["bizID"].stringValue
@@ -209,7 +221,7 @@ class NetworkLayer {
                         itemDict["locLong"] = subJson["locLong"].stringValue
                         itemDict["county"] = subJson["locCounty"].stringValue
                         
-                        strongSelf.storesArrayOfDicts.append(itemDict as [String : Any])
+                        strongSelf.storesArrayOfDicts.append(itemDict as [String: Any])
                     }
                     
                     networkLayerStoreUpdater(strongSelf.storesArrayOfDicts)
