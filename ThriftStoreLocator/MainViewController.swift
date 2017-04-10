@@ -224,6 +224,8 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         DispatchQueue.main.asyncAfter(deadline: when) {}
     }
     
+    // MARK - StoresViewModelDelegate methods
+    
     func handleFavoritesLoaded() {
         locationManager.startUpdatingLocation()
         needsInitialStoreLoad = true
@@ -243,6 +245,10 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
             annotation.coordinate = CLLocationCoordinate2D(latitude: store.locLat as! CLLocationDegrees, longitude: store.locLong as! CLLocationDegrees)
             mapView.addAnnotation(annotation)
         }
+    }
+    
+    func getUserLocation() -> CLLocationCoordinate2D? {
+        return self.myLocation
     }
     
     func zoomToLocation(at location: CLLocationCoordinate2D, withMiles miles: Double) {

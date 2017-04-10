@@ -32,5 +32,7 @@ extension Store {
     @NSManaged public var categorySub: String?
     @NSManaged public var storeId: NSNumber?
     @NSManaged public var isFavorite: NSNumber?
+    @NSManaged public var distance: NSNumber?
+    
 
 }

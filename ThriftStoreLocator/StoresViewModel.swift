@@ -10,13 +10,20 @@ import Foundation
 import CoreLocation
 import MapKit
 
+enum StoreSortType {
+    case distance
+    case name
+}
+
 protocol StoresViewModelDelegate: class {
     
-    func handleStoresUpdated(forLocation location:CLLocationCoordinate2D)
+    func handleStoresUpdated(forLocation location: CLLocationCoordinate2D)
     
     func handleFavoritesLoaded()
     
     func handleFavoriteUpdated()
+    
+    func getUserLocation() -> CLLocationCoordinate2D?
 }
 
 class StoresViewModel {
@@ -33,7 +40,9 @@ class StoresViewModel {
     
     var query: String = ""
     
-    var storeFilterPredicate: NSPredicate?
+    var storeLocationPredicate: NSPredicate?
+    
+    var storeCountyPredicate: NSPredicate?
     
     var storeFilterDict = [String: NSPredicate]()
     
@@ -83,8 +92,7 @@ class StoresViewModel {
     }
     
     func loadStores(forLocation location: CLLocationCoordinate2D, withRefresh isRefresh: Bool, withRadiusInMiles radius: Double) {
-        setStoreFilters(forLocation: location, withRadiusInMiles: radius, andZip: "")
-        setCounty(forLocation: location, deleteOld: isRefresh)
+        setCountyStoreFilterAndLoadStores(forLocation: location, deleteOld: isRefresh)
     }
     
     func loadStores(forSearchStr searchStr: String) {
@@ -107,22 +115,70 @@ class StoresViewModel {
                     return
                 }
                 
-                strongSelf.storeFilterDict[strongSelf.county] = strongSelf.storeFilterPredicate
+                strongSelf.storeFilterDict[strongSelf.county] = strongSelf.storeCountyPredicate
                 strongSelf.filterStoresAndInformMainController(stores: storeEntities)
             })
         }
     }
     
     func filterStoresAndInformMainController(stores: [Store]) {
-        let filteredStores = (stores as NSArray).filtered(using: self.storeFilterPredicate!)
-        self.stores = filteredStores as! [Store]
+        let locationFilteredStores = (stores as NSArray).filtered(using: self.storeLocationPredicate!)
+        
+        
+        
+        // DEBUG
+        for store in locationFilteredStores {
+            print("locationFilterStore: \((store as! Store).name)")
+        }
+        print("======")
+        //=====
+        
+        
+        let countyFilteredStores = (stores as NSArray).filtered(using: self.storeCountyPredicate!)
+        
+        // DEBUG
+        for store in countyFilteredStores {
+            print("countyFilterStore: \((store as! Store).name)")
+        }
+        //=====
+        
+        
+        
+        self.stores = Array(Set((locationFilteredStores as! [Store]) + (countyFilteredStores as! [Store])))
+        
+        self.setStoreSortOrder(by: .distance)
+        
         self.delegate?.handleStoresUpdated(forLocation: self.mapLocation!)
     }
     
     func prepareForZoomToMyLocation(location:CLLocationCoordinate2D) {
         stores = modelManager.getAllStoresOnMainThread()
-        setStoreFilters(forLocation: location, withRadiusInMiles: 10, andZip: "")
-        setCounty(forLocation: location, deleteOld: true)
+        setCountyStoreFilterAndLoadStores(forLocation: location, deleteOld: true)
+    }
+    
+    func setStoreSortOrder(by sortType: StoreSortType) {
+        
+        var sortDescriptorPrimary: NSSortDescriptor?
+        var sortDescriptorSecond: NSSortDescriptor?
+        
+        if let userLoc = delegate?.getUserLocation() {
+            for store in self.stores {
+                store.distance = distance(fromMyLocation: userLoc, toStoreLocation: store) as NSNumber?
+            }
+        }
+        
+        switch sortType {
+        case .distance:
+            sortDescriptorPrimary = NSSortDescriptor(key: "distance", ascending: true)
+            sortDescriptorSecond = NSSortDescriptor(key: "name", ascending: true)
+            
+        case .name:
+            sortDescriptorPrimary = NSSortDescriptor(key: "name", ascending: true)
+            sortDescriptorSecond = NSSortDescriptor(key: "distance", ascending: true)
+        }
+        
+        let sortDescriptors = [sortDescriptorPrimary, sortDescriptorSecond]
+        self.stores.sort(sortDescriptors: sortDescriptors as! [NSSortDescriptor])
     }
     
     // Get the approximate area (expects radius to be in units of miles)
@@ -131,7 +187,6 @@ class StoresViewModel {
         // TODO - Not ready for this yet, but once you start notifying user about geofence entries, will need to use CLCircularRegion
         // let region = CLCircularRegion.init(center: location, radius: radius, identifier: "region")
         
-        // TODO - Place coord keys in constant class
         self.mapLocation = location
         
         if zip.isEmpty {
@@ -151,14 +206,14 @@ class StoresViewModel {
             let predicateSouthLat = NSPredicate(format: "%K > %@", "locLat", NSNumber(value: southLat))
             let predicateEastLong = NSPredicate(format: "%K < %@", "locLong", NSNumber(value: eastLong))
             let predicateWestLong = NSPredicate(format: "%K > %@", "locLong", NSNumber(value: westLong))
-            storeFilterPredicate = NSCompoundPredicate(andPredicateWithSubpredicates: [predicateNorthLat, predicateSouthLat, predicateEastLong, predicateWestLong])
+            storeLocationPredicate = NSCompoundPredicate(andPredicateWithSubpredicates: [predicateNorthLat, predicateSouthLat, predicateEastLong, predicateWestLong])
             
             //print("RegionLong: westLong: \(westLong), centerLong: \(locLong), eastLong: \(eastLong)")
             //print("RegionLat : northLat: \(northLat), centerLat: \(locLat), southLat: \(southLat)")
             
         } else {
             
-             storeFilterPredicate = NSPredicate(format: "%K == %@", "zip", zip)
+            storeLocationPredicate = NSPredicate(format: "%K == %@", "zip", zip)
         }
     }
     
@@ -171,7 +226,7 @@ class StoresViewModel {
         }
     }
     
-    func setCounty(forLocation location: CLLocationCoordinate2D, deleteOld: Bool) {
+    func setCountyStoreFilterAndLoadStores(forLocation location: CLLocationCoordinate2D, deleteOld: Bool) {
         
         let locationCoords: CLLocation = CLLocation(latitude: location.latitude, longitude: location.longitude)
         
@@ -184,10 +239,20 @@ class StoresViewModel {
             
             if let placemarks = placemarks, let placemark = placemarks.first {
                 
-                if let cty = placemark.subAdministrativeArea?.lowercased().replacingOccurrences(of: " ", with: "+") {
-                    self.county = cty
+                if let county = placemark.subAdministrativeArea {
+                    
+                    print("county used for predicate: \(county)")
+                    
+                    self.storeCountyPredicate = NSPredicate(format: "%K == %@", "county", county)
+                    
+                    self.county = county.lowercased().replacingOccurrences(of: " ", with: "+")
+                    
+                    self.setStoreFilters(forLocation: location, withRadiusInMiles: 10, andZip: "")
+                    
                     if let state = placemark.administrativeArea {
+                        
                         self.state = state
+                        
                         self.query = self.state + "/" + self.county
                         
                         self.doLoadStores(deleteOld: deleteOld)
@@ -214,8 +279,14 @@ class StoresViewModel {
             if let placemarks = placemarks, let placemark = placemarks.first {
                 
                 // If user's search did not yield a county, eg user searched for a state, then do not allow the search
-                if let cty = placemark.subAdministrativeArea?.lowercased().replacingOccurrences(of: " ", with: "+") {
-                    self.county = cty
+                if let county = placemark.subAdministrativeArea {
+                    
+                    print("county used for predicate: \(county)")
+                    
+                    self.storeCountyPredicate = NSPredicate(format: "%K == %@", "county", county)
+                    
+                    self.county = county.lowercased().replacingOccurrences(of: " ", with: "+")
+                    
                     self.state = placemark.administrativeArea!
                     self.query = self.state + "/" + self.county
                     self.mapLocation = placemark.location?.coordinate
@@ -238,7 +309,31 @@ class StoresViewModel {
     }
 }
 
+extension MutableCollection where Self : RandomAccessCollection {
+    /// Sort `self` in-place using criteria stored in a NSSortDescriptors array
+    public mutating func sort(sortDescriptors theSortDescs: [NSSortDescriptor]) {
+        sort { by:
+            for sortDesc in theSortDescs {
+                switch sortDesc.compare($0, to: $1) {
+                case .orderedAscending: return true
+                case .orderedDescending: return false
+                case .orderedSame: continue
+                }
+            }
+            return false
+        }
+    }
+}
+
 extension StoresViewModel {
+    
+    func distance(fromMyLocation myLoc: CLLocationCoordinate2D, toStoreLocation store: Store) -> Double {
+        let toLatDouble = store.locLat?.doubleValue
+        let toLongDouble = store.locLong?.doubleValue
+        let myLocation = CLLocation(latitude: myLoc.latitude, longitude: myLoc.longitude)
+        let storeLoc = CLLocation(latitude: toLatDouble!, longitude: toLongDouble!)
+        return myLocation.distance(from: storeLoc)
+    }
     
     func milesToLatDegrees(for miles:Double) -> Double {
         // TODO - Add to constants class

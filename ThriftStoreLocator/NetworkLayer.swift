@@ -13,8 +13,8 @@ import FirebaseDatabase
 
 // TODO - constants should use pattern for constants (struct or enum)
 private let djangoThriftStoreBaseURL = "http://localhost:8000/thriftstores/"
-private let firebaseThriftStoreBaseURL = "https://thrift-store-locator.firebaseio.com/thriftstores/<QUERY>.json?auth=APnqdk7uneubbRfzoOT2E0NnRDKurz36tW15gOcA"
-private let firebaseFavoritesBaseURL = "https://thrift-store-locator.firebaseio.com/favorites/<QUERY>.json?auth=APnqdk7uneubbRfzoOT2E0NnRDKurz36tW15gOcA"
+private let firebaseThriftStoreBaseURL = "https://thrift-store-locator.firebaseio.com/thriftstores/<QUERY>.json?auth=<AUTH-TOKEN>"
+private let firebaseFavoritesBaseURL = "https://thrift-store-locator.firebaseio.com/favorites/<QUERY>.json?auth=<AUTH-TOKEN>"
 private let locationInfoBaseURL = "http://maps.googleapis.com/maps/api/geocode/json?address=<location>&sensor=false"
 
 var dbFavoritesRef: FIRDatabaseReference?
@@ -39,12 +39,6 @@ class NetworkLayer {
             }
         }
         networkLayerRemoveFavUpdater()
-        
-        
-//        let bizIdStr = (store.storeId?.stringValue)!
-//        let storeIdRef = userRef.child(bizIdStr)
-//        storeIdRef.removeValue()
-//        networkLayerRemoveFavUpdate()
     }
     
     func postFavorite(store: Store, forUser user: String, networkLayerPostFavUpdater: () -> Void) {
