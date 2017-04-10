@@ -107,17 +107,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
             performSegue(withIdentifier: "presentLoginView", sender: nil)
         }
         
-        // TODO - I think ok to always doInitialLoad here. If user is not logged in then initial load won't run,
-        // Instead, above code will open login view, and once user logs in, then doInitialLoad will be run
-//        if let nonNilUser = user {
-//            if regType == RegistrationType.registered {
-//                viewModel.loadFavorites(forUser: nonNilUser.uid)
-//            } else {
-//                // TODO - do I need this, why not just always loadFavorites first regardless of reg status?
-//                needsInitialStoreLoad = true
-//                locationManager.startUpdatingLocation()
-//            }
-//        }
+        // Do initial load; note that if user is nil (not logged in), initial load will not be run and above segue to LoginView will occur
         doInitialLoad()
     }
     
@@ -234,6 +224,8 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         DispatchQueue.main.asyncAfter(deadline: when) {}
     }
     
+    // MARK - StoresViewModelDelegate methods
+    
     func handleFavoritesLoaded() {
         locationManager.startUpdatingLocation()
         needsInitialStoreLoad = true
@@ -253,6 +245,10 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
             annotation.coordinate = CLLocationCoordinate2D(latitude: store.locLat as! CLLocationDegrees, longitude: store.locLong as! CLLocationDegrees)
             mapView.addAnnotation(annotation)
         }
+    }
+    
+    func getUserLocation() -> CLLocationCoordinate2D? {
+        return self.myLocation
     }
     
     func zoomToLocation(at location: CLLocationCoordinate2D, withMiles miles: Double) {
@@ -645,6 +641,8 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     }
     
     func userSelectedMenuLoginCell() {
+        
+        setSearchEnabledMode(doSet: false)
         
         dismiss(animated: true, completion: nil)
         
