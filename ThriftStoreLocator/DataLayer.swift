@@ -190,4 +190,22 @@ extension DataLayer {
     
         return stores as! [Store]
     }
+    
+    func getFavoriteStoresOnMainThread() -> [Store] {
+        
+        let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "Store")
+        let predicate = NSPredicate(format: "%K == %@", "isFavorite", NSNumber(value: true))
+        fetchRequest.predicate = predicate
+        
+        // Add Sort descriptor
+        let sortDescriptor = NSSortDescriptor(key: "name", ascending: true)
+        fetchRequest.sortDescriptors = [sortDescriptor]
+        
+        // On main thread
+        let stores = try! persistentContainer.viewContext.fetch(fetchRequest)
+        
+        //stores.forEach { print(($0 as AnyObject).name as! String) }
+        
+        return stores as! [Store]
+    }
 }

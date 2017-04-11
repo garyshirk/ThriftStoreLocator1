@@ -23,6 +23,8 @@ protocol StoresViewModelDelegate: class {
     
     func handleFavoriteUpdated()
     
+    func handleFavoritesList()
+    
     func getUserLocation() -> CLLocationCoordinate2D?
 }
 
@@ -80,6 +82,22 @@ class StoresViewModel {
         modelManager.removeFavoriteFromServer(store: store, forUser: user, modelManagerPostFavUpdater: {
             
             self.delegate?.handleFavoriteUpdated()            
+        })
+    }
+    
+    func getListOfFavorites() {
+        
+        modelManager.listFavorites(modelManagerListFavoritesUpdater: { [weak self] storeEntities -> Void in
+        
+            guard let strongSelf = self else {
+                return
+            }
+            
+            strongSelf.stores = storeEntities
+            
+            strongSelf.setStoreSortOrder(by: .distance)
+            
+            strongSelf.delegate?.handleFavoritesList()
         })
     }
     

@@ -43,6 +43,12 @@ class ModelManager {
         })
     }
     
+    func listFavorites(modelManagerListFavoritesUpdater: ([Store]) -> Void) {
+        
+        let stores = self.dataLayer.getFavoriteStoresOnMainThread()
+        modelManagerListFavoritesUpdater(stores)
+    }
+    
     func loadFavoritesFromServer(forUser user: String, modelManagerLoadFavoritesUpdater: @escaping([Store]) -> Void) {
         
         self.networkLayer.loadFavoritesFromServer(forUser: user, networkLayerLoadFavoritesUpdater: { [weak self] stores in

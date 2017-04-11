@@ -11,6 +11,8 @@ import UIKit
 protocol MenuViewDelegate: class {
     
     func userSelectedMenuLoginCell()
+    
+    func userSelectedManageFavorites()
 }
 
 class MenuTableViewController: UITableViewController {
@@ -18,16 +20,34 @@ class MenuTableViewController: UITableViewController {
     weak var menuViewDelegate: MenuViewDelegate?
     
     var isLoggedIn: Bool?
+    var isRegistered: Bool?
+    var username: String?
     
     @IBOutlet weak var loginCell: UILabel!
+    @IBOutlet weak var signedInAs: UILabel!
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        if isLoggedIn! {
+        let appDelegate = UIApplication.shared.delegate as! AppDelegate
+        self.navigationItem.title = "Menu"
+        let navBarDefaultBlueTextColor = appDelegate.uicolorFromHex(rgbValue: UInt32(AppDelegate.DEFAULT_BLUE_COLOR))
+        self.navigationController?.navigationBar.titleTextAttributes = [NSForegroundColorAttributeName : navBarDefaultBlueTextColor]
+        
+        if isLoggedIn! == true {
             loginCell.text = "Sign Out"
         } else {
-            loginCell.text = "Sign In"
+            if isRegistered! == true {
+                loginCell.text = "Sign In"
+            } else {
+                loginCell.text = "Register"
+            }
+        }
+        
+        if username?.isEmpty == true {
+            self.signedInAs.text = "Anonymous"
+        } else {
+            self.signedInAs.text = self.username
         }
         
         // Do not show empty tableView cells
@@ -51,32 +71,62 @@ class MenuTableViewController: UITableViewController {
         
     }
     
-//    override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-//        return "Menu"
-//    }
-    
     override func tableView(_ tableView: UITableView, willDisplayHeaderView view: UIView, forSection section: Int) {
-        let appDelegate = UIApplication.shared.delegate as! AppDelegate
+        
+        var headerText: String = ""
+        
+        switch section {
+        case 0:
+            headerText = "Favorites"
+        case 1:
+            headerText = "Search Settings"
+        case 2:
+            headerText = "Logged In As"
+        default:
+            break
+        }
+
         let header = view as! UITableViewHeaderFooterView
-        header.textLabel?.textColor = appDelegate.uicolorFromHex(rgbValue: UInt32(AppDelegate.DEFAULT_BLUE_COLOR))
-        header.textLabel?.font = UIFont(name: "Helvetica Neue", size: 18)
-        header.textLabel?.text = "MENU"
         header.textLabel?.frame = header.frame
-        header.textLabel?.textAlignment = NSTextAlignment.center
+        header.textLabel?.text = headerText
     }
     
 
-    enum MenuRow: Int {
-        case login = 0
-        case settings
+    enum Section: Int {
+        case favorites
+        case searchSettings
+        case login
     }
     
+//    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+//        
+//    }
+    
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        switch indexPath.row {
-        case MenuRow.login.rawValue:
-            self.menuViewDelegate?.userSelectedMenuLoginCell()
-            break
-        default: break
+        
+        let row = indexPath.row
+        let section: Section = MenuTableViewController.Section(rawValue: indexPath.section)!
+        
+        switch section {
+            case .favorites:
+                if row == 0 {
+                    dismiss(animated: true, completion: nil)
+                    self.menuViewDelegate?.userSelectedManageFavorites()
+                } else {
+                    
+                }
+            case .searchSettings:
+                if row == 0 {
+                    
+                } else {
+                    
+            }
+            case .login:
+                if row == 0 {
+                    
+                } else {
+                    self.menuViewDelegate?.userSelectedMenuLoginCell()
+                }
         }
     }
 

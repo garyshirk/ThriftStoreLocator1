@@ -19,6 +19,8 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     
     var loginType: String?
     
+    var username: String?
+    
     var viewModel: StoresViewModel!
     
     var searchedStores: [Store] = []
@@ -160,6 +162,8 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         
         let sideMenuViewController = menuRightNavigationController.viewControllers[0] as! MenuTableViewController
         sideMenuViewController.isLoggedIn = isLoggedIn()
+        sideMenuViewController.isRegistered = (getRegistrationType() == RegistrationType.registered)
+        sideMenuViewController.username = self.username ?? ""
         sideMenuViewController.menuViewDelegate = self
         
         present(SideMenuManager.menuLeftNavigationController!, animated: true, completion: nil)
@@ -235,6 +239,10 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         self.tableView.reloadData()
     }
     
+    func handleFavoritesList() {
+        performSegue(withIdentifier: "showFavorites", sender: nil)
+    }
+    
     func handleStoresUpdated(forLocation location:CLLocationCoordinate2D, withZoomDistance distance: Double) {
         self.refreshControl?.endRefreshing()
         tableView.reloadData()
@@ -275,7 +283,6 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
             return ("\(distance.roundTo(places: 1)) miles")
         }
     }
-    
     
     // MARK: - TextField delegates
     
@@ -563,6 +570,12 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
                 
                 loginVC.logInDelegate = self
             }
+        
+        } else if segue.identifier == "showFavorites" {
+            
+            if let favoritesViewController = segue.destination as? FavoritesViewController {
+                favoritesViewController.favoriteStores = viewModel.stores
+            }
         }
     }
     
@@ -610,7 +623,12 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     }
     
     func updateLoginStatus(forUser user: FIRUser?) {
+        
+        self.username = ""
+        
         if user != nil {
+            
+            self.username = user!.email
             
             if let providerData = user?.providerData {
                 for userInfo in providerData {
@@ -639,6 +657,8 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         doInitialLoad()
     }
     
+    // MARK - MenuViewController delegates
+    
     func userSelectedMenuLoginCell() {
         
         setSearchEnabledMode(doSet: false)
@@ -661,6 +681,10 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
             }
         }
         performSegue(withIdentifier: "presentLoginView", sender: nil)
+    }
+    
+    func userSelectedManageFavorites() {
+        viewModel.getListOfFavorites()
     }
 
     override func didReceiveMemoryWarning() {
