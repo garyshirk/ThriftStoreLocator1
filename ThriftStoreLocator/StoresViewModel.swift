@@ -124,30 +124,11 @@ class StoresViewModel {
     func filterStoresAndInformMainController(stores: [Store]) {
         let locationFilteredStores = (stores as NSArray).filtered(using: self.storeLocationPredicate!)
         
-        
-        
-        // DEBUG
-//        for store in locationFilteredStores {
-//            print("locationFilterStore: \((store as! Store).name)")
-//        }
-//        print("======")
-//        //=====
-//        
-//        
-//        let countyFilteredStores = (stores as NSArray).filtered(using: self.storeCountyPredicate!)
-//        
-//        // DEBUG
-//        for store in countyFilteredStores {
-//            print("countyFilterStore: \((store as! Store).name)")
-//        }
-        //=====
-        
-        
-        
         self.stores = locationFilteredStores as! [Store]
+        //let countyFilteredStores = (stores as NSArray).filtered(using: self.storeCountyPredicate!)
         //self.stores = Array(Set((locationFilteredStores as! [Store]) + (countyFilteredStores as! [Store])))
         
-        self.setStoreSortOrder(by: .distance)
+        self.setStoreSortOrder(by: .name)
         
         self.delegate?.handleStoresUpdated(forLocation: self.mapLocation!)
     }
@@ -159,27 +140,35 @@ class StoresViewModel {
     
     func setStoreSortOrder(by sortType: StoreSortType) {
         
-        var sortDescriptorPrimary: NSSortDescriptor?
-        var sortDescriptorSecond: NSSortDescriptor?
-        
-        if let userLoc = delegate?.getUserLocation() {
-            for store in self.stores {
-                store.distance = distance(fromMyLocation: userLoc, toStoreLocation: store) as NSNumber?
-            }
-        }
-        
         switch sortType {
         case .distance:
-            sortDescriptorPrimary = NSSortDescriptor(key: "distance", ascending: true)
-            sortDescriptorSecond = NSSortDescriptor(key: "name", ascending: true)
+            var dict = [String: Store]()
+            var index = 0
+            for store in self.stores {
+                let distanceToStore = distance(fromMyLocation: (delegate?.getUserLocation())!, toStoreLocation: store)
+                var key =  String(describing: distanceToStore) + "-" + String(describing: index)
+                if key.contains(".") {
+                    let range: Range<String.Index> = key.range(of: ".")!
+                    let placesToDecimal = key.distance(from: key.startIndex, to: range.lowerBound)
+                    key = String(describing: placesToDecimal) + key
+                } else {
+                    let placesToDecimal = key.characters.count
+                    key = String(describing: placesToDecimal) + key
+                }
+                dict[key] = store
+                index += 1
+            }
             
+            let sortedKeys = Array(dict.keys).sorted{$0 < $1}
+            
+            var sortedStores: [Store] = []
+            for key in sortedKeys {
+                sortedStores.append(dict[key]!)
+            }
+            self.stores = sortedStores
         case .name:
-            sortDescriptorPrimary = NSSortDescriptor(key: "name", ascending: true)
-            sortDescriptorSecond = NSSortDescriptor(key: "distance", ascending: true)
+            break
         }
-        
-        let sortDescriptors = [sortDescriptorPrimary, sortDescriptorSecond]
-        self.stores.sort(sortDescriptors: sortDescriptors as! [NSSortDescriptor])
     }
     
     // Get the approximate area (expects radius to be in units of miles)
