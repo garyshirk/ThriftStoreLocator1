@@ -127,24 +127,25 @@ class StoresViewModel {
         
         
         // DEBUG
-        for store in locationFilteredStores {
-            print("locationFilterStore: \((store as! Store).name)")
-        }
-        print("======")
+//        for store in locationFilteredStores {
+//            print("locationFilterStore: \((store as! Store).name)")
+//        }
+//        print("======")
+//        //=====
+//        
+//        
+//        let countyFilteredStores = (stores as NSArray).filtered(using: self.storeCountyPredicate!)
+//        
+//        // DEBUG
+//        for store in countyFilteredStores {
+//            print("countyFilterStore: \((store as! Store).name)")
+//        }
         //=====
         
         
-        let countyFilteredStores = (stores as NSArray).filtered(using: self.storeCountyPredicate!)
         
-        // DEBUG
-        for store in countyFilteredStores {
-            print("countyFilterStore: \((store as! Store).name)")
-        }
-        //=====
-        
-        
-        
-        self.stores = Array(Set((locationFilteredStores as! [Store]) + (countyFilteredStores as! [Store])))
+        self.stores = locationFilteredStores as! [Store]
+        //self.stores = Array(Set((locationFilteredStores as! [Store]) + (countyFilteredStores as! [Store])))
         
         self.setStoreSortOrder(by: .distance)
         
@@ -241,8 +242,6 @@ class StoresViewModel {
                 
                 if let county = placemark.subAdministrativeArea {
                     
-                    print("county used for predicate: \(county)")
-                    
                     self.storeCountyPredicate = NSPredicate(format: "%K == %@", "county", county)
                     
                     self.county = county.lowercased().replacingOccurrences(of: " ", with: "+")
@@ -280,8 +279,6 @@ class StoresViewModel {
                 
                 // If user's search did not yield a county, eg user searched for a state, then do not allow the search
                 if let county = placemark.subAdministrativeArea {
-                    
-                    print("county used for predicate: \(county)")
                     
                     self.storeCountyPredicate = NSPredicate(format: "%K == %@", "county", county)
                     

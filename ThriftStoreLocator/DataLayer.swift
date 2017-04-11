@@ -168,8 +168,6 @@ extension DataLayer {
                 print("Error saving Stores")
             }
             
-            
-            
             // Update the main thread
             DispatchQueue.main.sync {
                 saveInBackgroundSuccess?()
@@ -182,8 +180,8 @@ extension DataLayer {
         let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "Store")
         
         // Add Sort descriptor
-        let sortDescriptor = NSSortDescriptor(key: "name", ascending: true)
-        fetchRequest.sortDescriptors = [sortDescriptor]
+        //let sortDescriptor = NSSortDescriptor(key: "name", ascending: true)
+        //fetchRequest.sortDescriptors = [sortDescriptor]
 
         // On main thread
         let stores = try! persistentContainer.viewContext.fetch(fetchRequest)
