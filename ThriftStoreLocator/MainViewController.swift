@@ -131,7 +131,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     }
     
     func refresh(sender: Any) {
-        viewModel.loadStores(forLocation: mapLocation!, withRefresh: false, withRadiusInMiles: 10)
+        viewModel.loadStores(forLocation: mapLocation!, withRefresh: false, withRadiusInMiles: 12)
     }
     
     func setShadowButton(button: UIButton) {
@@ -172,7 +172,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     }
     
     @IBAction func didPressSearchAreaBtn(_ sender: Any) {
-        viewModel.loadStores(forLocation: mapLocation!, withRefresh: false, withRadiusInMiles: 10)
+        viewModel.loadStores(forLocation: mapLocation!, withRefresh: false, withRadiusInMiles: 12)
         searchThisAreaBtn.isHidden = true
     }
     
@@ -189,7 +189,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
             if needsInitialStoreLoad == true {
                 needsInitialStoreLoad = false
                 locationManager.stopUpdatingLocation()
-                viewModel.loadStores(forLocation: myLocation!, withRefresh: false, withRadiusInMiles: 10)
+                viewModel.loadStores(forLocation: myLocation!, withRefresh: false, withRadiusInMiles: 12)
             }
         }
     }
@@ -235,10 +235,10 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         self.tableView.reloadData()
     }
     
-    func handleStoresUpdated(forLocation location:CLLocationCoordinate2D) {
+    func handleStoresUpdated(forLocation location:CLLocationCoordinate2D, withZoomDistance distance: Double) {
         self.refreshControl?.endRefreshing()
         tableView.reloadData()
-        zoomToLocation(at: location, withMiles: 10)
+        zoomToLocation(at: location, withZoomDistanceInMiles: distance)
         
         for store in viewModel.stores {
             let annotation = MKPointAnnotation()
@@ -251,8 +251,8 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         return self.myLocation
     }
     
-    func zoomToLocation(at location: CLLocationCoordinate2D, withMiles miles: Double) {
-        let region = MKCoordinateRegionMakeWithDistance(location, milesToMeters(for: miles), milesToMeters(for: miles))
+    func zoomToLocation(at location: CLLocationCoordinate2D, withZoomDistanceInMiles distance: Double) {
+        let region = MKCoordinateRegionMakeWithDistance(location, milesToMeters(for: distance), milesToMeters(for: distance))
         mapView.setRegion(region, animated: true)
         showSearchAreaButton = false
     }
@@ -527,7 +527,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         let button = sender as! UIButton
         let selectedStore = viewModel.stores[button.tag]
         let location = CLLocationCoordinate2DMake(selectedStore.locLat as! CLLocationDegrees, selectedStore.locLong as! CLLocationDegrees)
-        zoomToLocation(at: location, withMiles: 1)
+        zoomToLocation(at: location, withZoomDistanceInMiles: 1)
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
@@ -545,7 +545,6 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
                     detailViewController.delegate = self
                     detailViewController.selectedStoreIndex = indexPath.row
                     detailViewController.storeNameStr = selectedStore.name
-                    print("selected store isFav: \(selectedStore.isFavorite)")
                     detailViewController.isFav = selectedStore.isFavorite as Bool!
                     detailViewController.streetStr = selectedStore.address
                     detailViewController.cityStr = selectedStore.city

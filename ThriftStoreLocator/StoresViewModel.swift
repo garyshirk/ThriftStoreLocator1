@@ -17,7 +17,7 @@ enum StoreSortType {
 
 protocol StoresViewModelDelegate: class {
     
-    func handleStoresUpdated(forLocation location: CLLocationCoordinate2D)
+    func handleStoresUpdated(forLocation location: CLLocationCoordinate2D, withZoomDistance zoomDistance: Double)
     
     func handleFavoritesLoaded()
     
@@ -39,6 +39,10 @@ class StoresViewModel {
     var state: String = ""
     
     var query: String = ""
+    
+    var zoomDistance: Double = 20.0
+    
+    var showStoreRadius: Double = 20.0
     
     var storeLocationPredicate: NSPredicate?
     
@@ -128,9 +132,9 @@ class StoresViewModel {
         //let countyFilteredStores = (stores as NSArray).filtered(using: self.storeCountyPredicate!)
         //self.stores = Array(Set((locationFilteredStores as! [Store]) + (countyFilteredStores as! [Store])))
         
-        self.setStoreSortOrder(by: .name)
+        self.setStoreSortOrder(by: .distance)
         
-        self.delegate?.handleStoresUpdated(forLocation: self.mapLocation!)
+        self.delegate?.handleStoresUpdated(forLocation: self.mapLocation!, withZoomDistance: self.zoomDistance)
     }
     
     func prepareForZoomToMyLocation(location:CLLocationCoordinate2D) {
@@ -220,7 +224,11 @@ class StoresViewModel {
         
         let locationCoords: CLLocation = CLLocation(latitude: location.latitude, longitude: location.longitude)
         
-        geocoder.reverseGeocodeLocation(locationCoords) { (placemarks, error) in
+        geocoder.reverseGeocodeLocation(locationCoords) { [weak self] (placemarks, error) in
+            
+            guard let strongSelf = self else {
+                return
+            }
             
             if error != nil {
                 print("Reverse geocoder failed with error" + (error?.localizedDescription)!)
@@ -231,19 +239,19 @@ class StoresViewModel {
                 
                 if let county = placemark.subAdministrativeArea {
                     
-                    self.storeCountyPredicate = NSPredicate(format: "%K == %@", "county", county)
+                    strongSelf.storeCountyPredicate = NSPredicate(format: "%K == %@", "county", county)
                     
-                    self.county = county.lowercased().replacingOccurrences(of: " ", with: "+")
+                    strongSelf.county = county.lowercased().replacingOccurrences(of: " ", with: "+")
                     
-                    self.setStoreFilters(forLocation: location, withRadiusInMiles: 10, andZip: "")
+                    strongSelf.setStoreFilters(forLocation: location, withRadiusInMiles: strongSelf.showStoreRadius, andZip: "")
                     
                     if let state = placemark.administrativeArea {
                         
-                        self.state = state
+                        strongSelf.state = state
                         
-                        self.query = self.state + "/" + self.county
+                        strongSelf.query = strongSelf.state + "/" + strongSelf.county
                         
-                        self.doLoadStores(deleteOld: deleteOld)
+                        strongSelf.doLoadStores(deleteOld: deleteOld)
                     } else {
                         print("Problem getting state")
                     }
@@ -257,7 +265,11 @@ class StoresViewModel {
     
     func setLocationInfo(forAddressStr address: String) {
         
-        geocoder.geocodeAddressString(address) { (placemarks, error) in
+        geocoder.geocodeAddressString(address) { [weak self] (placemarks, error) in
+            
+            guard let strongSelf = self else {
+                return
+            }
             
             if error != nil {
                 print("Geocoder failed with error" + (error?.localizedDescription)!)
@@ -266,26 +278,39 @@ class StoresViewModel {
             
             if let placemarks = placemarks, let placemark = placemarks.first {
                 
+                // Check if user entered a valid address as the search string
+                var userSearchedAddress = false
+                if let _ = placemark.subThoroughfare {
+                    if let _ = placemark.thoroughfare {
+                        userSearchedAddress = true
+                    }
+                }
+                
                 // If user's search did not yield a county, eg user searched for a state, then do not allow the search
                 if let county = placemark.subAdministrativeArea {
                     
-                    self.storeCountyPredicate = NSPredicate(format: "%K == %@", "county", county)
+                    strongSelf.storeCountyPredicate = NSPredicate(format: "%K == %@", "county", county)
                     
-                    self.county = county.lowercased().replacingOccurrences(of: " ", with: "+")
+                    strongSelf.county = county.lowercased().replacingOccurrences(of: " ", with: "+")
                     
-                    self.state = placemark.administrativeArea!
-                    self.query = self.state + "/" + self.county
-                    self.mapLocation = placemark.location?.coordinate
+                    strongSelf.state = placemark.administrativeArea!
+                    strongSelf.query = strongSelf.state + "/" + strongSelf.county
+                    strongSelf.mapLocation = placemark.location?.coordinate
                     
                     var zip = ""
-                    let isZip = self.isZipCode(forSearchStr: address)
+                    let isZip = strongSelf.isZipCode(forSearchStr: address)
                     if isZip == true {
                         zip = address
                     }
                     
-                    self.setStoreFilters(forLocation: self.mapLocation!, withRadiusInMiles: 10, andZip: zip)
+                    if userSearchedAddress == true {
+                        strongSelf.zoomDistance = 6.0
+                    } else {
+                        strongSelf.zoomDistance = 20.0
+                    }
                     
-                    self.doLoadStores(deleteOld: false)
+                    strongSelf.setStoreFilters(forLocation: strongSelf.mapLocation!, withRadiusInMiles: strongSelf.showStoreRadius, andZip: zip)
+                    strongSelf.doLoadStores(deleteOld: false)
                 }
                 
             } else {
