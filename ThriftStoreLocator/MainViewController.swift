@@ -29,6 +29,8 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     
     var isSearching: Bool = false
     
+    var searchBarButton: UIBarButtonItem!
+    
     var titleBackgroundColor: UIColor!
     
     var previousScrollViewOffset: CGFloat = 0.0
@@ -54,7 +56,6 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     @IBOutlet weak var searchView: UIView!
     @IBOutlet weak var searchTextField: UITextField!
     @IBOutlet weak var menuBarButton: UIBarButtonItem!
-    @IBOutlet weak var searchBarButton: UIBarButtonItem!
     @IBOutlet weak var mapView: MKMapView!
     @IBOutlet weak var searchThisAreaBtn: UIButton!
     @IBOutlet weak var mapViewHeightConstraint: NSLayoutConstraint!
@@ -85,6 +86,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         setSearchEditMode(doSet: false)
         setSearchEnabledMode(doSet: false)
         searchTextField.delegate = self
+        configureSearchButton()
         
         mapView.mapType = .standard
         mapView.delegate = self
@@ -309,10 +311,19 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         }
     }
     
+    func rightBarButtonItemPressed() {
+        if isSearching == true {
+            
+        } else {
+            
+        }
+    }
+    
     func setSearchEnabledMode(doSet setToEnabled: Bool) {
         if setToEnabled {
             isSearching = true
             setSearchEditMode(doSet: true)
+            //self.navigationItem.rightBarButtonItem = UIBarButtonItem(title:"Done", style:.done, target:nil, action:nil)
             searchView.backgroundColor = UIColor.white
             titleLabel.isHidden = true
             searchTextField.isHidden = false
@@ -327,6 +338,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
             searchTextField.resignFirstResponder()
             tableView.reloadData()
         }
+        configureSearchButton()
     }
     
     func setSearchEditMode(doSet setToEdit: Bool) {
@@ -339,11 +351,23 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         }
     }
     
-    @IBAction func searchButtonPressed(_ sender: Any) {
-        if isSearching {
-            setSearchEnabledMode(doSet: false)
+    func configureSearchButton() {
+       
+        if isSearching == false {
+            self.searchBarButton = UIBarButtonItem(barButtonSystemItem: .search, target: self, action: #selector(MainViewController.searchPressed))
+            self.navigationItem.rightBarButtonItem = self.searchBarButton
         } else {
+            self.searchBarButton = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(MainViewController.searchPressed))
+            self.navigationItem.rightBarButtonItem = self.searchBarButton
+        }
+    }
+    
+    func searchPressed() {
+        isSearching = !isSearching
+        if isSearching {
             setSearchEnabledMode(doSet: true)
+        } else {
+            setSearchEnabledMode(doSet: false)
         }
     }
     

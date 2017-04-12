@@ -200,11 +200,7 @@
                                 </userDefinedRuntimeAttribute>
                             </userDefinedRuntimeAttributes>
                         </view>
-                        <barButtonItem key="rightBarButtonItem" image="searchIcon" id="4xc-VZ-iq9">
-                            <connections>
-                                <action selector="searchButtonPressed:" destination="NLN-iD-Puq" id="clw-4R-myg"/>
-                            </connections>
-                        </barButtonItem>
+                        <barButtonItem key="rightBarButtonItem" title="Item" image="searchIcon" id="4xc-VZ-iq9"/>
                     </navigationItem>
                     <connections>
                         <outlet property="dimmerView" destination="EoC-M1-kV4" id="tEU-o3-ONm"/>
@@ -212,7 +208,6 @@
                         <outlet property="mapViewHeightConstraint" destination="Syz-MY-Luo" id="XQd-fr-pFI"/>
                         <outlet property="mapViewYConstraint" destination="qZ9-L2-vRT" id="WLQ-V8-hQH"/>
                         <outlet property="menuBarButton" destination="OZb-qO-0Ub" id="5I8-O0-Jpo"/>
-                        <outlet property="searchBarButton" destination="4xc-VZ-iq9" id="IkL-o6-TgJ"/>
                         <outlet property="searchTextField" destination="LIg-BT-skl" id="cuE-R1-FKX"/>
                         <outlet property="searchThisAreaBtn" destination="fQ3-Nj-iEk" id="HIK-tj-LN8"/>
                         <outlet property="searchView" destination="fsL-CZ-vjs" id="OJN-pa-EsZ"/>
@@ -304,7 +299,7 @@
                                 </connections>
                             </tableView>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="No favorite stores selected" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="WLT-Bp-Rx1">
-                                <rect key="frame" x="0.0" y="358" width="414" height="20.333333333333314"/>
+                                <rect key="frame" x="0.0" y="358" width="414" height="21"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                 <nil key="textColor"/>
                                 <nil key="highlightedColor"/>
