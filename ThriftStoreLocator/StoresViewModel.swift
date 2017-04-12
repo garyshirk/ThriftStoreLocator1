@@ -36,6 +36,8 @@ class StoresViewModel {
     
     var stores: [Store] = []
     
+    var favoriteStores: [Store] = []
+    
     var county: String = ""
     
     var state: String = ""
@@ -93,9 +95,7 @@ class StoresViewModel {
                 return
             }
             
-            strongSelf.stores = storeEntities
-            
-            strongSelf.setStoreSortOrder(by: .distance)
+            strongSelf.favoriteStores = strongSelf.setStoreSortOrder(by: .distance, forStores: storeEntities)
             
             strongSelf.delegate?.handleFavoritesList()
         })
@@ -146,11 +146,11 @@ class StoresViewModel {
     func filterStoresAndInformMainController(stores: [Store]) {
         let locationFilteredStores = (stores as NSArray).filtered(using: self.storeLocationPredicate!)
         
-        self.stores = locationFilteredStores as! [Store]
+        let stores = locationFilteredStores as! [Store]
         //let countyFilteredStores = (stores as NSArray).filtered(using: self.storeCountyPredicate!)
         //self.stores = Array(Set((locationFilteredStores as! [Store]) + (countyFilteredStores as! [Store])))
         
-        self.setStoreSortOrder(by: .distance)
+        self.stores = self.setStoreSortOrder(by: .distance, forStores: stores)
         
         self.delegate?.handleStoresUpdated(forLocation: self.mapLocation!, withZoomDistance: self.zoomDistance)
     }
@@ -160,13 +160,13 @@ class StoresViewModel {
         setCountyStoreFilterAndLoadStores(forLocation: location, deleteOld: true)
     }
     
-    func setStoreSortOrder(by sortType: StoreSortType) {
+    func setStoreSortOrder(by sortType: StoreSortType, forStores stores: [Store]) -> [Store] {
         
         switch sortType {
         case .distance:
             var dict = [String: Store]()
             var index = 0
-            for store in self.stores {
+            for store in stores {
                 let distanceToStore = distance(fromMyLocation: (delegate?.getUserLocation())!, toStoreLocation: store)
                 var key =  String(describing: distanceToStore) + "-" + String(describing: index)
                 if key.contains(".") {
@@ -187,9 +187,9 @@ class StoresViewModel {
             for key in sortedKeys {
                 sortedStores.append(dict[key]!)
             }
-            self.stores = sortedStores
+            return sortedStores
         case .name:
-            break
+            return stores
         }
     }
     

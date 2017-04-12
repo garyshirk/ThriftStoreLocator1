@@ -9,14 +9,9 @@
 import UIKit
 import MapKit
 
-protocol DetailViewControllerDelegate: class {
-    
-    func favoriteButtonPressed(forStore index: Int, isFav: Bool)
-}
-
 class DetailViewController: UIViewController {
     
-    weak var delegate: DetailViewControllerDelegate?
+    weak var delegate: FavoriteButtonPressedDelegate?
     
     var selectedStoreIndex: Int!
     var storeNameStr: String!
@@ -82,7 +77,7 @@ class DetailViewController: UIViewController {
             isFav = true
             favButton.setBackgroundImage(UIImage(named: "fav_on"), for: .normal)
         }
-        self.delegate?.favoriteButtonPressed(forStore: selectedStoreIndex, isFav: isFav)
+        self.delegate?.favoriteButtonPressed(forStore: selectedStoreIndex, isFav: isFav, isCallFromFavoritesVC: false)
     }
   
     func openMapForPlace() {
@@ -106,18 +101,9 @@ class DetailViewController: UIViewController {
         mapItem.openInMaps(launchOptions: options)
     }
     
-    
-    
-    
-    
-    
-    
-
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
-        
-    
     }
 
 }

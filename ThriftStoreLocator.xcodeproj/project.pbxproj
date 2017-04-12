@@ -27,6 +27,7 @@
 		E1C20C441E7842F5004CEEDD /* StoreCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1C20C431E7842F5004CEEDD /* StoreCell.swift */; };
 		E1C771F11E7236BB00B98EA8 /* MapKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E1C771F01E7236BB00B98EA8 /* MapKit.framework */; };
 		E1C771F31E7236C600B98EA8 /* CoreLocation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E1C771F21E7236C600B98EA8 /* CoreLocation.framework */; };
+		E1C9A0851E9E84B300EEE8A4 /* FavoriteStoreCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1C9A0841E9E84B300EEE8A4 /* FavoriteStoreCell.swift */; };
 		E1F920A41E95B67E00BA67AA /* Favorite.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1F920A31E95B67E00BA67AA /* Favorite.swift */; };
 		E1F920A61E95B6A400BA67AA /* Favorite+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1F920A51E95B6A400BA67AA /* Favorite+CoreDataProperties.swift */; };
 		E1F93D121E66293200660A36 /* StoresViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1F93D111E66293200660A36 /* StoresViewModel.swift */; };
@@ -59,6 +60,7 @@
 		E1C20C431E7842F5004CEEDD /* StoreCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StoreCell.swift; sourceTree = "<group>"; };
 		E1C771F01E7236BB00B98EA8 /* MapKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MapKit.framework; path = System/Library/Frameworks/MapKit.framework; sourceTree = SDKROOT; };
 		E1C771F21E7236C600B98EA8 /* CoreLocation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreLocation.framework; path = System/Library/Frameworks/CoreLocation.framework; sourceTree = SDKROOT; };
+		E1C9A0841E9E84B300EEE8A4 /* FavoriteStoreCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FavoriteStoreCell.swift; sourceTree = "<group>"; };
 		E1F920A31E95B67E00BA67AA /* Favorite.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Favorite.swift; sourceTree = "<group>"; };
 		E1F920A51E95B6A400BA67AA /* Favorite+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Favorite+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		E1F93D111E66293200660A36 /* StoresViewModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StoresViewModel.swift; sourceTree = "<group>"; };
@@ -150,8 +152,9 @@
 				E1724D261E5B7BAC00E71909 /* DetailViewController.swift */,
 				E173E98A1E5BAAC6001FF201 /* SettingsViewController.swift */,
 				E16BFB671E6777E8007438C8 /* FavoritesViewController.swift */,
-				E1C20C431E7842F5004CEEDD /* StoreCell.swift */,
 				E121A4E01E7F1833009AB717 /* LoginViewController.swift */,
+				E1C20C431E7842F5004CEEDD /* StoreCell.swift */,
+				E1C9A0841E9E84B300EEE8A4 /* FavoriteStoreCell.swift */,
 			);
 			name = Controllers;
 			sourceTree = "<group>";
@@ -317,6 +320,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				E12F1C941E663E81006371A9 /* NetworkLayer.swift in Sources */,
+				E1C9A0851E9E84B300EEE8A4 /* FavoriteStoreCell.swift in Sources */,
 				E1724D101E5B732F00E71909 /* AppDelegate.swift in Sources */,
 				E1724D181E5B732F00E71909 /* ThriftStoreLocator.xcdatamodeld in Sources */,
 				E173E98B1E5BAAC6001FF201 /* SettingsViewController.swift in Sources */,

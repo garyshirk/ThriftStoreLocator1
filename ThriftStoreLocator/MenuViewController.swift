@@ -17,6 +17,12 @@ protocol MenuViewDelegate: class {
 
 class MenuTableViewController: UITableViewController {
     
+    enum Section: Int {
+        case searchSettings
+        case favorites
+        case login
+    }
+    
     weak var menuViewDelegate: MenuViewDelegate?
     
     var isLoggedIn: Bool?
@@ -77,9 +83,9 @@ class MenuTableViewController: UITableViewController {
         
         switch section {
         case 0:
-            headerText = "Favorites"
-        case 1:
             headerText = "Search Settings"
+        case 1:
+            headerText = "Favorites"
         case 2:
             headerText = "Logged In As"
         default:
@@ -89,13 +95,6 @@ class MenuTableViewController: UITableViewController {
         let header = view as! UITableViewHeaderFooterView
         header.textLabel?.frame = header.frame
         header.textLabel?.text = headerText
-    }
-    
-
-    enum Section: Int {
-        case favorites
-        case searchSettings
-        case login
     }
     
 //    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -108,16 +107,16 @@ class MenuTableViewController: UITableViewController {
         let section: Section = MenuTableViewController.Section(rawValue: indexPath.section)!
         
         switch section {
+            case .searchSettings:
+                if row == 0 {
+                    
+                } else {
+                    
+                }
             case .favorites:
                 if row == 0 {
                     dismiss(animated: true, completion: nil)
                     self.menuViewDelegate?.userSelectedManageFavorites()
-                } else {
-                    
-                }
-            case .searchSettings:
-                if row == 0 {
-                    
                 } else {
                     
             }

@@ -15,7 +15,7 @@ import Firebase
 
 // TODO - MapView initial height should be proportional to device height
 // TODO - Define a CLCicularRegion based on user's current location and update store map and list when user leaves that region
-class MainViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UITextFieldDelegate, MKMapViewDelegate, CLLocationManagerDelegate, StoresViewModelDelegate, LogInDelegate, MenuViewDelegate, DetailViewControllerDelegate {
+class MainViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UITextFieldDelegate, MKMapViewDelegate, CLLocationManagerDelegate, StoresViewModelDelegate, LogInDelegate, MenuViewDelegate, FavoriteButtonPressedDelegate {
     
     var loginType: String?
     
@@ -46,6 +46,8 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     var refreshControl: UIRefreshControl?
     
     var showSearchAreaButton = false
+    
+    var favoritesViewController: FavoritesViewController?
     
     @IBOutlet weak var tableView: UITableView!
     @IBOutlet weak var titleLabel: UILabel!
@@ -237,6 +239,9 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     
     func handleFavoriteUpdated() {
         self.tableView.reloadData()
+        if let favoritesVC = self.favoritesViewController {
+            favoritesVC.tableView.reloadData()
+        }
     }
     
     func handleFavoritesList() {
@@ -573,27 +578,35 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         
         } else if segue.identifier == "showFavorites" {
             
-            if let favoritesViewController = segue.destination as? FavoritesViewController {
-                favoritesViewController.favoriteStores = viewModel.stores
-            }
+            let favNavigationController = segue.destination as! UINavigationController
+            self.favoritesViewController = (favNavigationController.topViewController as! FavoritesViewController)
+            self.favoritesViewController?.delegate = self
+            self.favoritesViewController?.favoriteStores = viewModel.favoriteStores
+            self.favoritesViewController?.userLocation = self.myLocation
         }
     }
     
-    // MARK - DetailViewControllerDelegate
+    // MARK - FavoriteButtonPressedDelegate
     
-    func favoriteButtonPressed(forStore index: Int, isFav: Bool) {
+    func favoriteButtonPressed(forStore index: Int, isFav: Bool, isCallFromFavoritesVC: Bool) {
         
         let user = FIRAuth.auth()?.currentUser
         let uid = (user?.uid)!
-        let store = viewModel.stores[index]
+        
+        var store: Store?
+        if isCallFromFavoritesVC == true {
+            store = viewModel.favoriteStores[index]
+        } else {
+            store = viewModel.stores[index]
+        }
         
         if  isFav == true {
             // Write new favorite to db and update Store entity in core data
-            viewModel.postFavorite(forStore: store, user: uid)
+            viewModel.postFavorite(forStore: store!, user: uid)
             
         } else {
             // Delete favorite from db and update Store entity in core data
-            viewModel.removeFavorite(forStore: store, user: uid)
+            viewModel.removeFavorite(forStore: store!, user: uid)
         }
     }
     
