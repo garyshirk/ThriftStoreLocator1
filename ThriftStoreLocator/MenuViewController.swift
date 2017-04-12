@@ -8,11 +8,19 @@
 
 import UIKit
 
+enum StoreSortType: String {
+    case distance = "sort_by_distance"
+    case name = "sort_by_name"
+    static let sortKey = "sort_type_key"
+}
+
 protocol MenuViewDelegate: class {
     
     func userSelectedMenuLoginCell()
     
     func userSelectedManageFavorites()
+    
+    func sortTypeSelected(sortType: StoreSortType)
 }
 
 class MenuTableViewController: UITableViewController {
@@ -28,9 +36,12 @@ class MenuTableViewController: UITableViewController {
     var isLoggedIn: Bool?
     var isRegistered: Bool?
     var username: String?
+    var sortType: StoreSortType?
     
     @IBOutlet weak var loginCell: UILabel!
     @IBOutlet weak var signedInAs: UILabel!
+    @IBOutlet weak var sortSegControl: UISegmentedControl!
+    
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -54,6 +65,14 @@ class MenuTableViewController: UITableViewController {
             self.signedInAs.text = "Anonymous"
         } else {
             self.signedInAs.text = self.username
+        }
+        
+        sortSegControl.setTitle("Distance", forSegmentAt: 0)
+        sortSegControl.setTitle("Name", forSegmentAt: 1)
+        if self.sortType == .distance {
+            sortSegControl.selectedSegmentIndex = 0
+        } else {
+            sortSegControl.selectedSegmentIndex = 1
         }
         
         // Do not show empty tableView cells
@@ -128,8 +147,21 @@ class MenuTableViewController: UITableViewController {
                 }
         }
     }
-
-
+    
+    @IBAction func sortTypeSelected(_ sender: Any) {
+        let selection = self.sortSegControl.selectedSegmentIndex
+        switch selection {
+        case 0:
+            self.menuViewDelegate?.sortTypeSelected(sortType: .distance)
+            self.sortType = .distance
+        case 1:
+            self.menuViewDelegate?.sortTypeSelected(sortType: .name)
+            self.sortType = .name
+        default:
+            break
+        }
+    }
+    
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.

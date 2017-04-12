@@ -10,11 +10,6 @@ import Foundation
 import CoreLocation
 import MapKit
 
-enum StoreSortType {
-    case distance
-    case name
-}
-
 protocol StoresViewModelDelegate: class {
     
     func handleStoresUpdated(forLocation location: CLLocationCoordinate2D, withZoomDistance zoomDistance: Double)
@@ -26,6 +21,8 @@ protocol StoresViewModelDelegate: class {
     func handleFavoritesList()
     
     func getUserLocation() -> CLLocationCoordinate2D?
+    
+    func getSortType() -> StoreSortType?
 }
 
 class StoresViewModel {
@@ -95,7 +92,8 @@ class StoresViewModel {
                 return
             }
             
-            strongSelf.favoriteStores = strongSelf.setStoreSortOrder(by: .distance, forStores: storeEntities)
+            let sortType = strongSelf.delegate?.getSortType()
+            strongSelf.favoriteStores = strongSelf.setStoreSortOrder(by: sortType!, forStores: storeEntities)
             
             strongSelf.delegate?.handleFavoritesList()
         })
@@ -150,7 +148,8 @@ class StoresViewModel {
         //let countyFilteredStores = (stores as NSArray).filtered(using: self.storeCountyPredicate!)
         //self.stores = Array(Set((locationFilteredStores as! [Store]) + (countyFilteredStores as! [Store])))
         
-        self.stores = self.setStoreSortOrder(by: .distance, forStores: stores)
+        let sortType = self.delegate?.getSortType()
+        self.stores = self.setStoreSortOrder(by: sortType!, forStores: stores)
         
         self.delegate?.handleStoresUpdated(forLocation: self.mapLocation!, withZoomDistance: self.zoomDistance)
     }
@@ -163,34 +162,52 @@ class StoresViewModel {
     func setStoreSortOrder(by sortType: StoreSortType, forStores stores: [Store]) -> [Store] {
         
         switch sortType {
-        case .distance:
-            var dict = [String: Store]()
-            var index = 0
-            for store in stores {
-                let distanceToStore = distance(fromMyLocation: (delegate?.getUserLocation())!, toStoreLocation: store)
-                var key =  String(describing: distanceToStore) + "-" + String(describing: index)
-                if key.contains(".") {
-                    let range: Range<String.Index> = key.range(of: ".")!
-                    let placesToDecimal = key.distance(from: key.startIndex, to: range.lowerBound)
-                    key = String(describing: placesToDecimal) + key
-                } else {
-                    let placesToDecimal = key.characters.count
-                    key = String(describing: placesToDecimal) + key
-                }
-                dict[key] = store
-                index += 1
-            }
-            
-            let sortedKeys = Array(dict.keys).sorted{$0 < $1}
-            
-            var sortedStores: [Store] = []
-            for key in sortedKeys {
-                sortedStores.append(dict[key]!)
-            }
-            return sortedStores
-        case .name:
-            return stores
+            case .distance:
+                return sortStoresByDistance(forStores: stores)
+                
+            case .name:
+                return sortStoresByName(forStores: stores)
         }
+    }
+    
+    func setStoreSortOrder(by sortType: StoreSortType) {
+        switch sortType {
+        case .distance:
+            self.stores = sortStoresByDistance(forStores: self.stores)
+        case .name:
+            self.stores = sortStoresByName(forStores: self.stores)
+        }
+    }
+    
+    func sortStoresByDistance(forStores stores: [Store]) -> [Store] {
+        var dict = [String: Store]()
+        var index = 0
+        for store in stores {
+            let distanceToStore = distance(fromMyLocation: (delegate?.getUserLocation())!, toStoreLocation: store)
+            var key =  String(describing: distanceToStore) + "-" + String(describing: index)
+            if key.contains(".") {
+                let range: Range<String.Index> = key.range(of: ".")!
+                let placesToDecimal = key.distance(from: key.startIndex, to: range.lowerBound)
+                key = String(describing: placesToDecimal) + key
+            } else {
+                let placesToDecimal = key.characters.count
+                key = String(describing: placesToDecimal) + key
+            }
+            dict[key] = store
+            index += 1
+        }
+        
+        let sortedKeys = Array(dict.keys).sorted{$0 < $1}
+        
+        var sortedStores: [Store] = []
+        for key in sortedKeys {
+            sortedStores.append(dict[key]!)
+        }
+        return sortedStores
+    }
+    
+    func sortStoresByName(forStores stores: [Store]) -> [Store] {
+        return stores.sorted{$0.name! < $1.name!}
     }
     
     // Get the approximate area (expects radius to be in units of miles)

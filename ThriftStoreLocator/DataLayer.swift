@@ -198,12 +198,11 @@ extension DataLayer {
         fetchRequest.predicate = predicate
         
         // Add Sort descriptor
-        let sortDescriptor = NSSortDescriptor(key: "name", ascending: true)
-        fetchRequest.sortDescriptors = [sortDescriptor]
+        //let sortDescriptor = NSSortDescriptor(key: "name", ascending: true)
+        //fetchRequest.sortDescriptors = [sortDescriptor]
         
         // On main thread
         let stores = try! persistentContainer.viewContext.fetch(fetchRequest)
-        
         //stores.forEach { print(($0 as AnyObject).name as! String) }
         
         return stores as! [Store]

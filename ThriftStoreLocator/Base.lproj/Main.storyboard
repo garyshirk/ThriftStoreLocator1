@@ -800,6 +800,9 @@
                                                         <segment title="First"/>
                                                         <segment title="Second"/>
                                                     </segments>
+                                                    <connections>
+                                                        <action selector="sortTypeSelected:" destination="OW7-bm-gmX" eventType="valueChanged" id="3I1-QD-F2s"/>
+                                                    </connections>
                                                 </segmentedControl>
                                             </subviews>
                                             <constraints>
@@ -915,6 +918,7 @@
                     <connections>
                         <outlet property="loginCell" destination="epA-eX-1Mq" id="iB9-xA-bYP"/>
                         <outlet property="signedInAs" destination="uD4-EL-SdF" id="uY5-nk-LIg"/>
+                        <outlet property="sortSegControl" destination="c1Y-bR-Zdy" id="GYW-aC-qMa"/>
                     </connections>
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="8Hc-sK-qDG" userLabel="First Responder" sceneMemberID="firstResponder"/>

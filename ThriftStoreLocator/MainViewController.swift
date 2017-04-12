@@ -23,9 +23,9 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     
     var viewModel: StoresViewModel!
     
-    var searchedStores: [Store] = []
-    
     var selectedStore: Store!
+    
+    var searchedStores: [Store] = []
     
     var isSearching: Bool = false
     
@@ -51,6 +51,8 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     
     var favoritesViewController: FavoritesViewController?
     
+    var sortType: StoreSortType?
+    
     @IBOutlet weak var tableView: UITableView!
     @IBOutlet weak var titleLabel: UILabel!
     @IBOutlet weak var searchView: UIView!
@@ -75,6 +77,12 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         titleBackgroundColor = searchView.backgroundColor
         titleLabel.text = "Thrift Store Locator"
         barButtonDefaultTintColor = self.view.tintColor
+        
+        if let sortTypeStr = UserDefaults.standard.value(forKey: StoreSortType.sortKey) {
+            self.sortType = StoreSortType(rawValue: sortTypeStr as! String)
+        } else {
+            self.sortType = .distance
+        }
         
         refreshControl = UIRefreshControl()
         if let refresh = refreshControl {
@@ -168,6 +176,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         sideMenuViewController.isLoggedIn = isLoggedIn()
         sideMenuViewController.isRegistered = (getRegistrationType() == RegistrationType.registered)
         sideMenuViewController.username = self.username ?? ""
+        sideMenuViewController.sortType = self.sortType
         sideMenuViewController.menuViewDelegate = self
         
         present(SideMenuManager.menuLeftNavigationController!, animated: true, completion: nil)
@@ -266,6 +275,10 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         return self.myLocation
     }
     
+    func getSortType() -> StoreSortType? {
+        return self.sortType
+    }
+    
     func zoomToLocation(at location: CLLocationCoordinate2D, withZoomDistanceInMiles distance: Double) {
         let region = MKCoordinateRegionMakeWithDistance(location, milesToMeters(for: distance), milesToMeters(for: distance))
         mapView.setRegion(region, animated: true)
@@ -323,7 +336,6 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         if setToEnabled {
             isSearching = true
             setSearchEditMode(doSet: true)
-            //self.navigationItem.rightBarButtonItem = UIBarButtonItem(title:"Done", style:.done, target:nil, action:nil)
             searchView.backgroundColor = UIColor.white
             titleLabel.isHidden = true
             searchTextField.isHidden = false
@@ -722,6 +734,15 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     
     func userSelectedManageFavorites() {
         viewModel.getListOfFavorites()
+    }
+    
+    func sortTypeSelected(sortType: StoreSortType) {
+        if self.sortType != sortType {
+            UserDefaults.standard.setValue(sortType.rawValue, forKey: StoreSortType.sortKey)
+            self.sortType = sortType
+            viewModel.setStoreSortOrder(by: sortType)
+            self.tableView.reloadData()
+        }
     }
 
     override func didReceiveMemoryWarning() {
