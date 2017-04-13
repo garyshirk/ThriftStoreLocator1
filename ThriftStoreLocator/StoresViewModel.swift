@@ -23,6 +23,8 @@ protocol StoresViewModelDelegate: class {
     func getUserLocation() -> CLLocationCoordinate2D?
     
     func getSortType() -> StoreSortType?
+    
+    func getMapZoomDistance() -> Double?
 }
 
 class StoresViewModel {
@@ -41,9 +43,7 @@ class StoresViewModel {
     
     var query: String = ""
     
-    var zoomDistance: Double = 20.0
-    
-    var showStoreRadius: Double = 20.0
+    var showStoreRadius: Double = 25.0 // Constant - filter stores loaded from server to 25 mile radius of location (in miles)
     
     var storeLocationPredicate: NSPredicate?
     
@@ -60,12 +60,18 @@ class StoresViewModel {
         self.modelManager = ModelManager.sharedInstance
     }
     
+    // MARK - public functions
+    
     func resetStoresViewModel() {
         stores.removeAll()
         county = ""
         state = ""
         query = ""
         storeFilterDict.removeAll()
+    }
+    
+    func setMapZoomArea(radius: Double) {
+        
     }
     
     func postFavorite(forStore store: Store, user: String) {
@@ -111,7 +117,7 @@ class StoresViewModel {
         })
     }
     
-    func loadStores(forLocation location: CLLocationCoordinate2D, withRefresh isRefresh: Bool, withRadiusInMiles radius: Double) {
+    func loadStores(forLocation location: CLLocationCoordinate2D, withRefresh isRefresh: Bool) {
         setCountyStoreFilterAndLoadStores(forLocation: location, deleteOld: isRefresh)
     }
     
@@ -119,7 +125,32 @@ class StoresViewModel {
         setLocationInfo(forAddressStr: searchStr)
     }
     
-    func doLoadStores(deleteOld: Bool) {
+    func prepareForZoomToMyLocation(location:CLLocationCoordinate2D) {
+        stores = modelManager.getAllStoresOnMainThread()
+        setCountyStoreFilterAndLoadStores(forLocation: location, deleteOld: true)
+    }
+    
+    func setStoreSortOrder(by sortType: StoreSortType) {
+        switch sortType {
+        case .distance:
+            self.stores = sortStoresByDistance(forStores: self.stores)
+        case .name:
+            self.stores = sortStoresByName(forStores: self.stores)
+        }
+    }
+    
+    private func setStoreSortOrder(by sortType: StoreSortType, forStores stores: [Store]) -> [Store] {
+        
+        switch sortType {
+        case .distance:
+            return sortStoresByDistance(forStores: stores)
+            
+        case .name:
+            return sortStoresByName(forStores: stores)
+        }
+    }
+    
+    private func doLoadStores(deleteOld: Bool) {
         
         // Check if we already loaded stores for the current county previously
         if let _ = storeFilterDict[self.county] {
@@ -141,7 +172,7 @@ class StoresViewModel {
         }
     }
     
-    func filterStoresAndInformMainController(stores: [Store]) {
+     private func filterStoresAndInformMainController(stores: [Store]) {
         let locationFilteredStores = (stores as NSArray).filtered(using: self.storeLocationPredicate!)
         
         let stores = locationFilteredStores as! [Store]
@@ -151,35 +182,11 @@ class StoresViewModel {
         let sortType = self.delegate?.getSortType()
         self.stores = self.setStoreSortOrder(by: sortType!, forStores: stores)
         
-        self.delegate?.handleStoresUpdated(forLocation: self.mapLocation!, withZoomDistance: self.zoomDistance)
+        let mapZoomDistance = delegate?.getMapZoomDistance()
+        self.delegate?.handleStoresUpdated(forLocation: self.mapLocation!, withZoomDistance: mapZoomDistance!)
     }
     
-    func prepareForZoomToMyLocation(location:CLLocationCoordinate2D) {
-        stores = modelManager.getAllStoresOnMainThread()
-        setCountyStoreFilterAndLoadStores(forLocation: location, deleteOld: true)
-    }
-    
-    func setStoreSortOrder(by sortType: StoreSortType, forStores stores: [Store]) -> [Store] {
-        
-        switch sortType {
-            case .distance:
-                return sortStoresByDistance(forStores: stores)
-                
-            case .name:
-                return sortStoresByName(forStores: stores)
-        }
-    }
-    
-    func setStoreSortOrder(by sortType: StoreSortType) {
-        switch sortType {
-        case .distance:
-            self.stores = sortStoresByDistance(forStores: self.stores)
-        case .name:
-            self.stores = sortStoresByName(forStores: self.stores)
-        }
-    }
-    
-    func sortStoresByDistance(forStores stores: [Store]) -> [Store] {
+    private func sortStoresByDistance(forStores stores: [Store]) -> [Store] {
         var dict = [String: Store]()
         var index = 0
         for store in stores {
@@ -206,12 +213,12 @@ class StoresViewModel {
         return sortedStores
     }
     
-    func sortStoresByName(forStores stores: [Store]) -> [Store] {
+    private func sortStoresByName(forStores stores: [Store]) -> [Store] {
         return stores.sorted{$0.name! < $1.name!}
     }
     
     // Get the approximate area (expects radius to be in units of miles)
-    func setStoreFilters(forLocation location: CLLocationCoordinate2D, withRadiusInMiles radius:Double, andZip zip:String) {
+    private func setStoreFilters(forLocation location: CLLocationCoordinate2D, withRadiusInMiles radius:Double, andZip zip:String) {
         
         // TODO - Not ready for this yet, but once you start notifying user about geofence entries, will need to use CLCircularRegion
         // let region = CLCircularRegion.init(center: location, radius: radius, identifier: "region")
@@ -246,7 +253,7 @@ class StoresViewModel {
         }
     }
     
-    func isZipCode(forSearchStr searchStr:String) -> Bool {
+    private func isZipCode(forSearchStr searchStr:String) -> Bool {
         let regex = "^([^a-zA-Z][0-9]{4})$"
         if let _ = searchStr.range(of: regex, options: .regularExpression) {
             return true
@@ -255,7 +262,7 @@ class StoresViewModel {
         }
     }
     
-    func setCountyStoreFilterAndLoadStores(forLocation location: CLLocationCoordinate2D, deleteOld: Bool) {
+    private func setCountyStoreFilterAndLoadStores(forLocation location: CLLocationCoordinate2D, deleteOld: Bool) {
         
         let locationCoords: CLLocation = CLLocation(latitude: location.latitude, longitude: location.longitude)
         
@@ -298,7 +305,7 @@ class StoresViewModel {
         }
     }
     
-    func setLocationInfo(forAddressStr address: String) {
+    private func setLocationInfo(forAddressStr address: String) {
         
         geocoder.geocodeAddressString(address) { [weak self] (placemarks, error) in
             
@@ -339,9 +346,10 @@ class StoresViewModel {
                     }
                     
                     if userSearchedAddress == true {
-                        strongSelf.zoomDistance = 6.0
+                        // TODO - if user searched an address zoom closer to selected store than current mapZoomDistance
+                        //strongSelf.zoomDistance = 6.0
                     } else {
-                        strongSelf.zoomDistance = 20.0
+                        //strongSelf.zoomDistance = 20.0
                     }
                     
                     strongSelf.setStoreFilters(forLocation: strongSelf.mapLocation!, withRadiusInMiles: strongSelf.showStoreRadius, andZip: zip)

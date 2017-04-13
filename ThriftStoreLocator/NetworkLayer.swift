@@ -160,6 +160,8 @@ class NetworkLayer {
                                             
                                             if favoritesCount <= 0 {
                                                 networkLayerLoadFavoritesUpdater(strongSelf.storesArrayOfDicts)
+                                                strongSelf.storesArrayOfDicts.removeAll()
+                                                strongSelf.favoritesArrayOfDicts.removeAll()
                                             }
                                         }
                                         
@@ -219,6 +221,8 @@ class NetworkLayer {
                     }
                     
                     networkLayerStoreUpdater(strongSelf.storesArrayOfDicts)
+                    
+                    strongSelf.storesArrayOfDicts.removeAll()
                 
                 case .failure(let error):
                     // TODO - Proper error handling

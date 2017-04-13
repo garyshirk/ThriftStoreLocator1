@@ -53,6 +53,8 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     
     var sortType: StoreSortType?
     
+    var mapZoomRadius: Double?
+    
     @IBOutlet weak var tableView: UITableView!
     @IBOutlet weak var titleLabel: UILabel!
     @IBOutlet weak var searchView: UIView!
@@ -78,10 +80,21 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         titleLabel.text = "Thrift Store Locator"
         barButtonDefaultTintColor = self.view.tintColor
         
-        if let sortTypeStr = UserDefaults.standard.value(forKey: StoreSortType.sortKey) {
-            self.sortType = StoreSortType(rawValue: sortTypeStr as! String)
+        if let sortTypeUserDef = UserDefaults.standard.value(forKey: StoreSortType.sortKey) {
+            self.sortType = StoreSortType(rawValue: sortTypeUserDef as! String)
         } else {
             self.sortType = .distance
+        }
+        
+        if let mapZoomRadiusUserDef = UserDefaults.standard.value(forKey: MapZoomRadius.mapZoomKey) {
+            let mapZoomRadius = MapZoomRadius(rawValue: mapZoomRadiusUserDef as! String)
+            if let mapZoomRadiusNonNil = mapZoomRadius {
+                self.mapZoomRadius = mapZoomRadiusAsDouble(forRadius: mapZoomRadiusNonNil)
+            } else {
+                self.mapZoomRadius = 10.0
+            }
+        } else {
+            self.mapZoomRadius = 10.0
         }
         
         refreshControl = UIRefreshControl()
@@ -119,10 +132,9 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         if regType == RegistrationType.firstTimeInApp ||
                       (regType == RegistrationType.registered && loginType == LogInType.isNotLoggedIn) {
             performSegue(withIdentifier: "presentLoginView", sender: nil)
+        } else {
+            doInitialLoad()
         }
-        
-        // Do initial load; note that if user is nil (not logged in), initial load will not be run and above segue to LoginView will occur
-        doInitialLoad()
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -145,7 +157,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     }
     
     func refresh(sender: Any) {
-        viewModel.loadStores(forLocation: mapLocation!, withRefresh: false, withRadiusInMiles: 12)
+        viewModel.loadStores(forLocation: mapLocation!, withRefresh: false)
     }
     
     func setShadowButton(button: UIButton) {
@@ -177,6 +189,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         sideMenuViewController.isRegistered = (getRegistrationType() == RegistrationType.registered)
         sideMenuViewController.username = self.username ?? ""
         sideMenuViewController.sortType = self.sortType
+        sideMenuViewController.mapZoomRadius = self.mapZoomRadiusAsEnum(forRadius: self.mapZoomRadius!)
         sideMenuViewController.menuViewDelegate = self
         
         present(SideMenuManager.menuLeftNavigationController!, animated: true, completion: nil)
@@ -189,7 +202,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     }
     
     @IBAction func didPressSearchAreaBtn(_ sender: Any) {
-        viewModel.loadStores(forLocation: mapLocation!, withRefresh: false, withRadiusInMiles: 12)
+        viewModel.loadStores(forLocation: mapLocation!, withRefresh: false)
         searchThisAreaBtn.isHidden = true
     }
     
@@ -206,7 +219,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
             if needsInitialStoreLoad == true {
                 needsInitialStoreLoad = false
                 locationManager.stopUpdatingLocation()
-                viewModel.loadStores(forLocation: myLocation!, withRefresh: false, withRadiusInMiles: 12)
+                viewModel.loadStores(forLocation: myLocation!, withRefresh: false)
             }
         }
     }
@@ -277,6 +290,10 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     
     func getSortType() -> StoreSortType? {
         return self.sortType
+    }
+    
+    func getMapZoomDistance() -> Double? {
+        return self.mapZoomRadius
     }
     
     func zoomToLocation(at location: CLLocationCoordinate2D, withZoomDistanceInMiles distance: Double) {
@@ -736,13 +753,51 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         viewModel.getListOfFavorites()
     }
     
-    func sortTypeSelected(sortType: StoreSortType) {
+    func userSelectedSortType(sortType: StoreSortType) {
         if self.sortType != sortType {
             UserDefaults.standard.setValue(sortType.rawValue, forKey: StoreSortType.sortKey)
             self.sortType = sortType
             viewModel.setStoreSortOrder(by: sortType)
             self.tableView.reloadData()
         }
+    }
+    
+    func userSelectedMapZoomRadius(radius: MapZoomRadius) {
+        self.mapZoomRadius = mapZoomRadiusAsDouble(forRadius: radius)
+        UserDefaults.standard.setValue(radius.rawValue, forKey: MapZoomRadius.mapZoomKey)
+        zoomToLocation(at: self.mapLocation!, withZoomDistanceInMiles: self.mapZoomRadius!)
+    }
+    
+    func mapZoomRadiusAsDouble(forRadius radius: MapZoomRadius) -> Double {
+        var radiusDouble = 10.0 // default
+        switch radius {
+        case .five:
+            radiusDouble = 5.0
+        case .ten:
+            radiusDouble = 10.0
+        case .fifteen:
+            radiusDouble = 15.0
+        case .twenty:
+            radiusDouble = 20.0
+        }
+        return radiusDouble
+    }
+    
+    func mapZoomRadiusAsEnum(forRadius radius: Double) -> MapZoomRadius {
+        var mapZoomRadiusEnum: MapZoomRadius
+        switch radius {
+        case 5.0:
+            mapZoomRadiusEnum = MapZoomRadius.five
+        case 10.0:
+            mapZoomRadiusEnum = MapZoomRadius.ten
+        case 15.0:
+            mapZoomRadiusEnum = MapZoomRadius.fifteen
+        case 20.0:
+            mapZoomRadiusEnum = MapZoomRadius.twenty
+        default:
+            mapZoomRadiusEnum = MapZoomRadius.ten // default in case of problem
+        }
+        return mapZoomRadiusEnum
     }
 
     override func didReceiveMemoryWarning() {
