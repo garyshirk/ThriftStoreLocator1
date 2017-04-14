@@ -15,17 +15,19 @@ import Firebase
 
 // TODO - MapView initial height should be proportional to device height
 // TODO - Define a CLCicularRegion based on user's current location and update store map and list when user leaves that region
-class MainViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UITextFieldDelegate, MKMapViewDelegate, CLLocationManagerDelegate, StoresViewModelDelegate, LogInDelegate, MenuViewDelegate, DetailViewControllerDelegate {
+class MainViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UITextFieldDelegate, MKMapViewDelegate, CLLocationManagerDelegate, StoresViewModelDelegate, LogInDelegate, MenuViewDelegate, FavoriteButtonPressedDelegate {
     
     var loginType: String?
     
-    var viewModel: StoresViewModel!
+    var username: String?
     
-    var searchedStores: [Store] = []
+    var viewModel: StoresViewModel!
     
     var selectedStore: Store!
     
     var isSearching: Bool = false
+    
+    var searchBarButton: UIBarButtonItem!
     
     var titleBackgroundColor: UIColor!
     
@@ -45,12 +47,17 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     
     var showSearchAreaButton = false
     
+    var favoritesViewController: FavoritesViewController?
+    
+    var sortType: StoreSortType?
+    
+    var mapZoomRadius: Double?
+    
     @IBOutlet weak var tableView: UITableView!
     @IBOutlet weak var titleLabel: UILabel!
     @IBOutlet weak var searchView: UIView!
     @IBOutlet weak var searchTextField: UITextField!
     @IBOutlet weak var menuBarButton: UIBarButtonItem!
-    @IBOutlet weak var searchBarButton: UIBarButtonItem!
     @IBOutlet weak var mapView: MKMapView!
     @IBOutlet weak var searchThisAreaBtn: UIButton!
     @IBOutlet weak var mapViewHeightConstraint: NSLayoutConstraint!
@@ -71,6 +78,23 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         titleLabel.text = "Thrift Store Locator"
         barButtonDefaultTintColor = self.view.tintColor
         
+        if let sortTypeUserDef = UserDefaults.standard.value(forKey: StoreSortType.sortKey) {
+            self.sortType = StoreSortType(rawValue: sortTypeUserDef as! String)
+        } else {
+            self.sortType = .distance
+        }
+        
+        if let mapZoomRadiusUserDef = UserDefaults.standard.value(forKey: MapZoomRadius.mapZoomKey) {
+            let mapZoomRadius = MapZoomRadius(rawValue: mapZoomRadiusUserDef as! String)
+            if let mapZoomRadiusNonNil = mapZoomRadius {
+                self.mapZoomRadius = mapZoomRadiusAsDouble(forRadius: mapZoomRadiusNonNil)
+            } else {
+                self.mapZoomRadius = 10.0
+            }
+        } else {
+            self.mapZoomRadius = 10.0
+        }
+        
         refreshControl = UIRefreshControl()
         if let refresh = refreshControl {
             refresh.attributedTitle = NSAttributedString(string: "")
@@ -81,6 +105,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         setSearchEditMode(doSet: false)
         setSearchEnabledMode(doSet: false)
         searchTextField.delegate = self
+        configureSearchButton()
         
         mapView.mapType = .standard
         mapView.delegate = self
@@ -105,10 +130,9 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         if regType == RegistrationType.firstTimeInApp ||
                       (regType == RegistrationType.registered && loginType == LogInType.isNotLoggedIn) {
             performSegue(withIdentifier: "presentLoginView", sender: nil)
+        } else {
+            doInitialLoad()
         }
-        
-        // Do initial load; note that if user is nil (not logged in), initial load will not be run and above segue to LoginView will occur
-        doInitialLoad()
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -131,7 +155,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     }
     
     func refresh(sender: Any) {
-        viewModel.loadStores(forLocation: mapLocation!, withRefresh: false, withRadiusInMiles: 10)
+        viewModel.loadStores(forLocation: mapLocation!, withRefresh: false)
     }
     
     func setShadowButton(button: UIButton) {
@@ -160,6 +184,10 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         
         let sideMenuViewController = menuRightNavigationController.viewControllers[0] as! MenuTableViewController
         sideMenuViewController.isLoggedIn = isLoggedIn()
+        sideMenuViewController.isRegistered = (getRegistrationType() == RegistrationType.registered)
+        sideMenuViewController.username = self.username ?? ""
+        sideMenuViewController.sortType = self.sortType
+        sideMenuViewController.mapZoomRadius = self.mapZoomRadiusAsEnum(forRadius: self.mapZoomRadius!)
         sideMenuViewController.menuViewDelegate = self
         
         present(SideMenuManager.menuLeftNavigationController!, animated: true, completion: nil)
@@ -172,7 +200,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     }
     
     @IBAction func didPressSearchAreaBtn(_ sender: Any) {
-        viewModel.loadStores(forLocation: mapLocation!, withRefresh: false, withRadiusInMiles: 10)
+        viewModel.loadStores(forLocation: mapLocation!, withRefresh: false)
         searchThisAreaBtn.isHidden = true
     }
     
@@ -189,7 +217,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
             if needsInitialStoreLoad == true {
                 needsInitialStoreLoad = false
                 locationManager.stopUpdatingLocation()
-                viewModel.loadStores(forLocation: myLocation!, withRefresh: false, withRadiusInMiles: 10)
+                viewModel.loadStores(forLocation: myLocation!, withRefresh: false)
             }
         }
     }
@@ -233,12 +261,23 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     
     func handleFavoriteUpdated() {
         self.tableView.reloadData()
+        if let favoritesVC = self.favoritesViewController {
+            favoritesVC.tableView.reloadData()
+        }
     }
     
-    func handleStoresUpdated(forLocation location:CLLocationCoordinate2D) {
+    func handleFavoritesList() {
+        performSegue(withIdentifier: "showFavorites", sender: nil)
+    }
+    
+    func handleStoresUpdated(forLocation location:CLLocationCoordinate2D, withZoomDistance distance: Double) {
         self.refreshControl?.endRefreshing()
         tableView.reloadData()
-        zoomToLocation(at: location, withMiles: 10)
+        zoomToLocation(at: location, withZoomDistanceInMiles: distance)
+        
+        for annotation in self.mapView.annotations {
+            self.mapView.removeAnnotation(annotation)
+        }
         
         for store in viewModel.stores {
             let annotation = MKPointAnnotation()
@@ -251,8 +290,16 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         return self.myLocation
     }
     
-    func zoomToLocation(at location: CLLocationCoordinate2D, withMiles miles: Double) {
-        let region = MKCoordinateRegionMakeWithDistance(location, milesToMeters(for: miles), milesToMeters(for: miles))
+    func getSortType() -> StoreSortType? {
+        return self.sortType
+    }
+    
+    func getMapZoomDistance() -> Double? {
+        return self.mapZoomRadius
+    }
+    
+    func zoomToLocation(at location: CLLocationCoordinate2D, withZoomDistanceInMiles distance: Double) {
+        let region = MKCoordinateRegionMakeWithDistance(location, milesToMeters(for: distance), milesToMeters(for: distance))
         mapView.setRegion(region, animated: true)
         showSearchAreaButton = false
     }
@@ -276,7 +323,6 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         }
     }
     
-    
     // MARK: - TextField delegates
     
     func textFieldDidBeginEditing(_ textField: UITextField) {
@@ -294,6 +340,14 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         
         if let searchStr = searchTextField.text {
             viewModel.loadStores(forSearchStr: searchStr)
+        }
+    }
+    
+    func rightBarButtonItemPressed() {
+        if isSearching == true {
+            
+        } else {
+            
         }
     }
     
@@ -315,6 +369,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
             searchTextField.resignFirstResponder()
             tableView.reloadData()
         }
+        configureSearchButton()
     }
     
     func setSearchEditMode(doSet setToEdit: Bool) {
@@ -327,11 +382,23 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         }
     }
     
-    @IBAction func searchButtonPressed(_ sender: Any) {
-        if isSearching {
-            setSearchEnabledMode(doSet: false)
+    func configureSearchButton() {
+       
+        if isSearching == false {
+            self.searchBarButton = UIBarButtonItem(barButtonSystemItem: .search, target: self, action: #selector(MainViewController.searchPressed))
+            self.navigationItem.rightBarButtonItem = self.searchBarButton
         } else {
+            self.searchBarButton = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(MainViewController.searchPressed))
+            self.navigationItem.rightBarButtonItem = self.searchBarButton
+        }
+    }
+    
+    func searchPressed() {
+        isSearching = !isSearching
+        if isSearching {
             setSearchEnabledMode(doSet: true)
+        } else {
+            setSearchEnabledMode(doSet: false)
         }
     }
     
@@ -527,7 +594,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         let button = sender as! UIButton
         let selectedStore = viewModel.stores[button.tag]
         let location = CLLocationCoordinate2DMake(selectedStore.locLat as! CLLocationDegrees, selectedStore.locLong as! CLLocationDegrees)
-        zoomToLocation(at: location, withMiles: 1)
+        zoomToLocation(at: location, withZoomDistanceInMiles: 1)
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
@@ -545,7 +612,6 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
                     detailViewController.delegate = self
                     detailViewController.selectedStoreIndex = indexPath.row
                     detailViewController.storeNameStr = selectedStore.name
-                    print("selected store isFav: \(selectedStore.isFavorite)")
                     detailViewController.isFav = selectedStore.isFavorite as Bool!
                     detailViewController.streetStr = selectedStore.address
                     detailViewController.cityStr = selectedStore.city
@@ -564,24 +630,38 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
                 
                 loginVC.logInDelegate = self
             }
+        
+        } else if segue.identifier == "showFavorites" {
+            
+            let favNavigationController = segue.destination as! UINavigationController
+            self.favoritesViewController = (favNavigationController.topViewController as! FavoritesViewController)
+            self.favoritesViewController?.delegate = self
+            self.favoritesViewController?.favoriteStores = viewModel.favoriteStores
+            self.favoritesViewController?.userLocation = self.myLocation
         }
     }
     
-    // MARK - DetailViewControllerDelegate
+    // MARK - FavoriteButtonPressedDelegate
     
-    func favoriteButtonPressed(forStore index: Int, isFav: Bool) {
+    func favoriteButtonPressed(forStore index: Int, isFav: Bool, isCallFromFavoritesVC: Bool) {
         
         let user = FIRAuth.auth()?.currentUser
         let uid = (user?.uid)!
-        let store = viewModel.stores[index]
+        
+        var store: Store?
+        if isCallFromFavoritesVC == true {
+            store = viewModel.favoriteStores[index]
+        } else {
+            store = viewModel.stores[index]
+        }
         
         if  isFav == true {
             // Write new favorite to db and update Store entity in core data
-            viewModel.postFavorite(forStore: store, user: uid)
+            viewModel.postFavorite(forStore: store!, user: uid)
             
         } else {
             // Delete favorite from db and update Store entity in core data
-            viewModel.removeFavorite(forStore: store, user: uid)
+            viewModel.removeFavorite(forStore: store!, user: uid)
         }
     }
     
@@ -611,7 +691,12 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     }
     
     func updateLoginStatus(forUser user: FIRUser?) {
+        
+        self.username = ""
+        
         if user != nil {
+            
+            self.username = user!.email
             
             if let providerData = user?.providerData {
                 for userInfo in providerData {
@@ -640,6 +725,8 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         doInitialLoad()
     }
     
+    // MARK - MenuViewController delegates
+    
     func userSelectedMenuLoginCell() {
         
         setSearchEnabledMode(doSet: false)
@@ -662,6 +749,57 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
             }
         }
         performSegue(withIdentifier: "presentLoginView", sender: nil)
+    }
+    
+    func userSelectedManageFavorites() {
+        viewModel.getListOfFavorites()
+    }
+    
+    func userSelectedSortType(sortType: StoreSortType) {
+        if self.sortType != sortType {
+            UserDefaults.standard.setValue(sortType.rawValue, forKey: StoreSortType.sortKey)
+            self.sortType = sortType
+            viewModel.setStoreSortOrder(by: sortType)
+            self.tableView.reloadData()
+        }
+    }
+    
+    func userSelectedMapZoomRadius(radius: MapZoomRadius) {
+        self.mapZoomRadius = mapZoomRadiusAsDouble(forRadius: radius)
+        UserDefaults.standard.setValue(radius.rawValue, forKey: MapZoomRadius.mapZoomKey)
+        zoomToLocation(at: self.mapLocation!, withZoomDistanceInMiles: self.mapZoomRadius!)
+    }
+    
+    func mapZoomRadiusAsDouble(forRadius radius: MapZoomRadius) -> Double {
+        var radiusDouble = 10.0 // default
+        switch radius {
+        case .five:
+            radiusDouble = 5.0
+        case .ten:
+            radiusDouble = 10.0
+        case .fifteen:
+            radiusDouble = 15.0
+        case .twenty:
+            radiusDouble = 20.0
+        }
+        return radiusDouble
+    }
+    
+    func mapZoomRadiusAsEnum(forRadius radius: Double) -> MapZoomRadius {
+        var mapZoomRadiusEnum: MapZoomRadius
+        switch radius {
+        case 5.0:
+            mapZoomRadiusEnum = MapZoomRadius.five
+        case 10.0:
+            mapZoomRadiusEnum = MapZoomRadius.ten
+        case 15.0:
+            mapZoomRadiusEnum = MapZoomRadius.fifteen
+        case 20.0:
+            mapZoomRadiusEnum = MapZoomRadius.twenty
+        default:
+            mapZoomRadiusEnum = MapZoomRadius.ten // default in case of problem
+        }
+        return mapZoomRadiusEnum
     }
 
     override func didReceiveMemoryWarning() {

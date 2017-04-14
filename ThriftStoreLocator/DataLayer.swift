@@ -28,6 +28,43 @@ class DataLayer {
 
 extension DataLayer {
     
+    func deleteCoreDataObjectsExceptFavorites(deleteAllStoresExceptFavsUpdater: VoidBlock? = nil) {
+        
+        persistentContainer.performBackgroundTask( {context in
+            
+            // Delete all stores currently in core data unless store is a favorite
+            let fetchRequest: NSFetchRequest<Store> = Store.fetchRequest()
+            let predicate = NSPredicate(format: "%K == %@", "isFavorite", NSNumber(value: false))
+            fetchRequest.predicate = predicate
+            
+            let initialCount = try? context.count(for: fetchRequest)
+            
+            if let result = try? context.fetch(fetchRequest) {
+                for object in result {
+                    context.delete(object)
+                }
+            }
+            
+            do {
+                try context.save()
+                print("saved!")
+            } catch let error as NSError  {
+                print("Could not save \(error), \(error.userInfo)")
+            } catch {
+                
+            }
+            
+            let finalCount = try? context.count(for: fetchRequest)
+            
+            print("Deleting all existing Stores except favorites: InitialCount: \(initialCount) --- FinalCount: \(finalCount)")
+                
+            // Update the main thread
+            DispatchQueue.main.sync {
+                deleteAllStoresExceptFavsUpdater?()
+            }
+        })
+    }
+    
     func updateFavorite(isFavOn: Bool, forStoreEntity store: Store, saveInBackgroundSuccess: VoidBlock? = nil) {
         
         persistentContainer.performBackgroundTask( {context in
@@ -168,8 +205,6 @@ extension DataLayer {
                 print("Error saving Stores")
             }
             
-            
-            
             // Update the main thread
             DispatchQueue.main.sync {
                 saveInBackgroundSuccess?()
@@ -180,16 +215,31 @@ extension DataLayer {
     func getAllStoresOnMainThread() -> [Store] {
         
         let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "Store")
-        
-        // Add Sort descriptor
-        let sortDescriptor = NSSortDescriptor(key: "name", ascending: true)
-        fetchRequest.sortDescriptors = [sortDescriptor]
 
-        // On main thread
+        let stores = try! persistentContainer.viewContext.fetch(fetchRequest)
+       
+        return stores as! [Store]
+    }
+    
+    func getLocationFilteredStoresOnMainThread(forPredicate predicate: NSPredicate) -> [Store] {
+       
+        let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "Store")
+        fetchRequest.predicate = predicate
+        
         let stores = try! persistentContainer.viewContext.fetch(fetchRequest)
         
-        //stores.forEach { print(($0 as AnyObject).name as! String) }
+        return stores as! [Store]
+    }
     
+    func getFavoriteStoresOnMainThread() -> [Store] {
+        
+        let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "Store")
+        let predicate = NSPredicate(format: "%K == %@", "isFavorite", NSNumber(value: true))
+        fetchRequest.predicate = predicate
+        
+        let stores = try! persistentContainer.viewContext.fetch(fetchRequest)
+        //stores.forEach { print(($0 as AnyObject).name as! String) }
+        
         return stores as! [Store]
     }
 }

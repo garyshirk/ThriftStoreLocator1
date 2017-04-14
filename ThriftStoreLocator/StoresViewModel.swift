@@ -10,23 +10,26 @@ import Foundation
 import CoreLocation
 import MapKit
 
-enum StoreSortType {
-    case distance
-    case name
-}
-
 protocol StoresViewModelDelegate: class {
     
-    func handleStoresUpdated(forLocation location: CLLocationCoordinate2D)
+    func handleStoresUpdated(forLocation location: CLLocationCoordinate2D, withZoomDistance zoomDistance: Double)
     
     func handleFavoritesLoaded()
     
     func handleFavoriteUpdated()
     
+    func handleFavoritesList()
+    
     func getUserLocation() -> CLLocationCoordinate2D?
+    
+    func getSortType() -> StoreSortType?
+    
+    func getMapZoomDistance() -> Double?
 }
 
 class StoresViewModel {
+    
+    var isLoadByState = false
     
     private var modelManager: ModelManager
     
@@ -34,17 +37,22 @@ class StoresViewModel {
     
     var stores: [Store] = []
     
+    var favoriteStores: [Store] = []
+    
     var county: String = ""
     
     var state: String = ""
     
     var query: String = ""
     
+    var showStoreRadius: Double = 25.0 // Constant - filter stores loaded from server to 25 mile radius of location (in miles)
+    
     var storeLocationPredicate: NSPredicate?
     
-    var storeCountyPredicate: NSPredicate?
+    var locationLoadedFromServer: String?
     
-    var storeFilterDict = [String: NSPredicate]()
+    var countyPreviouslyLoadedDict = [String: String]() // When loading by counties allow loading multiple counties in a session
+    var statePreviouslyLoaded = "" // When loading by state, allow only one state's stores to be in core data at any one time
     
     var mapLocation: CLLocationCoordinate2D?
     
@@ -55,12 +63,19 @@ class StoresViewModel {
         self.modelManager = ModelManager.sharedInstance
     }
     
+    // MARK - public functions
+    
     func resetStoresViewModel() {
         stores.removeAll()
         county = ""
         state = ""
         query = ""
-        storeFilterDict.removeAll()
+        countyPreviouslyLoadedDict.removeAll()
+        statePreviouslyLoaded = ""
+    }
+    
+    func setMapZoomArea(radius: Double) {
+        
     }
     
     func postFavorite(forStore store: Store, user: String) {
@@ -79,6 +94,21 @@ class StoresViewModel {
         })
     }
     
+    func getListOfFavorites() {
+        
+        modelManager.listFavorites(modelManagerListFavoritesUpdater: { [weak self] storeEntities -> Void in
+        
+            guard let strongSelf = self else {
+                return
+            }
+            
+            let sortType = strongSelf.delegate?.getSortType()
+            strongSelf.favoriteStores = strongSelf.setStoreSortOrder(by: sortType!, forStores: storeEntities)
+            
+            strongSelf.delegate?.handleFavoritesList()
+        })
+    }
+    
     func loadFavorites(forUser user: String) {
         
         modelManager.loadFavoritesFromServer(forUser: user, modelManagerLoadFavoritesUpdater: { [weak self] storeEntities -> Void in
@@ -91,7 +121,7 @@ class StoresViewModel {
         })
     }
     
-    func loadStores(forLocation location: CLLocationCoordinate2D, withRefresh isRefresh: Bool, withRadiusInMiles radius: Double) {
+    func loadStores(forLocation location: CLLocationCoordinate2D, withRefresh isRefresh: Bool) {
         setCountyStoreFilterAndLoadStores(forLocation: location, deleteOld: isRefresh)
     }
     
@@ -99,90 +129,146 @@ class StoresViewModel {
         setLocationInfo(forAddressStr: searchStr)
     }
     
-    func doLoadStores(deleteOld: Bool) {
-        
-        // Check if we already loaded stores for the current county previously
-        if let _ = storeFilterDict[self.county] {
-            
-            let stores = modelManager.getAllStoresOnMainThread()
-            filterStoresAndInformMainController(stores: stores)
-            
-        } else {
-        
-            modelManager.loadStoresFromServer(forQuery: query, withDeleteOld: deleteOld, modelManagerStoresUpdater: { [weak self] storeEntities -> Void in
-                
-                guard let strongSelf = self else {
-                    return
-                }
-                
-                strongSelf.storeFilterDict[strongSelf.county] = strongSelf.storeCountyPredicate
-                strongSelf.filterStoresAndInformMainController(stores: storeEntities)
-            })
-        }
-    }
-    
-    func filterStoresAndInformMainController(stores: [Store]) {
-        let locationFilteredStores = (stores as NSArray).filtered(using: self.storeLocationPredicate!)
-        
-        
-        
-        // DEBUG
-        for store in locationFilteredStores {
-            print("locationFilterStore: \((store as! Store).name)")
-        }
-        print("======")
-        //=====
-        
-        
-        let countyFilteredStores = (stores as NSArray).filtered(using: self.storeCountyPredicate!)
-        
-        // DEBUG
-        for store in countyFilteredStores {
-            print("countyFilterStore: \((store as! Store).name)")
-        }
-        //=====
-        
-        
-        
-        self.stores = Array(Set((locationFilteredStores as! [Store]) + (countyFilteredStores as! [Store])))
-        
-        self.setStoreSortOrder(by: .distance)
-        
-        self.delegate?.handleStoresUpdated(forLocation: self.mapLocation!)
-    }
-    
     func prepareForZoomToMyLocation(location:CLLocationCoordinate2D) {
-        stores = modelManager.getAllStoresOnMainThread()
-        setCountyStoreFilterAndLoadStores(forLocation: location, deleteOld: true)
+        
+        var deleteOld: Bool?
+        if isLoadByState == false { // Loading store by county
+            deleteOld = true
+        } else { // Loading stores by state
+            deleteOld = false
+        }
+        setCountyStoreFilterAndLoadStores(forLocation: location, deleteOld: deleteOld!)
     }
     
     func setStoreSortOrder(by sortType: StoreSortType) {
-        
-        var sortDescriptorPrimary: NSSortDescriptor?
-        var sortDescriptorSecond: NSSortDescriptor?
-        
-        if let userLoc = delegate?.getUserLocation() {
-            for store in self.stores {
-                store.distance = distance(fromMyLocation: userLoc, toStoreLocation: store) as NSNumber?
-            }
+        switch sortType {
+        case .distance:
+            self.stores = sortStoresByDistance(forStores: self.stores)
+        case .name:
+            self.stores = sortStoresByName(forStores: self.stores)
         }
+    }
+    
+    private func setStoreSortOrder(by sortType: StoreSortType, forStores stores: [Store]) -> [Store] {
         
         switch sortType {
         case .distance:
-            sortDescriptorPrimary = NSSortDescriptor(key: "distance", ascending: true)
-            sortDescriptorSecond = NSSortDescriptor(key: "name", ascending: true)
+            return sortStoresByDistance(forStores: stores)
             
         case .name:
-            sortDescriptorPrimary = NSSortDescriptor(key: "name", ascending: true)
-            sortDescriptorSecond = NSSortDescriptor(key: "distance", ascending: true)
+            return sortStoresByName(forStores: stores)
+        }
+    }
+    
+    private func doLoadStores(deleteOld: Bool) {
+        
+        if isLoadByState == false { //Loading stores by county
+            
+            if let _ = countyPreviouslyLoadedDict[self.county] {
+                
+                let stores = modelManager.getAllStoresOnMainThread()
+                filterStoresAndInformMainController(stores: stores)
+                
+            } else {
+            
+                modelManager.loadStoresFromServer(forQuery: query, withDeleteOld: deleteOld, modelManagerStoresUpdater: { [weak self] storeEntities -> Void in
+                    
+                    guard let strongSelf = self else {
+                        return
+                    }
+                    
+                    strongSelf.countyPreviouslyLoadedDict[strongSelf.county] = strongSelf.locationLoadedFromServer
+                    strongSelf.filterStoresAndInformMainController(stores: storeEntities)
+                })
+            }
+            
+        } else { // Loading stores by state
+            
+            if statePreviouslyLoaded == self.query {
+                
+                let stores = modelManager.getLocationFilteredStores(forPredicate: storeLocationPredicate!)
+                updateMainController(stores: stores)
+                
+            } else {
+                
+                modelManager.deleteAllStoresFromCoreDataExceptFavs( modelManagerDeleteAllCoreDataExceptFavsUpdater: { [weak self] in
+                    
+                    guard let strongSelf = self else { return }
+                    
+                    strongSelf.modelManager.loadStoresFromServer(forQuery: strongSelf.query, withDeleteOld: deleteOld, withLocationPred: strongSelf.storeLocationPredicate!, modelManagerStoresUpdater: { [weak self] storeEntities -> Void in
+                        
+                        guard let strongSelf = self else {
+                            return
+                        }
+                        
+                        strongSelf.statePreviouslyLoaded = strongSelf.query
+                        strongSelf.updateMainController(stores: storeEntities)
+                    })
+                })
+            }
+        }
+    }
+    
+     private func filterStoresAndInformMainController(stores: [Store]) {
+        
+        let locationFilteredStores = (stores as NSArray).filtered(using: self.storeLocationPredicate!)
+        
+        let stores = locationFilteredStores as! [Store]
+        
+        let sortType = self.delegate?.getSortType()
+        self.stores = self.setStoreSortOrder(by: sortType!, forStores: stores)
+        
+        let mapZoomDistance = delegate?.getMapZoomDistance()
+        self.delegate?.handleStoresUpdated(forLocation: self.mapLocation!, withZoomDistance: mapZoomDistance!)
+    }
+    
+    private func updateMainController(stores: [Store]) {
+        
+        self
+            .stores = stores
+        
+        let sortType = self.delegate?.getSortType()
+        self.stores = self.setStoreSortOrder(by: sortType!, forStores: stores)
+        
+        let mapZoomDistance = delegate?.getMapZoomDistance()
+        self.delegate?.handleStoresUpdated(forLocation: self.mapLocation!, withZoomDistance: mapZoomDistance!)
+    }
+
+    
+    private func sortStoresByDistance(forStores stores: [Store]) -> [Store] {
+        
+        var dict = [String: Store]()
+        var index = 0
+        for store in stores {
+            let distanceToStore = distance(fromMyLocation: (delegate?.getUserLocation())!, toStoreLocation: store)
+            var key =  String(describing: distanceToStore) + "-" + String(describing: index)
+            if key.contains(".") {
+                let range: Range<String.Index> = key.range(of: ".")!
+                let placesToDecimal = key.distance(from: key.startIndex, to: range.lowerBound)
+                key = String(describing: placesToDecimal) + key
+            } else {
+                let placesToDecimal = key.characters.count
+                key = String(describing: placesToDecimal) + key
+            }
+            dict[key] = store
+            index += 1
         }
         
-        let sortDescriptors = [sortDescriptorPrimary, sortDescriptorSecond]
-        self.stores.sort(sortDescriptors: sortDescriptors as! [NSSortDescriptor])
+        let sortedKeys = Array(dict.keys).sorted{$0 < $1}
+        
+        var sortedStores: [Store] = []
+        for key in sortedKeys {
+            sortedStores.append(dict[key]!)
+        }
+        return sortedStores
+    }
+    
+    private func sortStoresByName(forStores stores: [Store]) -> [Store] {
+        return stores.sorted{$0.name! < $1.name!}
     }
     
     // Get the approximate area (expects radius to be in units of miles)
-    func setStoreFilters(forLocation location: CLLocationCoordinate2D, withRadiusInMiles radius:Double, andZip zip:String) {
+    private func setStoreFilters(forLocation location: CLLocationCoordinate2D, withRadiusInMiles radius:Double, andZip zip:String) {
         
         // TODO - Not ready for this yet, but once you start notifying user about geofence entries, will need to use CLCircularRegion
         // let region = CLCircularRegion.init(center: location, radius: radius, identifier: "region")
@@ -217,7 +303,7 @@ class StoresViewModel {
         }
     }
     
-    func isZipCode(forSearchStr searchStr:String) -> Bool {
+    private func isZipCode(forSearchStr searchStr:String) -> Bool {
         let regex = "^([^a-zA-Z][0-9]{4})$"
         if let _ = searchStr.range(of: regex, options: .regularExpression) {
             return true
@@ -226,11 +312,15 @@ class StoresViewModel {
         }
     }
     
-    func setCountyStoreFilterAndLoadStores(forLocation location: CLLocationCoordinate2D, deleteOld: Bool) {
+    private func setCountyStoreFilterAndLoadStores(forLocation location: CLLocationCoordinate2D, deleteOld: Bool) {
         
         let locationCoords: CLLocation = CLLocation(latitude: location.latitude, longitude: location.longitude)
         
-        geocoder.reverseGeocodeLocation(locationCoords) { (placemarks, error) in
+        geocoder.reverseGeocodeLocation(locationCoords) { [weak self] (placemarks, error) in
+            
+            guard let strongSelf = self else {
+                return
+            }
             
             if error != nil {
                 print("Reverse geocoder failed with error" + (error?.localizedDescription)!)
@@ -239,23 +329,42 @@ class StoresViewModel {
             
             if let placemarks = placemarks, let placemark = placemarks.first {
                 
-                if let county = placemark.subAdministrativeArea {
-                    
-                    print("county used for predicate: \(county)")
-                    
-                    self.storeCountyPredicate = NSPredicate(format: "%K == %@", "county", county)
-                    
-                    self.county = county.lowercased().replacingOccurrences(of: " ", with: "+")
-                    
-                    self.setStoreFilters(forLocation: location, withRadiusInMiles: 10, andZip: "")
+                if strongSelf.isLoadByState == false { // Loading stores by county
+                
+                    if let county = placemark.subAdministrativeArea {
+                        
+                        strongSelf.locationLoadedFromServer = strongSelf.county
+                        
+                        strongSelf.county = county.lowercased().replacingOccurrences(of: " ", with: "+")
+                        
+                        strongSelf.setStoreFilters(forLocation: location, withRadiusInMiles: strongSelf.showStoreRadius, andZip: "")
+                        
+                        if let state = placemark.administrativeArea {
+                            
+                            strongSelf.state = state
+                            
+                            strongSelf.query = strongSelf.state + "/" + strongSelf.county
+                            
+                            strongSelf.doLoadStores(deleteOld: deleteOld)
+                        } else {
+                            print("Problem getting state")
+                        }
+                    }
+                
+                } else { // Loading stores by state
                     
                     if let state = placemark.administrativeArea {
                         
-                        self.state = state
+                        strongSelf.state = state
                         
-                        self.query = self.state + "/" + self.county
+                        strongSelf.query = state
                         
-                        self.doLoadStores(deleteOld: deleteOld)
+                        strongSelf.locationLoadedFromServer = strongSelf.state
+                        
+                        strongSelf.setStoreFilters(forLocation: location, withRadiusInMiles: strongSelf.showStoreRadius, andZip: "")
+                        
+                        strongSelf.doLoadStores(deleteOld: deleteOld)
+                    
                     } else {
                         print("Problem getting state")
                     }
@@ -267,9 +376,13 @@ class StoresViewModel {
         }
     }
     
-    func setLocationInfo(forAddressStr address: String) {
+    private func setLocationInfo(forAddressStr address: String) {
         
-        geocoder.geocodeAddressString(address) { (placemarks, error) in
+        geocoder.geocodeAddressString(address) { [weak self] (placemarks, error) in
+            
+            guard let strongSelf = self else {
+                return
+            }
             
             if error != nil {
                 print("Geocoder failed with error" + (error?.localizedDescription)!)
@@ -278,28 +391,69 @@ class StoresViewModel {
             
             if let placemarks = placemarks, let placemark = placemarks.first {
                 
-                // If user's search did not yield a county, eg user searched for a state, then do not allow the search
-                if let county = placemark.subAdministrativeArea {
-                    
-                    print("county used for predicate: \(county)")
-                    
-                    self.storeCountyPredicate = NSPredicate(format: "%K == %@", "county", county)
-                    
-                    self.county = county.lowercased().replacingOccurrences(of: " ", with: "+")
-                    
-                    self.state = placemark.administrativeArea!
-                    self.query = self.state + "/" + self.county
-                    self.mapLocation = placemark.location?.coordinate
-                    
-                    var zip = ""
-                    let isZip = self.isZipCode(forSearchStr: address)
-                    if isZip == true {
-                        zip = address
+                // Check if user entered a valid address as the search string
+                var userSearchedAddress = false
+                if let _ = placemark.subThoroughfare {
+                    if let _ = placemark.thoroughfare {
+                        userSearchedAddress = true
                     }
+                }
+                
+                if strongSelf.isLoadByState == false { // Loading by county
                     
-                    self.setStoreFilters(forLocation: self.mapLocation!, withRadiusInMiles: 10, andZip: zip)
+                    if let county = placemark.subAdministrativeArea {
+                        
+                        strongSelf.county = county.lowercased().replacingOccurrences(of: " ", with: "+")
+                        strongSelf.state = placemark.administrativeArea!
+                        
+                        strongSelf.locationLoadedFromServer = strongSelf.county
+                        
+                        strongSelf.query = strongSelf.state + "/" + strongSelf.county
+                        strongSelf.mapLocation = placemark.location?.coordinate
+                        
+                        var zip = ""
+                        let isZip = strongSelf.isZipCode(forSearchStr: address)
+                        if isZip == true {
+                            zip = address
+                        }
+                        
+                        if userSearchedAddress == true {
+                            // Save for possible future use to change zoom radius if user searched for a particular address
+                        } else {
+                            
+                        }
+                        
+                        strongSelf.setStoreFilters(forLocation: strongSelf.mapLocation!, withRadiusInMiles: strongSelf.showStoreRadius, andZip: zip)
+                        strongSelf.doLoadStores(deleteOld: false)
+                    }
+                
+                } else { // Loading by state
                     
-                    self.doLoadStores(deleteOld: false)
+                    if let state = placemark.administrativeArea {
+                        
+                        strongSelf.state = state
+                        
+                        strongSelf.query = strongSelf.state
+                        
+                        strongSelf.locationLoadedFromServer = strongSelf.state
+                        
+                        strongSelf.mapLocation = placemark.location?.coordinate
+                        
+                        var zip = ""
+                        let isZip = strongSelf.isZipCode(forSearchStr: address)
+                        if isZip == true {
+                            zip = address
+                        }
+                        
+                        if userSearchedAddress == true {
+                            // Save for possible future use to change zoom radius if user searched for a particular address
+                        } else {
+                            
+                        }
+                        
+                        strongSelf.setStoreFilters(forLocation: strongSelf.mapLocation!, withRadiusInMiles: strongSelf.showStoreRadius, andZip: zip)
+                        strongSelf.doLoadStores(deleteOld: false)
+                    }
                 }
                 
             } else {
