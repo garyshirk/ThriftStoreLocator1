@@ -17,13 +17,13 @@ private let firebaseThriftStoreBaseURL = "https://thrift-store-locator.firebasei
 private let firebaseFavoritesBaseURL = "https://thrift-store-locator.firebaseio.com/favorites/<QUERY>.json?auth=<AUTH>"
 private let locationInfoBaseURL = "http://maps.googleapis.com/maps/api/geocode/json?address=<location>&sensor=false"
 
-var dbFavoritesRef: FIRDatabaseReference?
-
 class NetworkLayer {
     
+    var dbFavoritesRef: FIRDatabaseReference?
     var rootRef = FIRDatabase.database().reference()
     var favoritesArrayOfDicts = [[String: Any]]()
     var storesArrayOfDicts = [[String: Any]]()
+    var atLeastOneFoundFavSuccessfullyLoaded: Bool?
     
     func removeFavorite(store: Store, forUser user: String, networkLayerRemoveFavUpdater: () -> Void) {
         
@@ -119,6 +119,8 @@ class NetworkLayer {
                         // No favorites, return
                         networkLayerLoadFavoritesUpdater(strongSelf.storesArrayOfDicts)
                         return
+                    } else {
+                        strongSelf.atLeastOneFoundFavSuccessfullyLoaded = false
                     }
                     
                     for favorite in strongSelf.favoritesArrayOfDicts {
@@ -158,6 +160,8 @@ class NetworkLayer {
                                             
                                             favoritesCount -= 1
                                             
+                                            strongSelf.atLeastOneFoundFavSuccessfullyLoaded = true
+                                            
                                             if favoritesCount <= 0 {
                                                 networkLayerLoadFavoritesUpdater(strongSelf.storesArrayOfDicts)
                                                 strongSelf.storesArrayOfDicts.removeAll()
@@ -171,6 +175,9 @@ class NetworkLayer {
                                 }
                             }
                         }
+                    }
+                    if strongSelf.atLeastOneFoundFavSuccessfullyLoaded == false {
+                        networkLayerLoadFavoritesUpdater(strongSelf.storesArrayOfDicts)
                     }
                     
                 case .failure(let error):
