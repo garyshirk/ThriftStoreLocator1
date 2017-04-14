@@ -242,14 +242,6 @@ class MenuTableViewController: UITableViewController {
         storeDisplayDropDownIsOpen = false
         tableView.beginUpdates()
         tableView.endUpdates()
-        
-//        var radiusDouble: Double!
-//        switch radius {
-//        case .five: radiusDouble = 5.0
-//        case .ten: radiusDouble = 10.0
-//        case .fifteen: radiusDouble = 15.0
-//        case .twenty: radiusDouble = 20.0
-//        }
         self.menuViewDelegate?.userSelectedMapZoomRadius(radius: radius)
     }
     

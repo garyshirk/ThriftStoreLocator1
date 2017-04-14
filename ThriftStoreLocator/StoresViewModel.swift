@@ -29,6 +29,8 @@ protocol StoresViewModelDelegate: class {
 
 class StoresViewModel {
     
+    var isLoadByState = true
+    
     private var modelManager: ModelManager
     
     weak var delegate: StoresViewModelDelegate?
@@ -47,9 +49,10 @@ class StoresViewModel {
     
     var storeLocationPredicate: NSPredicate?
     
-    var storeCountyPredicate: NSPredicate?
+    var locationLoadedFromServer: String?
     
-    var storeFilterDict = [String: NSPredicate]()
+    var countyPreviouslyLoadedDict = [String: String]() // When loading by counties allow loading multiple counties in a session
+    var statePreviouslyLoaded = "" // When loading by state, allow only one state's stores to be in core data at any one time
     
     var mapLocation: CLLocationCoordinate2D?
     
@@ -67,7 +70,8 @@ class StoresViewModel {
         county = ""
         state = ""
         query = ""
-        storeFilterDict.removeAll()
+        countyPreviouslyLoadedDict.removeAll()
+        statePreviouslyLoaded = ""
     }
     
     func setMapZoomArea(radius: Double) {
@@ -152,32 +156,58 @@ class StoresViewModel {
     
     private func doLoadStores(deleteOld: Bool) {
         
-        // Check if we already loaded stores for the current county previously
-        if let _ = storeFilterDict[self.county] {
+        if isLoadByState == false { //Loading stores by county
             
-            let stores = modelManager.getAllStoresOnMainThread()
-            filterStoresAndInformMainController(stores: stores)
+            if let _ = countyPreviouslyLoadedDict[self.county] {
+                
+                let stores = modelManager.getAllStoresOnMainThread()
+                filterStoresAndInformMainController(stores: stores)
+                
+            } else {
             
-        } else {
-        
-            modelManager.loadStoresFromServer(forQuery: query, withDeleteOld: deleteOld, modelManagerStoresUpdater: { [weak self] storeEntities -> Void in
+                modelManager.loadStoresFromServer(forQuery: query, withDeleteOld: deleteOld, modelManagerStoresUpdater: { [weak self] storeEntities -> Void in
+                    
+                    guard let strongSelf = self else {
+                        return
+                    }
+                    
+                    strongSelf.countyPreviouslyLoadedDict[strongSelf.county] = strongSelf.locationLoadedFromServer
+                    strongSelf.filterStoresAndInformMainController(stores: storeEntities)
+                })
+            }
+            
+        } else { // Loading stores by state
+            
+            if statePreviouslyLoaded == self.query {
                 
-                guard let strongSelf = self else {
-                    return
-                }
+                let stores = modelManager.getAllStoresOnMainThread()
+                filterStoresAndInformMainController(stores: stores)
                 
-                strongSelf.storeFilterDict[strongSelf.county] = strongSelf.storeCountyPredicate
-                strongSelf.filterStoresAndInformMainController(stores: storeEntities)
-            })
+            } else {
+                
+                modelManager.deleteAllStoresFromCoreDataExceptFavs( modelManagerDeleteAllCoreDataExceptFavsUpdater: { [weak self] in
+                    
+                    guard let strongSelf = self else { return }
+                    
+                    strongSelf.modelManager.loadStoresFromServer(forQuery: strongSelf.query, withDeleteOld: deleteOld, modelManagerStoresUpdater: { [weak self] storeEntities -> Void in
+                        
+                        guard let strongSelf = self else {
+                            return
+                        }
+                        
+                        strongSelf.statePreviouslyLoaded = strongSelf.query
+                        strongSelf.filterStoresAndInformMainController(stores: storeEntities)
+                    })
+                })
+            }
         }
     }
     
      private func filterStoresAndInformMainController(stores: [Store]) {
+        
         let locationFilteredStores = (stores as NSArray).filtered(using: self.storeLocationPredicate!)
         
         let stores = locationFilteredStores as! [Store]
-        //let countyFilteredStores = (stores as NSArray).filtered(using: self.storeCountyPredicate!)
-        //self.stores = Array(Set((locationFilteredStores as! [Store]) + (countyFilteredStores as! [Store])))
         
         let sortType = self.delegate?.getSortType()
         self.stores = self.setStoreSortOrder(by: sortType!, forStores: stores)
@@ -187,6 +217,7 @@ class StoresViewModel {
     }
     
     private func sortStoresByDistance(forStores stores: [Store]) -> [Store] {
+        
         var dict = [String: Store]()
         var index = 0
         for store in stores {
@@ -279,21 +310,42 @@ class StoresViewModel {
             
             if let placemarks = placemarks, let placemark = placemarks.first {
                 
-                if let county = placemark.subAdministrativeArea {
-                    
-                    strongSelf.storeCountyPredicate = NSPredicate(format: "%K == %@", "county", county)
-                    
-                    strongSelf.county = county.lowercased().replacingOccurrences(of: " ", with: "+")
-                    
-                    strongSelf.setStoreFilters(forLocation: location, withRadiusInMiles: strongSelf.showStoreRadius, andZip: "")
+                if strongSelf.isLoadByState == false { // Loading stores by county
+                
+                    if let county = placemark.subAdministrativeArea {
+                        
+                        strongSelf.locationLoadedFromServer = strongSelf.county
+                        
+                        strongSelf.county = county.lowercased().replacingOccurrences(of: " ", with: "+")
+                        
+                        strongSelf.setStoreFilters(forLocation: location, withRadiusInMiles: strongSelf.showStoreRadius, andZip: "")
+                        
+                        if let state = placemark.administrativeArea {
+                            
+                            strongSelf.state = state
+                            
+                            strongSelf.query = strongSelf.state + "/" + strongSelf.county
+                            
+                            strongSelf.doLoadStores(deleteOld: deleteOld)
+                        } else {
+                            print("Problem getting state")
+                        }
+                    }
+                
+                } else { // Loading stores by state
                     
                     if let state = placemark.administrativeArea {
                         
                         strongSelf.state = state
                         
-                        strongSelf.query = strongSelf.state + "/" + strongSelf.county
+                        strongSelf.query = state
+                        
+                        strongSelf.locationLoadedFromServer = strongSelf.state
+                        
+                        strongSelf.setStoreFilters(forLocation: location, withRadiusInMiles: strongSelf.showStoreRadius, andZip: "")
                         
                         strongSelf.doLoadStores(deleteOld: deleteOld)
+                    
                     } else {
                         print("Problem getting state")
                     }
@@ -328,32 +380,61 @@ class StoresViewModel {
                     }
                 }
                 
-                // If user's search did not yield a county, eg user searched for a state, then do not allow the search
-                if let county = placemark.subAdministrativeArea {
+                if strongSelf.isLoadByState == false { // Loading by county
                     
-                    strongSelf.storeCountyPredicate = NSPredicate(format: "%K == %@", "county", county)
-                    
-                    strongSelf.county = county.lowercased().replacingOccurrences(of: " ", with: "+")
-                    
-                    strongSelf.state = placemark.administrativeArea!
-                    strongSelf.query = strongSelf.state + "/" + strongSelf.county
-                    strongSelf.mapLocation = placemark.location?.coordinate
-                    
-                    var zip = ""
-                    let isZip = strongSelf.isZipCode(forSearchStr: address)
-                    if isZip == true {
-                        zip = address
+                    if let county = placemark.subAdministrativeArea {
+                        
+                        strongSelf.county = county.lowercased().replacingOccurrences(of: " ", with: "+")
+                        strongSelf.state = placemark.administrativeArea!
+                        
+                        strongSelf.locationLoadedFromServer = strongSelf.county
+                        
+                        strongSelf.query = strongSelf.state + "/" + strongSelf.county
+                        strongSelf.mapLocation = placemark.location?.coordinate
+                        
+                        var zip = ""
+                        let isZip = strongSelf.isZipCode(forSearchStr: address)
+                        if isZip == true {
+                            zip = address
+                        }
+                        
+                        if userSearchedAddress == true {
+                            // Save for possible future use to change zoom radius if user searched for a particular address
+                        } else {
+                            
+                        }
+                        
+                        strongSelf.setStoreFilters(forLocation: strongSelf.mapLocation!, withRadiusInMiles: strongSelf.showStoreRadius, andZip: zip)
+                        strongSelf.doLoadStores(deleteOld: false)
                     }
+                
+                } else { // Loading by state
                     
-                    if userSearchedAddress == true {
-                        // TODO - if user searched an address zoom closer to selected store than current mapZoomDistance
-                        //strongSelf.zoomDistance = 6.0
-                    } else {
-                        //strongSelf.zoomDistance = 20.0
+                    if let state = placemark.administrativeArea {
+                        
+                        strongSelf.state = state
+                        
+                        strongSelf.query = strongSelf.state
+                        
+                        strongSelf.locationLoadedFromServer = strongSelf.state
+                        
+                        strongSelf.mapLocation = placemark.location?.coordinate
+                        
+                        var zip = ""
+                        let isZip = strongSelf.isZipCode(forSearchStr: address)
+                        if isZip == true {
+                            zip = address
+                        }
+                        
+                        if userSearchedAddress == true {
+                            // Save for possible future use to change zoom radius if user searched for a particular address
+                        } else {
+                            
+                        }
+                        
+                        strongSelf.setStoreFilters(forLocation: strongSelf.mapLocation!, withRadiusInMiles: strongSelf.showStoreRadius, andZip: zip)
+                        strongSelf.doLoadStores(deleteOld: false)
                     }
-                    
-                    strongSelf.setStoreFilters(forLocation: strongSelf.mapLocation!, withRadiusInMiles: strongSelf.showStoreRadius, andZip: zip)
-                    strongSelf.doLoadStores(deleteOld: false)
                 }
                 
             } else {

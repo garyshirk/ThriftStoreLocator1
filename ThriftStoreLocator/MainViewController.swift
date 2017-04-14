@@ -25,8 +25,6 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     
     var selectedStore: Store!
     
-    var searchedStores: [Store] = []
-    
     var isSearching: Bool = false
     
     var searchBarButton: UIBarButtonItem!
@@ -276,6 +274,10 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         self.refreshControl?.endRefreshing()
         tableView.reloadData()
         zoomToLocation(at: location, withZoomDistanceInMiles: distance)
+        
+        for annotation in self.mapView.annotations {
+            self.mapView.removeAnnotation(annotation)
+        }
         
         for store in viewModel.stores {
             let annotation = MKPointAnnotation()

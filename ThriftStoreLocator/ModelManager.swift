@@ -21,6 +21,14 @@ class ModelManager {
         return dataLayer.getAllStoresOnMainThread()
     }
     
+    func deleteAllStoresFromCoreDataExceptFavs(modelManagerDeleteAllCoreDataExceptFavsUpdater: @escaping () -> Void) {
+        
+        self.dataLayer.deleteCoreDataObjectsExceptFavorites(deleteAllStoresExceptFavsUpdater: {
+            
+            modelManagerDeleteAllCoreDataExceptFavsUpdater()
+        })
+    }
+    
     func postFavoriteToServer(store: Store, forUser user: String, modelManagerPostFavUpdater: @escaping () -> Void) {
         
         self.networkLayer.postFavorite(store: store, forUser: user, networkLayerPostFavUpdater: {
