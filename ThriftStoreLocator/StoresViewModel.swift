@@ -29,7 +29,7 @@ protocol StoresViewModelDelegate: class {
 
 class StoresViewModel {
     
-    var isLoadByState = true
+    var isLoadByState = false
     
     private var modelManager: ModelManager
     
@@ -131,8 +131,6 @@ class StoresViewModel {
     
     func prepareForZoomToMyLocation(location:CLLocationCoordinate2D) {
         
-        stores = modelManager.getAllStoresOnMainThread()
-        
         var deleteOld: Bool?
         if isLoadByState == false { // Loading store by county
             deleteOld = true
@@ -188,8 +186,8 @@ class StoresViewModel {
             
             if statePreviouslyLoaded == self.query {
                 
-                let stores = modelManager.getAllStoresOnMainThread()
-                filterStoresAndInformMainController(stores: stores)
+                let stores = modelManager.getLocationFilteredStores(forPredicate: storeLocationPredicate!)
+                updateMainController(stores: stores)
                 
             } else {
                 
@@ -197,14 +195,14 @@ class StoresViewModel {
                     
                     guard let strongSelf = self else { return }
                     
-                    strongSelf.modelManager.loadStoresFromServer(forQuery: strongSelf.query, withDeleteOld: deleteOld, modelManagerStoresUpdater: { [weak self] storeEntities -> Void in
+                    strongSelf.modelManager.loadStoresFromServer(forQuery: strongSelf.query, withDeleteOld: deleteOld, withLocationPred: strongSelf.storeLocationPredicate!, modelManagerStoresUpdater: { [weak self] storeEntities -> Void in
                         
                         guard let strongSelf = self else {
                             return
                         }
                         
                         strongSelf.statePreviouslyLoaded = strongSelf.query
-                        strongSelf.filterStoresAndInformMainController(stores: storeEntities)
+                        strongSelf.updateMainController(stores: storeEntities)
                     })
                 })
             }
@@ -223,6 +221,19 @@ class StoresViewModel {
         let mapZoomDistance = delegate?.getMapZoomDistance()
         self.delegate?.handleStoresUpdated(forLocation: self.mapLocation!, withZoomDistance: mapZoomDistance!)
     }
+    
+    private func updateMainController(stores: [Store]) {
+        
+        self
+            .stores = stores
+        
+        let sortType = self.delegate?.getSortType()
+        self.stores = self.setStoreSortOrder(by: sortType!, forStores: stores)
+        
+        let mapZoomDistance = delegate?.getMapZoomDistance()
+        self.delegate?.handleStoresUpdated(forLocation: self.mapLocation!, withZoomDistance: mapZoomDistance!)
+    }
+
     
     private func sortStoresByDistance(forStores stores: [Store]) -> [Store] {
         

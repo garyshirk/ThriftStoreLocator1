@@ -21,6 +21,10 @@ class ModelManager {
         return dataLayer.getAllStoresOnMainThread()
     }
     
+    func getLocationFilteredStores(forPredicate predicate: NSPredicate) -> [Store] {
+        return dataLayer.getLocationFilteredStoresOnMainThread(forPredicate: predicate)
+    }
+    
     func deleteAllStoresFromCoreDataExceptFavs(modelManagerDeleteAllCoreDataExceptFavsUpdater: @escaping () -> Void) {
         
         self.dataLayer.deleteCoreDataObjectsExceptFavorites(deleteAllStoresExceptFavsUpdater: {
@@ -71,6 +75,7 @@ class ModelManager {
         })
     }
     
+    // Use for loading stores by county
     func loadStoresFromServer(forQuery query: String, withDeleteOld deleteOld: Bool, modelManagerStoresUpdater: @escaping ([Store]) -> Void) {
         
         self.networkLayer.loadStoresFromServer(forQuery: query, networkLayerStoreUpdater: { [weak self] stores in
@@ -80,6 +85,21 @@ class ModelManager {
             strongSelf.dataLayer.saveInBackground(stores: stores, withDeleteOld: deleteOld, isFavs: false, saveInBackgroundSuccess: {
             
                 let storeEntities = strongSelf.getAllStoresOnMainThread()
+                modelManagerStoresUpdater(storeEntities)
+            })
+        })
+    }
+    
+    // Use for loading stores by state
+    func loadStoresFromServer(forQuery query: String, withDeleteOld deleteOld: Bool, withLocationPred predicate: NSPredicate, modelManagerStoresUpdater: @escaping ([Store]) -> Void) {
+        
+        self.networkLayer.loadStoresFromServer(forQuery: query, networkLayerStoreUpdater: { [weak self] stores in
+            
+            guard let strongSelf = self else { return }
+            
+            strongSelf.dataLayer.saveInBackground(stores: stores, withDeleteOld: deleteOld, isFavs: false, saveInBackgroundSuccess: {
+                
+                let storeEntities = strongSelf.getLocationFilteredStores(forPredicate: predicate)
                 modelManagerStoresUpdater(storeEntities)
             })
         })
