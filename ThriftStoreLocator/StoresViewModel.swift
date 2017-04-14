@@ -130,8 +130,16 @@ class StoresViewModel {
     }
     
     func prepareForZoomToMyLocation(location:CLLocationCoordinate2D) {
+        
         stores = modelManager.getAllStoresOnMainThread()
-        setCountyStoreFilterAndLoadStores(forLocation: location, deleteOld: true)
+        
+        var deleteOld: Bool?
+        if isLoadByState == false { // Loading store by county
+            deleteOld = true
+        } else { // Loading stores by state
+            deleteOld = false
+        }
+        setCountyStoreFilterAndLoadStores(forLocation: location, deleteOld: deleteOld!)
     }
     
     func setStoreSortOrder(by sortType: StoreSortType) {
