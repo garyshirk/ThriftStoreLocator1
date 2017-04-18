@@ -86,12 +86,12 @@ class LoginViewController: UITableViewController, UITextFieldDelegate {
             
             if error == nil {
                 
-                print("An existing user: \(user?.email), \(user?.uid) logged back in")
+                print("An existing user: \(String(describing: user?.email)), \(String(describing: user?.uid)) logged back in")
                 self.logInDelegate?.setRegistrationType(with: RegistrationType.registered)
                 self.logInDelegate?.handleUserLoggedIn(via: (LogInType.email as String))
                 
             } else {
-                print("Error existing user attempting to login: \(error)")
+                print("Error existing user attempting to login: \(String(describing: error))")
             }
         }
     }
@@ -151,12 +151,12 @@ class LoginViewController: UITableViewController, UITextFieldDelegate {
         let credential = FIREmailPasswordAuthProvider.credential(withEmail: email, password: password)
         currentUser.link(with: credential) { (user, error) in
             if error == nil {
-                print("Anonymous user: \(currentUser.uid) successfully linked to new registered user: \(user?.email), \(user?.uid)")
+                print("Anonymous user: \(currentUser.uid) successfully linked to new registered user: \(String(describing: user?.email)), \(String(describing: user?.uid))")
                 self.logInDelegate?.setRegistrationType(with: RegistrationType.registered)
                 self.logInDelegate?.handleUserLoggedIn(via: (LogInType.email as String))
                 
             } else {
-                print("Error linking anonymous user to new registration: \(error)")
+                print("Error linking anonymous user to new registration: \(String(describing: error))")
             }
         }
     }
@@ -168,14 +168,14 @@ class LoginViewController: UITableViewController, UITextFieldDelegate {
                 self.logInDelegate?.setRegistrationType(with: RegistrationType.registered)
                 FIRAuth.auth()?.signIn(withEmail: email, password: password) { (user, error) in
                     if error == nil {
-                        print("\(user?.email), \(user?.uid) successfully registered first time in app")
+                        print("\(String(describing: user?.email)), \(String(describing: user?.uid)) successfully registered first time in app")
                         self.logInDelegate?.handleUserLoggedIn(via: (LogInType.email as String))
                     } else {
-                        print("Error logging in a newly registered user: \(error)")
+                        print("Error logging in a newly registered user: \(String(describing: error))")
                     }
                 }
             } else {
-                print("Error registering a new user: \(error)")
+                print("Error registering a new user: \(String(describing: error))")
             }
         }
     }
@@ -188,11 +188,11 @@ class LoginViewController: UITableViewController, UITextFieldDelegate {
             
             FIRAuth.auth()?.signInAnonymously() { (user, error) in
                 if error == nil {
-                    print("A new user: \(user?.email), \(user?.uid) was successfully logged in anonymously")
+                    print("A new user: \(String(describing: user?.email)), \(String(describing: user?.uid)) was successfully logged in anonymously")
                     self.logInDelegate?.setRegistrationType(with: RegistrationType.anonymousUser)
                     self.logInDelegate?.handleUserLoggedIn(via: (LogInType.anonymousLogin as String))
                 } else {
-                    print("Error logging in a new user as anonymous: \(error)")
+                    print("Error logging in a new user as anonymous: \(String(describing: error))")
                 }
             }
         }
@@ -256,12 +256,12 @@ class LoginViewController: UITableViewController, UITextFieldDelegate {
             if error == nil {
                 
                 // TODO - This path needs tested; need new facebook test account
-                print("An anonymous user: \(currentUser.email), \(currentUser.uid) was successfully registered with facebook")
+                print("An anonymous user: \(String(describing: currentUser.email)), \(currentUser.uid) was successfully registered with facebook")
                 self.logInDelegate?.setRegistrationType(with: RegistrationType.registered)
                 self.logInDelegate?.handleUserLoggedIn(via: (LogInType.facebook as String))
                 
             } else {
-                print("Error when anonymous user attempted to login to Facebook: \(error)")
+                print("Error when anonymous user attempted to login to Facebook: \(String(describing: error))")
                 
                 if let errCode = FIRAuthErrorCode(rawValue: error!._code) {
                     
@@ -276,7 +276,7 @@ class LoginViewController: UITableViewController, UITextFieldDelegate {
                         self.logInDelegate?.setRegistrationType(with: RegistrationType.registered)
                         self.logInDelegate?.handleUserLoggedIn(via: (LogInType.facebook as String))
                     default:
-                        print("Create User Error: \(error)")
+                        print("Create User Error: \(String(describing: error))")
                     }    
                 }
             }
@@ -289,12 +289,12 @@ class LoginViewController: UITableViewController, UITextFieldDelegate {
             
             if error == nil {
                 
-                print("A new user: \(user?.email), \(user?.uid) was successfully logged in via facebook")
+                print("A new user: \(String(describing: user?.email)), \(String(describing: user?.uid)) was successfully logged in via facebook")
                 self.logInDelegate?.setRegistrationType(with: RegistrationType.registered)
                 self.logInDelegate?.handleUserLoggedIn(via: (LogInType.facebook as String))
                 
             } else {
-                print("Error when first time user attempted to login via facebook: \(error?.localizedDescription)")
+                print("Error when first time user attempted to login via facebook: \(String(describing: error?.localizedDescription))")
             }
         }
     }

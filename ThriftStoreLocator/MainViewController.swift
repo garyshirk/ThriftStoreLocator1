@@ -244,7 +244,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     }
     
     func mapView(_ mapView: MKMapView, didSelect view: MKAnnotationView) {
-        print("Did click on annotation: \(mapView.selectedAnnotations.first)")
+        print("Did click on annotation: \(String(describing: mapView.selectedAnnotations.first))")
     }
     
     func timer() {
@@ -295,7 +295,9 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     }
     
     func getMapZoomDistance() -> Double? {
-        return self.mapZoomRadius
+        // DEBUG
+        return 500.0
+        //return self.mapZoomRadius
     }
     
     func zoomToLocation(at location: CLLocationCoordinate2D, withZoomDistanceInMiles distance: Double) {
@@ -612,7 +614,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
                     detailViewController.delegate = self
                     detailViewController.selectedStoreIndex = indexPath.row
                     detailViewController.storeNameStr = selectedStore.name
-                    detailViewController.isFav = selectedStore.isFavorite as Bool!
+                    detailViewController.isFav = selectedStore.isFavorite as! Bool!
                     detailViewController.streetStr = selectedStore.address
                     detailViewController.cityStr = selectedStore.city
                     detailViewController.stateStr = selectedStore.state

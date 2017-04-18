@@ -56,7 +56,7 @@ extension DataLayer {
             
             let finalCount = try? context.count(for: fetchRequest)
             
-            print("Deleting all existing Stores except favorites: InitialCount: \(initialCount) --- FinalCount: \(finalCount)")
+            print("Deleting all existing Stores except favorites: InitialCount: \(String(describing: initialCount)) --- FinalCount: \(String(describing: finalCount))")
                 
             // Update the main thread
             DispatchQueue.main.sync {
@@ -125,7 +125,7 @@ extension DataLayer {
                     try context.persistentStoreCoordinator?.execute(deleteRequst, with: context)
                     let finalCount = try? context.count(for: fetchRequest)
                     
-                    print("Deleting existing Stores: InitialCount: \(initialCount) --- FinalCount: \(finalCount)")
+                    print("Deleting existing Stores: InitialCount: \(String(describing: initialCount)) --- FinalCount: \(String(describing: finalCount))")
                     
                 } catch _ as NSError {
                     // TODO - Error handling

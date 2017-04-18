@@ -25,11 +25,12 @@ protocol StoresViewModelDelegate: class {
     func getSortType() -> StoreSortType?
     
     func getMapZoomDistance() -> Double?
+    
 }
 
 class StoresViewModel {
     
-    var isLoadByState = false
+    var isLoadByState = true
     
     private var modelManager: ModelManager
     
@@ -45,7 +46,8 @@ class StoresViewModel {
     
     var query: String = ""
     
-    var showStoreRadius: Double = 25.0 // Constant - filter stores loaded from server to 25 mile radius of location (in miles)
+    // DEBUG Use 100 miles instead of 25 miles
+    var showStoreRadius: Double = 100.0 // Constant - filter stores loaded from server to 25 mile radius of location (in miles)
     
     var storeLocationPredicate: NSPredicate?
     
@@ -74,23 +76,27 @@ class StoresViewModel {
         statePreviouslyLoaded = ""
     }
     
-    func setMapZoomArea(radius: Double) {
-        
-    }
-    
     func postFavorite(forStore store: Store, user: String) {
         
-        modelManager.postFavoriteToServer(store: store, forUser: user, modelManagerPostFavUpdater: {
+        modelManager.postFavoriteToServer(store: store, forUser: user, modelManagerPostFavUpdater: { [weak self] in
         
-            self.delegate?.handleFavoriteUpdated()
+            guard let strongSelf = self else {
+                return
+            }
+            
+            strongSelf.delegate?.handleFavoriteUpdated()
         })
     }
     
     func removeFavorite(forStore store: Store, user: String) {
         
-        modelManager.removeFavoriteFromServer(store: store, forUser: user, modelManagerPostFavUpdater: {
+        modelManager.removeFavoriteFromServer(store: store, forUser: user, modelManagerPostFavUpdater: { [weak self] in
             
-            self.delegate?.handleFavoriteUpdated()            
+            guard let strongSelf = self else {
+                return
+            }
+            
+            strongSelf.delegate?.handleFavoriteUpdated()
         })
     }
     

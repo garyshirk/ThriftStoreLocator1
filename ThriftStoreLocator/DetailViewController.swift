@@ -64,7 +64,6 @@ class DetailViewController: UIViewController {
     
     
     @IBAction func getDirectionsButton(_ sender: Any) {
-        print("getDirectionsButton pressed")
         openMapForPlace()
     }
     

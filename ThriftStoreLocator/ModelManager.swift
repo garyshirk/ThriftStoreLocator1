@@ -35,9 +35,13 @@ class ModelManager {
     
     func postFavoriteToServer(store: Store, forUser user: String, modelManagerPostFavUpdater: @escaping () -> Void) {
         
-        self.networkLayer.postFavorite(store: store, forUser: user, networkLayerPostFavUpdater: {
+        self.networkLayer.postFavorite(store: store, forUser: user, networkLayerPostFavUpdater: { [weak self] in
+            
+            guard let strongSelf = self else {
+                return
+            }
         
-            self.dataLayer.updateFavorite(isFavOn: true, forStoreEntity: store, saveInBackgroundSuccess: {
+            strongSelf.dataLayer.updateFavorite(isFavOn: true, forStoreEntity: store, saveInBackgroundSuccess: {
             
                 modelManagerPostFavUpdater()
             })
@@ -46,9 +50,13 @@ class ModelManager {
     
     func removeFavoriteFromServer(store: Store, forUser user: String, modelManagerPostFavUpdater: @escaping () -> Void) {
         
-        self.networkLayer.removeFavorite(store: store, forUser: user, networkLayerRemoveFavUpdater: {
+        self.networkLayer.removeFavorite(store: store, forUser: user, networkLayerRemoveFavUpdater: { [weak self] in
+            
+            guard let strongSelf = self else {
+                return
+            }
         
-            self.dataLayer.updateFavorite(isFavOn: false, forStoreEntity: store, saveInBackgroundSuccess: {
+            strongSelf.dataLayer.updateFavorite(isFavOn: false, forStoreEntity: store, saveInBackgroundSuccess: {
                 
                 modelManagerPostFavUpdater()
             })
