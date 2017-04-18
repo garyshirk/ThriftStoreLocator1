@@ -97,6 +97,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
             self.mapZoomRadius = 10.0
         }
         
+        self.activityIndicator.frame = CGRect(x: 0.0, y: 0.0, width: 50.0, height: 50.0)
         self.activityIndicator.center = self.view.center
         self.activityIndicator.hidesWhenStopped = true
         self.activityIndicator.activityIndicatorViewStyle = .gray
@@ -410,7 +411,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
             self.searchBarButton = UIBarButtonItem(barButtonSystemItem: .search, target: self, action: #selector(MainViewController.searchPressed))
             self.navigationItem.rightBarButtonItem = self.searchBarButton
         } else {
-            self.searchBarButton = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(MainViewController.searchPressed))
+            self.searchBarButton = UIBarButtonItem(barButtonSystemItem: .cancel, target: self, action: #selector(MainViewController.searchPressed))
             self.navigationItem.rightBarButtonItem = self.searchBarButton
         }
     }

@@ -112,7 +112,6 @@ class MenuTableViewController: UITableViewController {
                         strongSelf.userSelectedMapZoom(radius: .twenty)
                 }),
         ])
-        //dropMenuButton.setInitialValueOnOpen(row: 3)
         
         sortSegControl.setTitle("Distance", forSegmentAt: 0)
         sortSegControl.setTitle("Name", forSegmentAt: 1)
@@ -219,7 +218,7 @@ class MenuTableViewController: UITableViewController {
     }
     
     @IBAction func storeDisplayAreaButtonPressed(_ sender: Any) {
-        storeDisplayDropDownIsOpen = true
+        storeDisplayDropDownIsOpen = !storeDisplayDropDownIsOpen
         tableView.beginUpdates()
         tableView.endUpdates()
     }
