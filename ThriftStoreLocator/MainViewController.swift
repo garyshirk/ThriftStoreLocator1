@@ -53,8 +53,6 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     
     var mapZoomRadius: Double?
     
-    var activityIndicator: UIActivityIndicatorView = UIActivityIndicatorView()
-    
     @IBOutlet weak var tableView: UITableView!
     @IBOutlet weak var titleLabel: UILabel!
     @IBOutlet weak var searchView: UIView!
@@ -96,13 +94,6 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         } else {
             self.mapZoomRadius = 10.0
         }
-        
-        self.activityIndicator.frame = CGRect(x: 0.0, y: 0.0, width: 50.0, height: 50.0)
-        self.activityIndicator.center = self.view.center
-        self.activityIndicator.hidesWhenStopped = true
-        self.activityIndicator.activityIndicatorViewStyle = .gray
-        self.activityIndicator.isHidden = true
-        self.view.addSubview(self.activityIndicator)
         
         refreshControl = UIRefreshControl()
         if let refresh = refreshControl {
@@ -168,14 +159,12 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     }
     
     func showActivityIndicator() {
-        if self.activityIndicator.isHidden {
-            self.activityIndicator.startAnimating()
-            UIApplication.shared.beginIgnoringInteractionEvents()
-        }
+        IJProgressView.shared.showProgressView(view)
+        UIApplication.shared.beginIgnoringInteractionEvents()
     }
     
     func hideActivityIndicator() {
-        self.activityIndicator.stopAnimating()
+        IJProgressView.shared.hideProgressView()
         UIApplication.shared.endIgnoringInteractionEvents()
     }
     
