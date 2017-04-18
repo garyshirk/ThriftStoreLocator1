@@ -28,6 +28,8 @@ protocol MenuViewDelegate: class {
     
     func userSelectedManageFavorites()
     
+    func userSelectedDisplayType(isHideMap: Bool)
+    
     func userSelectedSortType(sortType: StoreSortType)
     
     func userSelectedMapZoomRadius(radius: MapZoomRadius)
@@ -36,6 +38,7 @@ protocol MenuViewDelegate: class {
 class MenuTableViewController: UITableViewController {
     
     enum Section: Int {
+        case displayType
         case searchSettings
         case favorites
         case login
@@ -46,10 +49,12 @@ class MenuTableViewController: UITableViewController {
     var isLoggedIn: Bool?
     var isRegistered: Bool?
     var username: String?
+    var displayTypeMapHidden: Bool?
     var sortType: StoreSortType?
     var mapZoomRadius: MapZoomRadius?
     var storeDisplayDropDownIsOpen: Bool = false
     
+    @IBOutlet weak var displaySegControl: UISegmentedControl!
     @IBOutlet weak var loginCell: UILabel!
     @IBOutlet weak var signedInAs: UILabel!
     @IBOutlet weak var dropMenuButton: DropMenuButton!
@@ -113,6 +118,14 @@ class MenuTableViewController: UITableViewController {
                 }),
         ])
         
+        displaySegControl.setTitle("Map & List", forSegmentAt: 0)
+        displaySegControl.setTitle("List Only", forSegmentAt: 1)
+        if displayTypeMapHidden == true {
+            displaySegControl.selectedSegmentIndex = 1
+        } else {
+            displaySegControl.selectedSegmentIndex = 0
+        }
+        
         sortSegControl.setTitle("Distance", forSegmentAt: 0)
         sortSegControl.setTitle("Name", forSegmentAt: 1)
         if self.sortType == .distance {
@@ -148,11 +161,13 @@ class MenuTableViewController: UITableViewController {
         
         switch section {
         case 0:
-            headerText = "Search Settings"
+            headerText = "Display Type"
         case 1:
-            headerText = "Favorites"
+            headerText = "Search Settings"
         case 2:
-            headerText = "Logged In As"
+           headerText = "Favorites"
+        case 3:
+             headerText = "Logged In As"
         default:
             break
         }
@@ -168,12 +183,10 @@ class MenuTableViewController: UITableViewController {
         let section: Section = MenuTableViewController.Section(rawValue: indexPath.section)!
         
         switch section {
-            case .searchSettings:
-                if row == 0 {
-                    
-                } else {
-                    
-                }
+            case .displayType: break
+            
+            case .searchSettings: break
+            
             case .favorites:
                 if row == 0 {
                     dismiss(animated: true, completion: nil)
@@ -182,9 +195,7 @@ class MenuTableViewController: UITableViewController {
                     
             }
             case .login:
-                if row == 0 {
-                    
-                } else {
+                if row == 1 {
                     self.menuViewDelegate?.userSelectedMenuLoginCell()
                 }
         }
@@ -196,6 +207,7 @@ class MenuTableViewController: UITableViewController {
         let section: Section = MenuTableViewController.Section(rawValue: indexPath.section)!
         
         switch section {
+        case .displayType: return 88.0
         case .searchSettings:
             if row == 0 {
                 return 88.0
@@ -216,6 +228,21 @@ class MenuTableViewController: UITableViewController {
             return 44.0
         }
     }
+    
+    @IBAction func displaySegSelected(_ sender: Any) {
+        let selection = self.displaySegControl.selectedSegmentIndex
+        switch selection {
+        case 0:
+            displayTypeMapHidden = false
+            self.menuViewDelegate?.userSelectedDisplayType(isHideMap: false)
+        case 1:
+            displayTypeMapHidden = true
+            self.menuViewDelegate?.userSelectedDisplayType(isHideMap: true)
+        default:
+            break
+        }
+    }
+    
     
     @IBAction func storeDisplayAreaButtonPressed(_ sender: Any) {
         storeDisplayDropDownIsOpen = !storeDisplayDropDownIsOpen

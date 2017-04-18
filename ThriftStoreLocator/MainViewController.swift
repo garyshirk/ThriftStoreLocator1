@@ -17,6 +17,8 @@ import Firebase
 // TODO - Define a CLCicularRegion based on user's current location and update store map and list when user leaves that region
 class MainViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UITextFieldDelegate, MKMapViewDelegate, CLLocationManagerDelegate, StoresViewModelDelegate, LogInDelegate, MenuViewDelegate, FavoriteButtonPressedDelegate {
     
+    var mapHiddenView: Bool?
+    
     var loginType: String?
     
     var username: String?
@@ -94,6 +96,9 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         } else {
             self.mapZoomRadius = 10.0
         }
+        
+        self.mapHiddenView = false
+        userSelectedDisplayType(isHideMap: self.mapHiddenView!)
         
         refreshControl = UIRefreshControl()
         if let refresh = refreshControl {
@@ -196,6 +201,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         sideMenuViewController.isLoggedIn = isLoggedIn()
         sideMenuViewController.isRegistered = (getRegistrationType() == RegistrationType.registered)
         sideMenuViewController.username = self.username ?? ""
+        sideMenuViewController.displayTypeMapHidden = self.mapHiddenView
         sideMenuViewController.sortType = self.sortType
         sideMenuViewController.mapZoomRadius = self.mapZoomRadiusAsEnum(forRadius: self.mapZoomRadius!)
         sideMenuViewController.menuViewDelegate = self
@@ -585,9 +591,13 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         }
         cell.distanceLabel.text = ("\(distanceFromMyLocation(toLat: selectedStore.locLat!, long: selectedStore.locLong!)) away")
         
-        cell.locationButton.tag = indexPath.row
-        
-        cell.locationButton.addTarget(self, action: #selector(locationButtonPressed), for: .touchUpInside)
+        if mapHiddenView == false {
+            cell.locationButton.isHidden = false
+            cell.locationButton.tag = indexPath.row
+            cell.locationButton.addTarget(self, action: #selector(locationButtonPressed), for: .touchUpInside)
+        } else {
+            cell.locationButton.isHidden = true
+        }
        
         if selectedStore.isFavorite == true {
             cell.favImgView.isHidden = false
@@ -765,6 +775,16 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     
     func userSelectedManageFavorites() {
         viewModel.getListOfFavorites()
+    }
+    
+    func userSelectedDisplayType(isHideMap: Bool) {
+        mapHiddenView = isHideMap
+        if isHideMap == true {
+            mapViewHeightConstraint.constant = 0.0
+        } else {
+            mapViewHeightConstraint.constant = 202.0
+        }
+        self.tableView.reloadData()
     }
     
     func userSelectedSortType(sortType: StoreSortType) {
