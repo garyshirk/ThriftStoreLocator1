@@ -53,6 +53,8 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     
     var mapZoomRadius: Double?
     
+    var activityIndicator: UIActivityIndicatorView = UIActivityIndicatorView()
+    
     @IBOutlet weak var tableView: UITableView!
     @IBOutlet weak var titleLabel: UILabel!
     @IBOutlet weak var searchView: UIView!
@@ -94,6 +96,12 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         } else {
             self.mapZoomRadius = 10.0
         }
+        
+        self.activityIndicator.center = self.view.center
+        self.activityIndicator.hidesWhenStopped = true
+        self.activityIndicator.activityIndicatorViewStyle = .gray
+        self.activityIndicator.isHidden = true
+        self.view.addSubview(self.activityIndicator)
         
         refreshControl = UIRefreshControl()
         if let refresh = refreshControl {
@@ -156,6 +164,18 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     
     func refresh(sender: Any) {
         viewModel.loadStores(forLocation: mapLocation!, withRefresh: false)
+    }
+    
+    func showActivityIndicator() {
+        if self.activityIndicator.isHidden {
+            self.activityIndicator.startAnimating()
+            UIApplication.shared.beginIgnoringInteractionEvents()
+        }
+    }
+    
+    func hideActivityIndicator() {
+        self.activityIndicator.stopAnimating()
+        UIApplication.shared.endIgnoringInteractionEvents()
     }
     
     func setShadowButton(button: UIButton) {

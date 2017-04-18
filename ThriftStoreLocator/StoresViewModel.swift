@@ -26,6 +26,9 @@ protocol StoresViewModelDelegate: class {
     
     func getMapZoomDistance() -> Double?
     
+    func showActivityIndicator()
+    
+    func hideActivityIndicator()
 }
 
 class StoresViewModel {
@@ -117,6 +120,8 @@ class StoresViewModel {
     
     func loadFavorites(forUser user: String) {
         
+        self.delegate?.showActivityIndicator()
+        
         modelManager.loadFavoritesFromServer(forUser: user, modelManagerLoadFavoritesUpdater: { [weak self] storeEntities -> Void in
         
             guard let strongSelf = self else {
@@ -124,6 +129,7 @@ class StoresViewModel {
             }
             
             strongSelf.delegate?.handleFavoritesLoaded()
+            strongSelf.delegate?.hideActivityIndicator()
         })
     }
     
@@ -176,6 +182,8 @@ class StoresViewModel {
                 filterStoresAndInformMainController(stores: stores)
                 
             } else {
+                
+                self.delegate?.showActivityIndicator()
             
                 modelManager.loadStoresFromServer(forQuery: query, withDeleteOld: deleteOld, modelManagerStoresUpdater: { [weak self] storeEntities -> Void in
                     
@@ -185,6 +193,7 @@ class StoresViewModel {
                     
                     strongSelf.countyPreviouslyLoadedDict[strongSelf.county] = strongSelf.locationLoadedFromServer
                     strongSelf.filterStoresAndInformMainController(stores: storeEntities)
+                    strongSelf.delegate?.hideActivityIndicator()
                 })
             }
             
@@ -196,6 +205,8 @@ class StoresViewModel {
                 updateMainController(stores: stores)
                 
             } else {
+                
+                self.delegate?.showActivityIndicator()
                 
                 modelManager.deleteAllStoresFromCoreDataExceptFavs( modelManagerDeleteAllCoreDataExceptFavsUpdater: { [weak self] in
                     
@@ -209,6 +220,7 @@ class StoresViewModel {
                         
                         strongSelf.statePreviouslyLoaded = strongSelf.query
                         strongSelf.updateMainController(stores: storeEntities)
+                        strongSelf.delegate?.hideActivityIndicator()
                     })
                 })
             }
