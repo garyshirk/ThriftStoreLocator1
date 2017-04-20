@@ -9,10 +9,13 @@
 import Foundation
 import CoreData
 
+private let _shareManager = ModelManager()
+
 class ModelManager {
-    
-    // TODO - Improve singleton implementation
-    static var sharedInstance = ModelManager()
+
+    class var shareManager: ModelManager {
+        return _shareManager
+    }
     
     var networkLayer = NetworkLayer()
     var dataLayer = DataLayer()

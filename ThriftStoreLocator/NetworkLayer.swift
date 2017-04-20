@@ -241,6 +241,7 @@ class NetworkLayer {
                     
                     case .failure(let error):
                         // TODO - Proper error handling
+                        NSLog(error as! String)
                         print(error)
                     }
             })

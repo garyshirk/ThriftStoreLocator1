@@ -65,7 +65,7 @@ class StoresViewModel {
     
     init(delegate: StoresViewModelDelegate?) {
         self.delegate = delegate
-        self.modelManager = ModelManager.sharedInstance
+        self.modelManager = ModelManager.shareManager
     }
     
     // MARK - public functions
