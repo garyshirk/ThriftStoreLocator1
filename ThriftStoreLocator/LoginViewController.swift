@@ -164,14 +164,14 @@ class LoginViewController: UITableViewController, UITextFieldDelegate {
         alert.addTextField { textEmail in
             textEmail.keyboardType = UIKeyboardType.emailAddress
             textEmail.borderStyle = UITextBorderStyle.bezel
-            textEmail.placeholder = "email"
+            textEmail.placeholder = "Email"
         }
         
         alert.addTextField { textPassword in
             textPassword.isSecureTextEntry = true
             textPassword.borderStyle = UITextBorderStyle.bezel
             textPassword.clearsOnBeginEditing = true
-            textPassword.placeholder = "password"
+            textPassword.placeholder = "Password"
         }
         
         alert.addAction(saveAction)

@@ -37,7 +37,7 @@ open class IJProgressView {
         
         progressView.frame = CGRect(x: 0, y: 0, width: 80, height: 80)
         progressView.center = view.center
-        progressView.backgroundColor = UIColor(hex: 0x444444, alpha: 0.7)
+        progressView.backgroundColor = UIColor(hex: UInt32(AppDelegate.DEFAULT_BLUE_COLOR), alpha: 0.7)
         progressView.clipsToBounds = true
         progressView.layer.cornerRadius = 10
         
@@ -55,6 +55,10 @@ open class IJProgressView {
     open func hideProgressView() {
         activityIndicator.stopAnimating()
         containerView.removeFromSuperview()
+    }
+    
+    open func isShowing() -> Bool {
+        return activityIndicator.isAnimating
     }
 }
 

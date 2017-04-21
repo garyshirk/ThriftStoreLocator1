@@ -164,13 +164,17 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     }
     
     func showActivityIndicator() {
-        IJProgressView.shared.showProgressView(view)
-        UIApplication.shared.beginIgnoringInteractionEvents()
+        if IJProgressView.shared.isShowing() == false {
+            IJProgressView.shared.showProgressView(view)
+            UIApplication.shared.beginIgnoringInteractionEvents()
+            dimmerView.isHidden = false
+        }
     }
     
     func hideActivityIndicator() {
         IJProgressView.shared.hideProgressView()
         UIApplication.shared.endIgnoringInteractionEvents()
+        dimmerView.isHidden = true
     }
     
     func setShadowButton(button: UIButton) {
@@ -558,28 +562,18 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     }
     
     // MARK: - Table view data source and delegates
-    
-//    func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
-//        let v = UIView()
-//        v.backgroundColor = .blue
-//        let segmentedControl = UISegmentedControl(frame: CGRect(x: 10, y: 5, width: tableView.frame.width - 20, height: 30))
-//        segmentedControl.insertSegment(withTitle: "One", at: 0, animated: false)
-//        segmentedControl.insertSegment(withTitle: "Two", at: 1, animated: false)
-//        segmentedControl.insertSegment(withTitle: "Three", at: 2, animated: false)
-//        v.addSubview(segmentedControl)
-//        return v
-//    }
-//    
-//    func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
-//        return mapViewHeight
-//    }
 
     func numberOfSections(in tableView: UITableView) -> Int {
         return 1
     }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        return 90
+        
+        if mapHiddenView == true {
+            return 88
+        } else {
+            return 68
+        }
     }
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -593,33 +587,52 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
-        let cell = tableView.dequeueReusableCell(withIdentifier: "storeCell", for: indexPath) as! StoreCell
-        
         var selectedStore: Store
-        
         selectedStore = viewModel.stores[indexPath.row]
         
-        cell.storeLabel.text = selectedStore.name
-        if let city = selectedStore.city, let state = selectedStore.state {
-            cell.cityStateLabel.text = "\(city), \(state)"
-        }
-        cell.distanceLabel.text = ("\(distanceFromMyLocation(toLat: selectedStore.locLat!, long: selectedStore.locLong!)) away")
+        if mapHiddenView == true {
+            
+            let cell = tableView.dequeueReusableCell(withIdentifier: "storeCellListView", for: indexPath) as! StoreCellListView
+            
+            cell.storeLabel.text = selectedStore.name
+            
+            if let address = selectedStore.address, let city = selectedStore.city, let state = selectedStore.state {
+                cell.addressLabel.text = "\(address), \(city), \(state)"
+            }
+            
+            cell.distanceLabel.text = ("\(distanceFromMyLocation(toLat: selectedStore.locLat!, long: selectedStore.locLong!)) away")
+            
+            if selectedStore.isFavorite == true {
+                cell.favImgView.isHidden = false
+            } else {
+                cell.favImgView.isHidden = true
+            }
+            
+            return cell
+            
+        } else {
+            
+            let cell = tableView.dequeueReusableCell(withIdentifier: "storeCellMapView", for: indexPath) as! StoreCellMapView
+            
+            cell.storeLabel.text = selectedStore.name
+            
+            let dist = ("\(distanceFromMyLocation(toLat: selectedStore.locLat!, long: selectedStore.locLong!))")
+            
+            if let city = selectedStore.city, let state = selectedStore.state {
+                cell.cityStateLabel.text = "\(city), \(state)  \(dist)"
+            }
         
-        if mapHiddenView == false {
-            cell.locationButton.isHidden = false
             cell.locationButton.tag = indexPath.row
             cell.locationButton.addTarget(self, action: #selector(locationButtonPressed), for: .touchUpInside)
-        } else {
-            cell.locationButton.isHidden = true
+            
+            if selectedStore.isFavorite == true {
+                cell.favImgView.isHidden = false
+            } else {
+                cell.favImgView.isHidden = true
+            }
+            
+            return cell
         }
-       
-        if selectedStore.isFavorite == true {
-            cell.favImgView.isHidden = false
-        } else {
-            cell.favImgView.isHidden = true
-        }
-        
-        return cell
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {

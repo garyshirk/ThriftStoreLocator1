@@ -8,12 +8,11 @@
 
 import UIKit
 
-class StoreCell: UITableViewCell {
+class StoreCellMapView: UITableViewCell {
     
     
     @IBOutlet weak var storeLabel: UILabel!
     @IBOutlet weak var cityStateLabel: UILabel!
-    @IBOutlet weak var distanceLabel: UILabel!
     @IBOutlet weak var locationButton: UIButton!
     @IBOutlet weak var favImgView: UIImageView!
     

@@ -134,8 +134,8 @@ class StoresViewModel {
                 strongSelf.delegate?.handleFavoritesLoaded()
             } else {
                 strongSelf.delegate?.handleError(type: error)
+                strongSelf.delegate?.hideActivityIndicator()
             }
-            strongSelf.delegate?.hideActivityIndicator()
         })
     }
     
