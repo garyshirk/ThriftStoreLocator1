@@ -13,8 +13,8 @@ import FirebaseDatabase
 
 // TODO - constants should use pattern for constants (struct or enum)
 private let djangoThriftStoreBaseURL = "http://localhost:8000/thriftstores/"
-private let firebaseThriftStoreBaseURL = "https://thrift-store-locator.firebaseio.com/thriftstores/<QUERY>.json?auth=Oo28wAkZypjeuijFzjxEVhRwvZe6gTUq8dn3RABo"
-private let firebaseFavoritesBaseURL = "https://thrift-store-locator.firebaseio.com/favorites/<QUERY>.json?auth=Oo28wAkZypjeuijFzjxEVhRwvZe6gTUq8dn3RABo"
+private let firebaseThriftStoreBaseURL = "https://thrift-store-locator.firebaseio.com/thriftstores/<QUERY>.json?auth="
+private let firebaseFavoritesBaseURL = "https://thrift-store-locator.firebaseio.com/favorites/<QUERY>.json?auth="
 private let locationInfoBaseURL = "http://maps.googleapis.com/maps/api/geocode/json?address=<location>&sensor=false"
 
 class NetworkLayer {
