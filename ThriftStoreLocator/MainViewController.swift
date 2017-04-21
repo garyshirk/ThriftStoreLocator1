@@ -204,7 +204,11 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         let sideMenuViewController = menuRightNavigationController.viewControllers[0] as! MenuTableViewController
         sideMenuViewController.isLoggedIn = isLoggedIn()
         sideMenuViewController.isRegistered = (getRegistrationType() == RegistrationType.registered)
-        sideMenuViewController.username = self.username ?? ""
+        if loginType == LogInType.facebook as String {
+            sideMenuViewController.username = "Signed in via facebook"
+        } else {
+            sideMenuViewController.username = self.username ?? ""
+        }
         sideMenuViewController.displayTypeMapHidden = self.mapHiddenView
         sideMenuViewController.sortType = self.sortType
         sideMenuViewController.mapZoomRadius = self.mapZoomRadiusAsEnum(forRadius: self.mapZoomRadius!)
@@ -746,6 +750,8 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         if user != nil {
             
             self.username = user!.email
+            
+            print(self.username ?? "")
             
             if let providerData = user?.providerData {
                 for userInfo in providerData {

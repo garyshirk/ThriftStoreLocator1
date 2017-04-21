@@ -38,10 +38,8 @@ protocol MenuViewDelegate: class {
 class MenuTableViewController: UITableViewController {
     
     enum Section: Int {
-        case displayType
-        case searchSettings
-        case favorites
-        case login
+        case settings
+        case account
     }
     
     weak var menuViewDelegate: MenuViewDelegate?
@@ -158,18 +156,13 @@ class MenuTableViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, willDisplayHeaderView view: UIView, forSection section: Int) {
         
         var headerText: String = ""
+        let sectionSw: Section = MenuTableViewController.Section(rawValue: section)!
         
-        switch section {
-        case 0:
-            headerText = "Display Type"
-        case 1:
-            headerText = "Search Settings"
-        case 2:
-           headerText = "Favorites"
-        case 3:
-             headerText = "Logged In As"
-        default:
-            break
+        switch sectionSw {
+        case .settings:
+            headerText = "Settings"
+        case .account:
+            headerText = "Account"
         }
 
         let header = view as! UITableViewHeaderFooterView
@@ -183,19 +176,20 @@ class MenuTableViewController: UITableViewController {
         let section: Section = MenuTableViewController.Section(rawValue: indexPath.section)!
         
         switch section {
-            case .displayType: break
-            
-            case .searchSettings: break
-            
-            case .favorites:
-                if row == 0 {
+            case .settings:
+                if row == 0 { // Display type
+                    break
+                } else if row == 1 { // Sort type
+                    break
+                } else if row == 2 { // Display radius
+                    break
+                } else if row == 3 { // Go to favorites
                     dismiss(animated: true, completion: nil)
                     self.menuViewDelegate?.userSelectedManageFavorites()
-                } else {
-                    
-            }
-            case .login:
-                if row == 1 {
+                }
+        
+            case .account:
+                if row == 1 { // Login/out
                     self.menuViewDelegate?.userSelectedMenuLoginCell()
                 }
         }
@@ -207,26 +201,29 @@ class MenuTableViewController: UITableViewController {
         let section: Section = MenuTableViewController.Section(rawValue: indexPath.section)!
         
         switch section {
-        case .displayType: return 88.0
-        case .searchSettings:
-            if row == 0 {
+        case .settings:
+            if row == 0 { // Display type
                 return 88.0
-            } else {
+            } else if row == 1 { // Sort type
+                return 88.0
+            } else if row == 2 { // Display radius
                 if storeDisplayDropDownIsOpen == true {
                     return 200.0
                 } else {
                     return 88.0
                 }
+            } else if row == 3 { // Go to favorites
+                return 50.0
             }
-        case .favorites:
+            
+        case .account:
             if row == 0 {
-                return 44.0
+                return 44.0 // username
             } else {
-                return 88.0
+                return 50.0 // Login/out
             }
-        case .login:
-            return 44.0
         }
+        return 50.0 // 
     }
     
     @IBAction func displaySegSelected(_ sender: Any) {
