@@ -316,6 +316,20 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         //return self.mapZoomRadius
     }
     
+    func handleError(type: ErrorType) {
+        // TODO - Receiving runtime warning when attempting to present alert view for Favorite post/delete errors:
+        // "Presenting VC on detached VC is discouraged". Possible fix below, but not working:
+        // http://stackoverflow.com/q/25401889/7601815
+        // Note: At time of this writing error dialogs are not being shown for fav/unfav update failures
+        DispatchQueue.main.async(execute: { () -> Void in
+            let errorHandler = ErrorHandler()
+            if let errorAlert = errorHandler.handleError(ofType: type) {
+                 self.present(errorAlert, animated: true, completion: nil)
+            }
+            self.refreshControl?.endRefreshing()
+        })
+    }
+    
     func zoomToLocation(at location: CLLocationCoordinate2D, withZoomDistanceInMiles distance: Double) {
         let region = MKCoordinateRegionMakeWithDistance(location, milesToMeters(for: distance), milesToMeters(for: distance))
         mapView.setRegion(region, animated: true)
@@ -767,7 +781,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
                 try firebaseAuth?.signOut()
                 loginType = LogInType.isNotLoggedIn as String
             } catch let signOutError as NSError {
-                print ("Error logging out: %@", signOutError)
+                print("Error logging out: %@", signOutError)
             }
         }
         performSegue(withIdentifier: "presentLoginView", sender: nil)

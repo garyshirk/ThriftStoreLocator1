@@ -44,6 +44,8 @@ class DetailViewController: UIViewController {
         
         if let unwrappedCityStr = cityStr {
             cityLabel.text = ("\(unwrappedCityStr),")
+        } else {
+            cityLabel.text = ""
         }
 
         stateLabel.text = stateStr

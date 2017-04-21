@@ -29,6 +29,8 @@ protocol StoresViewModelDelegate: class {
     func showActivityIndicator()
     
     func hideActivityIndicator()
+    
+    func handleError(type: ErrorType)
 }
 
 class StoresViewModel {
@@ -81,25 +83,29 @@ class StoresViewModel {
     
     func postFavorite(forStore store: Store, user: String) {
         
-        modelManager.postFavoriteToServer(store: store, forUser: user, modelManagerPostFavUpdater: { [weak self] in
+        modelManager.postFavoriteToServer(store: store, forUser: user, modelManagerPostFavUpdater: { [weak self] error in
         
-            guard let strongSelf = self else {
-                return
-            }
+            guard let strongSelf = self else { return }
             
-            strongSelf.delegate?.handleFavoriteUpdated()
+            if error == .none {
+                strongSelf.delegate?.handleFavoriteUpdated()
+            } else {
+                strongSelf.delegate?.handleError(type: error)
+            }
         })
     }
     
     func removeFavorite(forStore store: Store, user: String) {
         
-        modelManager.removeFavoriteFromServer(store: store, forUser: user, modelManagerPostFavUpdater: { [weak self] in
+        modelManager.removeFavoriteFromServer(store: store, forUser: user, modelManagerPostFavUpdater: { [weak self] error in
             
-            guard let strongSelf = self else {
-                return
+            guard let strongSelf = self else { return }
+            
+            if error == .none {
+                strongSelf.delegate?.handleFavoriteUpdated()
+            } else {
+                strongSelf.delegate?.handleError(type: error)
             }
-            
-            strongSelf.delegate?.handleFavoriteUpdated()
         })
     }
     
@@ -107,9 +113,7 @@ class StoresViewModel {
         
         modelManager.listFavorites(modelManagerListFavoritesUpdater: { [weak self] storeEntities -> Void in
         
-            guard let strongSelf = self else {
-                return
-            }
+            guard let strongSelf = self else { return }
             
             let sortType = strongSelf.delegate?.getSortType()
             strongSelf.favoriteStores = strongSelf.setStoreSortOrder(by: sortType!, forStores: storeEntities)
@@ -122,13 +126,15 @@ class StoresViewModel {
         
         self.delegate?.showActivityIndicator()
         
-        modelManager.loadFavoritesFromServer(forUser: user, modelManagerLoadFavoritesUpdater: { [weak self] storeEntities -> Void in
+        modelManager.loadFavoritesFromServer(forUser: user, modelManagerLoadFavoritesUpdater: { [weak self] (storeEntities, error) -> Void in
         
-            guard let strongSelf = self else {
-                return
-            }
+            guard let strongSelf = self else { return }
             
-            strongSelf.delegate?.handleFavoritesLoaded()
+            if error == .none {
+                strongSelf.delegate?.handleFavoritesLoaded()
+            } else {
+                strongSelf.delegate?.handleError(type: error)
+            }
             strongSelf.delegate?.hideActivityIndicator()
         })
     }
@@ -185,14 +191,16 @@ class StoresViewModel {
                 
                 self.delegate?.showActivityIndicator()
             
-                modelManager.loadStoresFromServer(forQuery: query, withDeleteOld: deleteOld, modelManagerStoresUpdater: { [weak self] storeEntities -> Void in
+                modelManager.loadStoresFromServer(forQuery: query, withDeleteOld: deleteOld, modelManagerStoresUpdater: { [weak self] (storeEntities, error) -> Void in
                     
-                    guard let strongSelf = self else {
-                        return
+                    guard let strongSelf = self else { return }
+                    
+                    if error == .none {
+                        strongSelf.countyPreviouslyLoadedDict[strongSelf.county] = strongSelf.locationLoadedFromServer
+                        strongSelf.filterStoresAndInformMainController(stores: storeEntities)
+                    } else {
+                        strongSelf.delegate?.handleError(type: error)
                     }
-                    
-                    strongSelf.countyPreviouslyLoadedDict[strongSelf.county] = strongSelf.locationLoadedFromServer
-                    strongSelf.filterStoresAndInformMainController(stores: storeEntities)
                     strongSelf.delegate?.hideActivityIndicator()
                 })
             }
@@ -208,20 +216,26 @@ class StoresViewModel {
                 
                 self.delegate?.showActivityIndicator()
                 
-                modelManager.deleteAllStoresFromCoreDataExceptFavs( modelManagerDeleteAllCoreDataExceptFavsUpdater: { [weak self] in
+                modelManager.deleteAllStoresFromCoreDataExceptFavs( modelManagerDeleteAllCoreDataExceptFavsUpdater: { [weak self] dataLayerError in
                     
                     guard let strongSelf = self else { return }
                     
-                    strongSelf.modelManager.loadStoresFromServer(forQuery: strongSelf.query, withDeleteOld: deleteOld, withLocationPred: strongSelf.storeLocationPredicate!, modelManagerStoresUpdater: { [weak self] storeEntities -> Void in
+                    if dataLayerError == .none {
                         
-                        guard let strongSelf = self else {
-                            return
-                        }
+                        strongSelf.modelManager.loadStoresFromServer(forQuery: strongSelf.query, withDeleteOld: deleteOld, withLocationPred: strongSelf.storeLocationPredicate!, modelManagerStoresUpdater: { (storeEntities, error) -> Void in
+                            
+                            if error == .none {
+                                strongSelf.statePreviouslyLoaded = strongSelf.query
+                                strongSelf.updateMainController(stores: storeEntities)
+                            } else {
+                                strongSelf.delegate?.handleError(type: error)
+                            }
+                        })
                         
-                        strongSelf.statePreviouslyLoaded = strongSelf.query
-                        strongSelf.updateMainController(stores: storeEntities)
-                        strongSelf.delegate?.hideActivityIndicator()
-                    })
+                    } else {
+                        strongSelf.delegate?.handleError(type: dataLayerError)
+                    }
+                    strongSelf.delegate?.hideActivityIndicator()
                 })
             }
         }

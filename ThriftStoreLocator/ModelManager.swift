@@ -28,43 +28,53 @@ class ModelManager {
         return dataLayer.getLocationFilteredStoresOnMainThread(forPredicate: predicate)
     }
     
-    func deleteAllStoresFromCoreDataExceptFavs(modelManagerDeleteAllCoreDataExceptFavsUpdater: @escaping () -> Void) {
+    func deleteAllStoresFromCoreDataExceptFavs(modelManagerDeleteAllCoreDataExceptFavsUpdater: @escaping (ErrorType) -> Void) {
         
-        self.dataLayer.deleteCoreDataObjectsExceptFavorites(deleteAllStoresExceptFavsUpdater: {
-            
-            modelManagerDeleteAllCoreDataExceptFavsUpdater()
+        self.dataLayer.deleteCoreDataObjectsExceptFavorites(deleteAllStoresExceptFavsUpdater: { error in
+            modelManagerDeleteAllCoreDataExceptFavsUpdater(error)
         })
     }
     
-    func postFavoriteToServer(store: Store, forUser user: String, modelManagerPostFavUpdater: @escaping () -> Void) {
+    func postFavoriteToServer(store: Store, forUser user: String, modelManagerPostFavUpdater: @escaping (ErrorType) -> Void) {
         
-        self.networkLayer.postFavorite(store: store, forUser: user, networkLayerPostFavUpdater: { [weak self] in
+        self.networkLayer.postFavorite(store: store, forUser: user, networkLayerPostFavUpdater: { [weak self] networkError in
             
-            guard let strongSelf = self else {
-                return
+            guard let strongSelf = self else { return }
+            
+            if networkError == .none {
+                strongSelf.dataLayer.updateFavorite(isFavOn: true, forStoreEntity: store, saveInBackgroundSuccess: { dataLayerError in
+                    if dataLayerError == .none {
+                        modelManagerPostFavUpdater(ErrorType.none)
+                    } else {
+                        modelManagerPostFavUpdater(dataLayerError)
+                    }
+                })
+            } else {
+                modelManagerPostFavUpdater(networkError)
             }
-        
-            strongSelf.dataLayer.updateFavorite(isFavOn: true, forStoreEntity: store, saveInBackgroundSuccess: {
-            
-                modelManagerPostFavUpdater()
-            })
         })
     }
     
-    func removeFavoriteFromServer(store: Store, forUser user: String, modelManagerPostFavUpdater: @escaping () -> Void) {
+    func removeFavoriteFromServer(store: Store, forUser user: String, modelManagerPostFavUpdater: @escaping (ErrorType) -> Void) {
         
-        self.networkLayer.removeFavorite(store: store, forUser: user, networkLayerRemoveFavUpdater: { [weak self] in
+        self.networkLayer.removeFavorite(store: store, forUser: user, networkLayerRemoveFavUpdater: { [weak self]  networkError in
             
-            guard let strongSelf = self else {
-                return
+            guard let strongSelf = self else { return }
+            
+            if networkError == .none {
+                strongSelf.dataLayer.updateFavorite(isFavOn: false, forStoreEntity: store, saveInBackgroundSuccess: { dataLayerError in
+                    if dataLayerError == .none {
+                        modelManagerPostFavUpdater(.none)
+                    } else {
+                        modelManagerPostFavUpdater(dataLayerError)
+                    }
+                })
+            } else {
+                modelManagerPostFavUpdater(networkError)
             }
-        
-            strongSelf.dataLayer.updateFavorite(isFavOn: false, forStoreEntity: store, saveInBackgroundSuccess: {
-                
-                modelManagerPostFavUpdater()
-            })
         })
     }
+    
     
     func listFavorites(modelManagerListFavoritesUpdater: ([Store]) -> Void) {
         
@@ -72,47 +82,71 @@ class ModelManager {
         modelManagerListFavoritesUpdater(stores)
     }
     
-    func loadFavoritesFromServer(forUser user: String, modelManagerLoadFavoritesUpdater: @escaping([Store]) -> Void) {
+    func loadFavoritesFromServer(forUser user: String, modelManagerLoadFavoritesUpdater: @escaping([Store], ErrorType) -> Void) {
         
-        self.networkLayer.loadFavoritesFromServer(forUser: user, networkLayerLoadFavoritesUpdater: { [weak self] stores in
+        self.networkLayer.loadFavoritesFromServer(forUser: user, networkLayerLoadFavoritesUpdater: { [weak self] (stores, networkError) in
             
             guard let strongSelf = self else { return }
-        
-            strongSelf.dataLayer.saveInBackground(stores: stores, withDeleteOld: true, isFavs: true, saveInBackgroundSuccess: {
             
-                let storeEntities = strongSelf.getAllStoresOnMainThread()
-                modelManagerLoadFavoritesUpdater(storeEntities)
-            })
+            if networkError == .none {
+                strongSelf.dataLayer.saveInBackground(stores: stores, withDeleteOld: true, isFavs: true, saveInBackgroundSuccess: { dataLayerError in
+                    if dataLayerError == .none {
+                        let storeEntities = strongSelf.getAllStoresOnMainThread()
+                        modelManagerLoadFavoritesUpdater(storeEntities, .none)
+                    } else {
+                        modelManagerLoadFavoritesUpdater([Store](), dataLayerError)
+                    }
+                })
+            } else {
+                modelManagerLoadFavoritesUpdater([Store](), networkError)
+            }
         })
     }
     
     // Use for loading stores by county
-    func loadStoresFromServer(forQuery query: String, withDeleteOld deleteOld: Bool, modelManagerStoresUpdater: @escaping ([Store]) -> Void) {
+    func loadStoresFromServer(forQuery query: String, withDeleteOld deleteOld: Bool, modelManagerStoresUpdater: @escaping ([Store], ErrorType) -> Void) {
         
-        self.networkLayer.loadStoresFromServer(forQuery: query, networkLayerStoreUpdater: { [weak self] stores in
+        self.networkLayer.loadStoresFromServer(forQuery: query, networkLayerStoreUpdater: { [weak self] (stores, networkError) in
             
             guard let strongSelf = self else { return }
             
-            strongSelf.dataLayer.saveInBackground(stores: stores, withDeleteOld: deleteOld, isFavs: false, saveInBackgroundSuccess: {
-            
-                let storeEntities = strongSelf.getAllStoresOnMainThread()
-                modelManagerStoresUpdater(storeEntities)
-            })
+            if networkError == .none {
+                strongSelf.dataLayer.saveInBackground(stores: stores, withDeleteOld: deleteOld, isFavs: false, saveInBackgroundSuccess: { dataLayerError in
+                    
+                    if dataLayerError == .none {
+                        let storeEntities = strongSelf.getAllStoresOnMainThread()
+                        modelManagerStoresUpdater(storeEntities, ErrorType.none)
+                    } else {
+                        modelManagerStoresUpdater([Store](), dataLayerError)
+                    }
+                })
+            } else {
+                modelManagerStoresUpdater([Store](), networkError)
+            }
         })
     }
     
     // Use for loading stores by state
-    func loadStoresFromServer(forQuery query: String, withDeleteOld deleteOld: Bool, withLocationPred predicate: NSPredicate, modelManagerStoresUpdater: @escaping ([Store]) -> Void) {
+    func loadStoresFromServer(forQuery query: String, withDeleteOld deleteOld: Bool, withLocationPred predicate: NSPredicate, modelManagerStoresUpdater: @escaping ([Store], ErrorType) -> Void) {
         
-        self.networkLayer.loadStoresFromServer(forQuery: query, networkLayerStoreUpdater: { [weak self] stores in
+        self.networkLayer.loadStoresFromServer(forQuery: query, networkLayerStoreUpdater: { [weak self] (stores, networkError) in
             
             guard let strongSelf = self else { return }
             
-            strongSelf.dataLayer.saveInBackground(stores: stores, withDeleteOld: deleteOld, isFavs: false, saveInBackgroundSuccess: {
+            if networkError == .none {
                 
-                let storeEntities = strongSelf.getLocationFilteredStores(forPredicate: predicate)
-                modelManagerStoresUpdater(storeEntities)
-            })
+                strongSelf.dataLayer.saveInBackground(stores: stores, withDeleteOld: deleteOld, isFavs: false, saveInBackgroundSuccess: { dataLayerError in
+                    
+                    if dataLayerError == .none {
+                        let storeEntities = strongSelf.getLocationFilteredStores(forPredicate: predicate)
+                        modelManagerStoresUpdater(storeEntities, ErrorType.none)
+                    } else {
+                        modelManagerStoresUpdater([Store](), dataLayerError)
+                    }
+                })
+            } else {
+                modelManagerStoresUpdater([Store](), networkError)
+            }
         })
     }
 }
