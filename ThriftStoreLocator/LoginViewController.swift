@@ -161,10 +161,13 @@ class LoginViewController: UITableViewController, UITextFieldDelegate {
         let cancelAction = UIAlertAction(title: "Cancel",
                                          style: .default)
         
+        let appDelegate = UIApplication.shared.delegate as! AppDelegate
+        
         alert.addTextField { textEmail in
             textEmail.keyboardType = UIKeyboardType.emailAddress
             textEmail.borderStyle = UITextBorderStyle.bezel
             textEmail.placeholder = "Email"
+            textEmail.tintColor = appDelegate.uicolorFromHex(rgbValue: UInt32(AppDelegate.DEFAULT_BLUE_COLOR))
         }
         
         alert.addTextField { textPassword in
@@ -172,6 +175,7 @@ class LoginViewController: UITableViewController, UITextFieldDelegate {
             textPassword.borderStyle = UITextBorderStyle.bezel
             textPassword.clearsOnBeginEditing = true
             textPassword.placeholder = "Password"
+            textPassword.tintColor = appDelegate.uicolorFromHex(rgbValue: UInt32(AppDelegate.DEFAULT_BLUE_COLOR))
         }
         
         alert.addAction(saveAction)

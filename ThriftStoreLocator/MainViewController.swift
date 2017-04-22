@@ -246,6 +246,8 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         }
     }
     
+    // MARK - MKMapViewDelegates
+    
     func mapView(_ mapView: MKMapView, regionDidChangeAnimated animated: Bool) {
         if let previousMapLocation = mapLocation {
             mapLocation = mapView.centerCoordinate
@@ -268,7 +270,39 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     }
     
     func mapView(_ mapView: MKMapView, didSelect view: MKAnnotationView) {
-        print("Did click on annotation: \(String(describing: mapView.selectedAnnotations.first))")
+        // Not needed. MapView annotations set up to show callout when clicked
+    }
+    
+    func mapView(_ mapView: MKMapView, annotationView view: MKAnnotationView, calloutAccessoryControlTapped control: UIControl) {
+        let annotationTag = (view.annotation as! StoreAnnotation).tag
+        let storyBoard = UIStoryboard(name: "Main", bundle: nil)
+        let detailViewController = storyBoard.instantiateViewController(withIdentifier: "detailViewController") as! DetailViewController
+        configure(detailViewController: detailViewController, forStoreIndex: annotationTag)
+        self.navigationController?.pushViewController(detailViewController, animated: true)
+    }
+    
+    func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
+        
+        let appDelegate = UIApplication.shared.delegate as! AppDelegate
+        let pinTintColor = appDelegate.uicolorFromHex(rgbValue: UInt32(AppDelegate.DEFAULT_BLUE_COLOR))
+        
+        if let annotation = annotation as? StoreAnnotation {
+            let identifier = "storePin"
+            var view: MKPinAnnotationView
+            if let dequeuedView = mapView.dequeueReusableAnnotationView(withIdentifier: identifier) as? MKPinAnnotationView {
+                dequeuedView.annotation = annotation
+                
+                view = dequeuedView
+            } else {
+                view = MKPinAnnotationView(annotation: annotation, reuseIdentifier: identifier)
+                view.canShowCallout = true
+                view.calloutOffset = CGPoint(x: -5, y: 5)
+                view.rightCalloutAccessoryView = UIButton(type: .detailDisclosure) as UIView
+            }
+            view.pinTintColor = pinTintColor
+            return view
+        }
+        return nil
     }
     
     func timer() {
@@ -303,10 +337,12 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
             self.mapView.removeAnnotation(annotation)
         }
         
+        var i = 0
         for store in viewModel.stores {
-            let annotation = MKPointAnnotation()
-            annotation.coordinate = CLLocationCoordinate2D(latitude: store.locLat as! CLLocationDegrees, longitude: store.locLong as! CLLocationDegrees)
-            mapView.addAnnotation(annotation)
+            let coordinate = CLLocationCoordinate2D(latitude: store.locLat as! CLLocationDegrees, longitude: store.locLong as! CLLocationDegrees)
+            let storeAnnotation = StoreAnnotation(tag: i, title: store.name!, coordinate: coordinate)
+            mapView.addAnnotation(storeAnnotation)
+            i += 1
         }
     }
     
@@ -320,8 +356,8 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     
     func getMapZoomDistance() -> Double? {
         // DEBUG
-        return 500.0
-        //return self.mapZoomRadius
+        //return 500.0
+        return self.mapZoomRadius
     }
     
     func handleError(type: ErrorType) {
@@ -659,22 +695,12 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
             
             if let indexPath = tableView.indexPathForSelectedRow {
                 
-                selectedStore = viewModel.stores[(indexPath.row)]
+               // selectedStore = viewModel.stores[(indexPath.row)]
                 
                 if let detailViewController = segue.destination as? DetailViewController {
-                    detailViewController.delegate = self
-                    detailViewController.selectedStoreIndex = indexPath.row
-                    detailViewController.storeNameStr = selectedStore.name
-                    detailViewController.isFav = selectedStore.isFavorite as! Bool!
-                    detailViewController.streetStr = selectedStore.address
-                    detailViewController.cityStr = selectedStore.city
-                    detailViewController.stateStr = selectedStore.state
-                    detailViewController.zipStr = selectedStore.zip
-                    detailViewController.distanceStr = ("\(distanceFromMyLocation(toLat: selectedStore.locLat!, long: selectedStore.locLong!)) away")
-                    let locLat = selectedStore.locLat as! Double
-                    let locLong = selectedStore.locLong as! Double
-                    detailViewController.storeLocation = (locLat, locLong)
-                }
+                    
+                    configure(detailViewController: detailViewController, forStoreIndex: indexPath.row)
+                 }
             }
             
         } else if segue.identifier == "presentLoginView" {
@@ -692,6 +718,22 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
             self.favoritesViewController?.favoriteStores = viewModel.favoriteStores
             self.favoritesViewController?.userLocation = self.myLocation
         }
+    }
+    
+    func configure(detailViewController: DetailViewController, forStoreIndex index: Int) {
+        let selectedStore = self.viewModel.stores[index]
+        detailViewController.delegate = self
+        detailViewController.selectedStoreIndex = index
+        detailViewController.storeNameStr = selectedStore.name
+        detailViewController.isFav = selectedStore.isFavorite as! Bool!
+        detailViewController.streetStr = selectedStore.address
+        detailViewController.cityStr = selectedStore.city
+        detailViewController.stateStr = selectedStore.state
+        detailViewController.zipStr = selectedStore.zip
+        detailViewController.distanceStr = ("\(distanceFromMyLocation(toLat: selectedStore.locLat!, long: selectedStore.locLong!)) away")
+        let locLat = selectedStore.locLat as! Double
+        let locLong = selectedStore.locLong as! Double
+        detailViewController.storeLocation = (locLat, locLong)
     }
     
     // MARK - FavoriteButtonPressedDelegate
@@ -800,7 +842,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
                 try firebaseAuth?.signOut()
                 loginType = LogInType.isNotLoggedIn as String
             } catch let signOutError as NSError {
-                print("Error logging out: %@", signOutError)
+                Logger.print("Error logging out: \(signOutError)")
             }
         }
         performSegue(withIdentifier: "presentLoginView", sender: nil)

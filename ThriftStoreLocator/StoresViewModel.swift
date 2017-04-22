@@ -52,7 +52,7 @@ class StoresViewModel {
     var query: String = ""
     
     // DEBUG Use 100 miles instead of 25 miles
-    var showStoreRadius: Double = 100.0 // Constant - filter stores loaded from server to 25 mile radius of location (in miles)
+    var showStoreRadius: Double = 25.0 // Constant - filter stores loaded from server to 25 mile radius of location (in miles)
     
     var storeLocationPredicate: NSPredicate?
     
