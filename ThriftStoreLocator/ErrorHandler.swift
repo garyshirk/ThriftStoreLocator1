@@ -133,7 +133,7 @@ class ErrorHandler {
             Logger.print(debugMsg)
             
         case .anonymousLoginError(let debugMsg):
-            displayMsg = UserErrorMessage.loginDefault
+            displayMsg = UserErrorMessage.dataAccess
             displayErrorDialog = true
             Logger.print(debugMsg)
             

@@ -246,6 +246,8 @@ class LoginViewController: UITableViewController, UITextFieldDelegate {
                     strongSelf.handleError(errorType: errorType)
                 }
             }
+        } else {
+            dismiss(animated: true, completion: nil)
         }
     }
     

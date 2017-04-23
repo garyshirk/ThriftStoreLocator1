@@ -12,7 +12,7 @@ import MapKit
 
 protocol StoresViewModelDelegate: class {
     
-    func handleStoresUpdated(forLocation location: CLLocationCoordinate2D, withZoomDistance zoomDistance: Double)
+    func handleStoresUpdated(forLocation location: CLLocationCoordinate2D)
     
     func handleFavoritesLoaded()
     
@@ -50,10 +50,7 @@ class StoresViewModel {
     var state: String = ""
     
     var query: String = ""
-    
-    // DEBUG Use 100 miles instead of 25 miles
-    var showStoreRadius: Double = 25.0 // Constant - filter stores loaded from server to 25 mile radius of location (in miles)
-    
+   
     var storeLocationPredicate: NSPredicate?
     
     var locationLoadedFromServer: String?
@@ -250,8 +247,7 @@ class StoresViewModel {
         let sortType = self.delegate?.getSortType()
         self.stores = self.setStoreSortOrder(by: sortType!, forStores: stores)
         
-        let mapZoomDistance = delegate?.getMapZoomDistance()
-        self.delegate?.handleStoresUpdated(forLocation: self.mapLocation!, withZoomDistance: mapZoomDistance!)
+        self.delegate?.handleStoresUpdated(forLocation: self.mapLocation!)
     }
     
     private func updateMainController(stores: [Store]) {
@@ -262,8 +258,7 @@ class StoresViewModel {
         let sortType = self.delegate?.getSortType()
         self.stores = self.setStoreSortOrder(by: sortType!, forStores: stores)
         
-        let mapZoomDistance = delegate?.getMapZoomDistance()
-        self.delegate?.handleStoresUpdated(forLocation: self.mapLocation!, withZoomDistance: mapZoomDistance!)
+        self.delegate?.handleStoresUpdated(forLocation: self.mapLocation!)
     }
 
     
@@ -312,8 +307,8 @@ class StoresViewModel {
             // Approximate a region based on location and radius, does not account for curvature of earth but ok for short distances
             let locLat = location.latitude
             let locLong = location.longitude
-            let degreesLatDelta = milesToLatDegrees(for: radius)
-            let degreesLongDelta = milesToLongDegrees(for: radius, atLatitude: locLat)
+            let degreesLatDelta = milesToLatDegrees(for: radius * 1.5) // 50% fudge factor to error on side of showing store if it is close to edge of map
+            let degreesLongDelta = milesToLongDegrees(for: radius * 1.5 , atLatitude: locLat)
             
             let eastLong = locLong + degreesLongDelta
             let westLong = locLong - degreesLongDelta
@@ -369,7 +364,7 @@ class StoresViewModel {
                         
                         strongSelf.county = county.lowercased().replacingOccurrences(of: " ", with: "+")
                         
-                        strongSelf.setStoreFilters(forLocation: location, withRadiusInMiles: strongSelf.showStoreRadius, andZip: "")
+                        strongSelf.setStoreFilters(forLocation: location, withRadiusInMiles: (strongSelf.delegate?.getMapZoomDistance())!, andZip: "")
                         
                         if let state = placemark.administrativeArea {
                             
@@ -393,7 +388,7 @@ class StoresViewModel {
                         
                         strongSelf.locationLoadedFromServer = strongSelf.state
                         
-                        strongSelf.setStoreFilters(forLocation: location, withRadiusInMiles: strongSelf.showStoreRadius, andZip: "")
+                        strongSelf.setStoreFilters(forLocation: location, withRadiusInMiles: (strongSelf.delegate?.getMapZoomDistance())!, andZip: "")
                         
                         strongSelf.doLoadStores(deleteOld: deleteOld)
                     
@@ -455,7 +450,7 @@ class StoresViewModel {
                             
                         }
                         
-                        strongSelf.setStoreFilters(forLocation: strongSelf.mapLocation!, withRadiusInMiles: strongSelf.showStoreRadius, andZip: zip)
+                        strongSelf.setStoreFilters(forLocation: strongSelf.mapLocation!, withRadiusInMiles: (strongSelf.delegate?.getMapZoomDistance())!, andZip: zip)
                         strongSelf.doLoadStores(deleteOld: false)
                     }
                 
@@ -483,7 +478,7 @@ class StoresViewModel {
                             
                         }
                         
-                        strongSelf.setStoreFilters(forLocation: strongSelf.mapLocation!, withRadiusInMiles: strongSelf.showStoreRadius, andZip: zip)
+                        strongSelf.setStoreFilters(forLocation: strongSelf.mapLocation!, withRadiusInMiles: (strongSelf.delegate?.getMapZoomDistance())!, andZip: zip)
                         strongSelf.doLoadStores(deleteOld: false)
                     }
                 }
@@ -524,6 +519,10 @@ extension StoresViewModel {
     func milesToLatDegrees(for miles:Double) -> Double {
         // TODO - Add to constants class
         return miles / 69.0
+    }
+    
+    func latDegreesToMiles(for degrees: Double) -> Double {
+        return degrees * 69.0
     }
     
     func milesToLongDegrees(for miles:Double, atLatitude lat:Double) -> Double {

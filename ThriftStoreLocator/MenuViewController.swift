@@ -136,7 +136,6 @@ class MenuTableViewController: UITableViewController {
         tableView.tableFooterView = UIView()
     }
     
-    
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
@@ -239,7 +238,6 @@ class MenuTableViewController: UITableViewController {
             break
         }
     }
-    
     
     @IBAction func storeDisplayAreaButtonPressed(_ sender: Any) {
         storeDisplayDropDownIsOpen = !storeDisplayDropDownIsOpen

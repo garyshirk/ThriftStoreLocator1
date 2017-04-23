@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="12118" systemVersion="16E195" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="M85-Lg-EYw">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="12120" systemVersion="16E195" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="M85-Lg-EYw">
     <device id="retina5_5" orientation="portrait">
         <adaptation id="fullscreen"/>
     </device>
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="12086"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="12088"/>
         <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
@@ -28,19 +28,6 @@
                                     <constraint firstAttribute="height" constant="202" id="Syz-MY-Luo"/>
                                 </constraints>
                             </mapView>
-                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="fQ3-Nj-iEk">
-                                <rect key="frame" x="137" y="69" width="141" height="25"/>
-                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
-                                <constraints>
-                                    <constraint firstAttribute="height" constant="25" id="5ym-ua-hwJ"/>
-                                    <constraint firstAttribute="width" constant="141" id="fH8-Pn-CcA"/>
-                                </constraints>
-                                <fontDescription key="fontDescription" type="system" pointSize="13"/>
-                                <state key="normal" title="SEARCH THIS AREA"/>
-                                <connections>
-                                    <action selector="didPressSearchAreaBtn:" destination="NLN-iD-Puq" eventType="touchUpInside" id="akd-8R-9ks"/>
-                                </connections>
-                            </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="nti-Rm-l5s" userLabel="locArrowButton">
                                 <rect key="frame" x="356" y="206" width="40" height="40"/>
                                 <constraints>
@@ -173,6 +160,12 @@
                                     <outlet property="delegate" destination="NLN-iD-Puq" id="99f-p3-Qz8"/>
                                 </connections>
                             </tableView>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="No stores found in this area" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="seq-PN-rGT">
+                                <rect key="frame" x="0.0" y="491" width="414" height="20.333333333333314"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <color key="textColor" red="0.0" green="0.47843137250000001" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                <nil key="highlightedColor"/>
+                            </label>
                             <view opaque="NO" alpha="0.40000000000000002" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="EoC-M1-kV4" userLabel="dimmerView">
                                 <rect key="frame" x="0.0" y="64" width="416" height="672"/>
                                 <color key="backgroundColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
@@ -180,20 +173,21 @@
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                         <constraints>
+                            <constraint firstItem="seq-PN-rGT" firstAttribute="centerY" secondItem="wgO-5x-fvO" secondAttribute="centerY" id="05t-EU-ubG"/>
                             <constraint firstItem="nti-Rm-l5s" firstAttribute="trailing" secondItem="2RY-6e-AG0" secondAttribute="trailing" constant="-20" id="0WS-EZ-7jn"/>
                             <constraint firstItem="EoC-M1-kV4" firstAttribute="leading" secondItem="Mcc-wQ-TYf" secondAttribute="leadingMargin" constant="-20" id="3Lg-y4-XOM"/>
                             <constraint firstItem="nti-Rm-l5s" firstAttribute="bottom" secondItem="2RY-6e-AG0" secondAttribute="bottom" constant="-20" id="8sw-DC-ggx"/>
                             <constraint firstAttribute="trailingMargin" secondItem="EoC-M1-kV4" secondAttribute="trailing" constant="-22" id="DlN-qE-9Vu"/>
+                            <constraint firstItem="seq-PN-rGT" firstAttribute="trailing" secondItem="wgO-5x-fvO" secondAttribute="trailing" id="Ft0-4F-hfa"/>
                             <constraint firstItem="2RY-6e-AG0" firstAttribute="leading" secondItem="EoC-M1-kV4" secondAttribute="leading" id="K9c-2K-GJ3"/>
-                            <constraint firstItem="fQ3-Nj-iEk" firstAttribute="top" secondItem="SHX-PC-eje" secondAttribute="bottom" constant="5" id="OiG-Nd-Jyj"/>
                             <constraint firstItem="EoC-M1-kV4" firstAttribute="top" secondItem="SHX-PC-eje" secondAttribute="bottom" id="TL9-hx-id6"/>
                             <constraint firstItem="2RY-6e-AG0" firstAttribute="trailing" secondItem="EoC-M1-kV4" secondAttribute="trailing" id="UqY-zR-hSk"/>
                             <constraint firstItem="v2w-Sy-8zg" firstAttribute="top" secondItem="EoC-M1-kV4" secondAttribute="bottom" id="WHg-Cf-j8I"/>
                             <constraint firstItem="wgO-5x-fvO" firstAttribute="leading" secondItem="Mcc-wQ-TYf" secondAttribute="leadingMargin" constant="-20" id="Wwg-47-TTg"/>
-                            <constraint firstItem="fQ3-Nj-iEk" firstAttribute="centerX" secondItem="Mcc-wQ-TYf" secondAttribute="centerX" id="XOZ-1E-fc5"/>
                             <constraint firstItem="v2w-Sy-8zg" firstAttribute="top" secondItem="wgO-5x-fvO" secondAttribute="bottom" id="dbv-Xb-bIf"/>
                             <constraint firstAttribute="trailingMargin" secondItem="wgO-5x-fvO" secondAttribute="trailing" constant="-20" id="hoA-qh-TIn"/>
                             <constraint firstItem="wgO-5x-fvO" firstAttribute="top" secondItem="2RY-6e-AG0" secondAttribute="bottom" id="l71-m8-gwZ"/>
+                            <constraint firstItem="seq-PN-rGT" firstAttribute="leading" secondItem="wgO-5x-fvO" secondAttribute="leading" id="nqg-QZ-qW3"/>
                             <constraint firstItem="2RY-6e-AG0" firstAttribute="top" secondItem="SHX-PC-eje" secondAttribute="bottom" id="qZ9-L2-vRT"/>
                         </constraints>
                     </view>
@@ -253,8 +247,8 @@
                         <outlet property="mapViewHeightConstraint" destination="Syz-MY-Luo" id="XQd-fr-pFI"/>
                         <outlet property="mapViewYConstraint" destination="qZ9-L2-vRT" id="WLQ-V8-hQH"/>
                         <outlet property="menuBarButton" destination="OZb-qO-0Ub" id="5I8-O0-Jpo"/>
+                        <outlet property="noStoresFoundLabel" destination="seq-PN-rGT" id="ZFH-Gi-KNQ"/>
                         <outlet property="searchTextField" destination="LIg-BT-skl" id="cuE-R1-FKX"/>
-                        <outlet property="searchThisAreaBtn" destination="fQ3-Nj-iEk" id="HIK-tj-LN8"/>
                         <outlet property="searchView" destination="fsL-CZ-vjs" id="OJN-pa-EsZ"/>
                         <outlet property="tableView" destination="wgO-5x-fvO" id="fp6-SG-Ddi"/>
                         <outlet property="titleLabel" destination="U5f-Kr-vqX" id="xvX-Ua-1Kx"/>
@@ -346,7 +340,7 @@
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="No favorite stores selected" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="WLT-Bp-Rx1">
                                 <rect key="frame" x="0.0" y="358" width="414" height="21"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                                <nil key="textColor"/>
+                                <color key="textColor" red="0.0" green="0.47843137250000001" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <nil key="highlightedColor"/>
                             </label>
                         </subviews>
@@ -996,7 +990,7 @@
         <scene sceneID="s6x-78-fNU">
             <objects>
                 <navigationController storyboardIdentifier="sideMenuNavigationController" id="M2D-kd-UKs" customClass="UISideMenuNavigationController" customModule="SideMenu" sceneMemberID="viewController">
-                    <navigationBar key="navigationBar" contentMode="scaleToFill" id="tMY-b7-DOf">
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" misplaced="YES" id="tMY-b7-DOf">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="44"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </navigationBar>
@@ -1013,7 +1007,7 @@
             <objects>
                 <navigationController automaticallyAdjustsScrollViewInsets="NO" id="M85-Lg-EYw" sceneMemberID="viewController">
                     <toolbarItems/>
-                    <navigationBar key="navigationBar" contentMode="scaleToFill" id="hpo-bN-3mx">
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" misplaced="YES" id="hpo-bN-3mx">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="44"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </navigationBar>
@@ -1031,7 +1025,7 @@
             <objects>
                 <navigationController automaticallyAdjustsScrollViewInsets="NO" id="FZD-nn-1Jb" sceneMemberID="viewController">
                     <toolbarItems/>
-                    <navigationBar key="navigationBar" contentMode="scaleToFill" id="IwP-BW-aO0">
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" misplaced="YES" id="IwP-BW-aO0">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="44"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </navigationBar>
@@ -1055,6 +1049,6 @@
         <image name="searchIcon" width="25" height="25"/>
     </resources>
     <inferredMetricsTieBreakers>
-        <segue reference="Hhu-u3-c3Q"/>
+        <segue reference="zQD-6D-ba5"/>
     </inferredMetricsTieBreakers>
 </document>

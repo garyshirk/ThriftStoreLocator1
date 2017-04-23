@@ -47,13 +47,15 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     
     var refreshControl: UIRefreshControl?
     
-    var showSearchAreaButton = false
-    
     var favoritesViewController: FavoritesViewController?
     
     var sortType: StoreSortType?
     
-    var mapZoomRadius: Double?
+    var mapRadiusActive: Double?
+    
+    var mapRadiusSetting: Double?
+    
+    var mapChangedFromUserInteraction = false
     
     @IBOutlet weak var tableView: UITableView!
     @IBOutlet weak var titleLabel: UILabel!
@@ -61,11 +63,10 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     @IBOutlet weak var searchTextField: UITextField!
     @IBOutlet weak var menuBarButton: UIBarButtonItem!
     @IBOutlet weak var mapView: MKMapView!
-    @IBOutlet weak var searchThisAreaBtn: UIButton!
     @IBOutlet weak var mapViewHeightConstraint: NSLayoutConstraint!
     @IBOutlet weak var mapViewYConstraint: NSLayoutConstraint!
-    // TODO - Move dimmerView to front of view on storyboard. Keeping it behind tableView during development
     @IBOutlet weak var dimmerView: UIView!
+    @IBOutlet weak var noStoresFoundLabel: UILabel!
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -89,13 +90,14 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         if let mapZoomRadiusUserDef = UserDefaults.standard.value(forKey: MapZoomRadius.mapZoomKey) {
             let mapZoomRadius = MapZoomRadius(rawValue: mapZoomRadiusUserDef as! String)
             if let mapZoomRadiusNonNil = mapZoomRadius {
-                self.mapZoomRadius = mapZoomRadiusAsDouble(forRadius: mapZoomRadiusNonNil)
+                self.mapRadiusActive = mapZoomRadiusAsDouble(forRadius: mapZoomRadiusNonNil)
             } else {
-                self.mapZoomRadius = 10.0
+                self.mapRadiusActive = 10.0
             }
         } else {
-            self.mapZoomRadius = 10.0
+            self.mapRadiusActive = 10.0
         }
+        mapRadiusSetting = mapRadiusActive
         
         self.mapHiddenView = false
         userSelectedDisplayType(isHideMap: self.mapHiddenView!)
@@ -138,12 +140,15 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         } else {
             doInitialLoad()
         }
+        
+        dimmerView.isHidden = true
+        noStoresFoundLabel.isHidden = true
+        // Do not show empty tableView cells
+        tableView.tableFooterView = UIView()
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        setShadowButton(button: self.searchThisAreaBtn)
-        searchThisAreaBtn.isHidden = true
         tableView.isUserInteractionEnabled = true
     }
     
@@ -211,7 +216,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         }
         sideMenuViewController.displayTypeMapHidden = self.mapHiddenView
         sideMenuViewController.sortType = self.sortType
-        sideMenuViewController.mapZoomRadius = self.mapZoomRadiusAsEnum(forRadius: self.mapZoomRadius!)
+        sideMenuViewController.mapZoomRadius = self.mapZoomRadiusAsEnum(forRadius: self.mapRadiusSetting!)
         sideMenuViewController.menuViewDelegate = self
         
         present(SideMenuManager.menuLeftNavigationController!, animated: true, completion: nil)
@@ -221,11 +226,6 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     @IBAction func didPressLocArrow(_ sender: Any) {
         setSearchEnabledMode(doSet: false)
         viewModel.prepareForZoomToMyLocation(location: myLocation!)
-    }
-    
-    @IBAction func didPressSearchAreaBtn(_ sender: Any) {
-        viewModel.loadStores(forLocation: mapLocation!, withRefresh: false)
-        searchThisAreaBtn.isHidden = true
     }
     
     // TODO - Currently no longer getting location after I get it first time; need to change this to update every couple minutes
@@ -248,24 +248,34 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     
     // MARK - MKMapViewDelegates
     
-    func mapView(_ mapView: MKMapView, regionDidChangeAnimated animated: Bool) {
-        if let previousMapLocation = mapLocation {
-            mapLocation = mapView.centerCoordinate
-            
-            let newLoc = CLLocation(latitude: (mapLocation?.latitude)!, longitude: (mapLocation?.longitude)!)
-            let previousLoc = CLLocation(latitude: previousMapLocation.latitude, longitude: previousMapLocation.longitude)
-            let changeInDistance = newLoc.distance(from: previousLoc) * 0.000621371
-            
-            if showSearchAreaButton == true {
-                if changeInDistance > 0.5 { // miles
-                    searchThisAreaBtn.isHidden = false
-                } else {
-                    searchThisAreaBtn.isHidden = true
+    func mapViewRegionDidChangeFromUserInteraction() -> Bool {
+        let view = self.mapView.subviews[0]
+        if let gestureRecognizers = view.gestureRecognizers {
+            for recognizer in gestureRecognizers {
+                if( recognizer.state == UIGestureRecognizerState.began || recognizer.state == UIGestureRecognizerState.ended ) {
+                    return true
                 }
-            } else {
-                searchThisAreaBtn.isHidden = true
-                showSearchAreaButton = true
             }
+        }
+        return false
+    }
+    
+    func mapView(_ mapView: MKMapView, regionWillChangeAnimated animated: Bool) {
+        mapChangedFromUserInteraction = mapViewRegionDidChangeFromUserInteraction()
+    }
+    
+    // If map region changed because of search, just set the new location.
+    // If map region changed because of user interaction (drag, pinch), then load stores for the new map region and radius
+    // Pinch or expanding map will cause mapRadiusActive to get set to the new region
+    func mapView(_ mapView: MKMapView, regionDidChangeAnimated animated: Bool) {
+        
+        mapLocation = mapView.centerCoordinate
+        
+        if (mapChangedFromUserInteraction) {
+            let milesToShowOnMap = viewModel.latDegreesToMiles(for: mapView.region.span.latitudeDelta)
+            self.mapRadiusActive = milesToShowOnMap / 2.0
+            self.viewModel.loadStores(forLocation: mapLocation!, withRefresh: false)
+            zoomToLocation(at: self.mapLocation!, withZoomDistanceInMiles: self.mapRadiusActive!)
         }
     }
     
@@ -291,7 +301,6 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
             var view: MKPinAnnotationView
             if let dequeuedView = mapView.dequeueReusableAnnotationView(withIdentifier: identifier) as? MKPinAnnotationView {
                 dequeuedView.annotation = annotation
-                
                 view = dequeuedView
             } else {
                 view = MKPinAnnotationView(annotation: annotation, reuseIdentifier: identifier)
@@ -300,6 +309,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
                 view.rightCalloutAccessoryView = UIButton(type: .detailDisclosure) as UIView
             }
             view.pinTintColor = pinTintColor
+            
             return view
         }
         return nil
@@ -328,10 +338,11 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         performSegue(withIdentifier: "showFavorites", sender: nil)
     }
     
-    func handleStoresUpdated(forLocation location:CLLocationCoordinate2D, withZoomDistance distance: Double) {
+    func handleStoresUpdated(forLocation location:CLLocationCoordinate2D) {
         self.refreshControl?.endRefreshing()
         tableView.reloadData()
-        zoomToLocation(at: location, withZoomDistanceInMiles: distance)
+        noStoresFoundLabel.isHidden = viewModel.stores.count > 0
+        zoomToLocation(at: location, withZoomDistanceInMiles: self.mapRadiusActive!)
         
         for annotation in self.mapView.annotations {
             self.mapView.removeAnnotation(annotation)
@@ -357,7 +368,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     func getMapZoomDistance() -> Double? {
         // DEBUG
         //return 500.0
-        return self.mapZoomRadius
+        return self.mapRadiusActive
     }
     
     func handleError(type: ErrorType) {
@@ -374,10 +385,9 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         })
     }
     
-    func zoomToLocation(at location: CLLocationCoordinate2D, withZoomDistanceInMiles distance: Double) {
-        let region = MKCoordinateRegionMakeWithDistance(location, milesToMeters(for: distance), milesToMeters(for: distance))
+    func zoomToLocation(at location: CLLocationCoordinate2D, withZoomDistanceInMiles radius: Double) {
+        let region = MKCoordinateRegionMakeWithDistance(location, milesToMeters(for: radius * 2.0), milesToMeters(for: radius * 2.0))
         mapView.setRegion(region, animated: true)
-        showSearchAreaButton = false
     }
     
     func distanceFromMyLocation(toLat: NSNumber, long: NSNumber) -> String {
@@ -539,34 +549,34 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         
-        if var frame = self.navigationController?.navigationBar.frame {
-            let navHeightMinus21 = (frame.size.height) - 21
-            let scrollOffset = scrollView.contentOffset.y
-            let scrollDiff = scrollOffset - self.previousScrollViewOffset
-            let scrollHeight = scrollView.frame.size.height
-            let scrollContentSizeHeight = scrollView.contentSize.height + scrollView.contentInset.bottom
-            
-            if scrollOffset <= -scrollView.contentInset.top {
-                frame.origin.y = 20
-                //print("scrollOffset <= -scrollview: Nav bar should show")
-                
-            } else if ((scrollOffset + scrollHeight) >= scrollContentSizeHeight) {
-                frame.origin.y = -navHeightMinus21
-                //print("scrollOffset <+ scrollHeight >= -scrollContentSizeHeight: Nav bar should hide")
-                
-            } else {
-                frame.origin.y = min(20, max(-navHeightMinus21, frame.origin.y - scrollDiff))
-                //print("else clause: Nav bar should be moving")
-            }
-            
-            let framePercentageHidden = (( 20 - (frame.origin.y)) / ((frame.size.height) - 1))
-            updateBarButtonItems(alpha: 1.0 - framePercentageHidden)
-            
-            self.navigationController?.navigationBar.frame = frame
-            self.previousScrollViewOffset = scrollOffset
-            
-            mapViewYConstraint.constant = frame.origin.y - 20
-            
+//        if var frame = self.navigationController?.navigationBar.frame {
+//            let navHeightMinus21 = (frame.size.height) - 21
+//            let scrollOffset = scrollView.contentOffset.y
+//            let scrollDiff = scrollOffset - self.previousScrollViewOffset
+//            let scrollHeight = scrollView.frame.size.height
+//            let scrollContentSizeHeight = scrollView.contentSize.height + scrollView.contentInset.bottom
+//            
+//            if scrollOffset <= -scrollView.contentInset.top {
+//                frame.origin.y = 20
+//                //print("scrollOffset <= -scrollview: Nav bar should show")
+//                
+//            } else if ((scrollOffset + scrollHeight) >= scrollContentSizeHeight) {
+//                frame.origin.y = -navHeightMinus21
+//                //print("scrollOffset <+ scrollHeight >= -scrollContentSizeHeight: Nav bar should hide")
+//                
+//            } else {
+//                frame.origin.y = min(20, max(-navHeightMinus21, frame.origin.y - scrollDiff))
+//                //print("else clause: Nav bar should be moving")
+//            }
+//            
+//            let framePercentageHidden = (( 20 - (frame.origin.y)) / ((frame.size.height) - 1))
+//            updateBarButtonItems(alpha: 1.0 - framePercentageHidden)
+//            
+//            self.navigationController?.navigationBar.frame = frame
+//            self.previousScrollViewOffset = scrollOffset
+//            
+//            mapViewYConstraint.constant = frame.origin.y - 20
+        
             // DEBUG
 //            print("navBarY = \(frame.origin.y), mapViewY = \(mapViewYConstraint.constant)")
 //            print("navHeightMinus21: \(navHeightMinus21)")
@@ -586,7 +596,9 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
 //            else if (frame.origin.y == 20) && (mapViewHeightConstraint.constant <= 200.0) {
 //                mapViewHeightConstraint.constant = mapViewHeightConstraint.constant + 10
 //            }
-        }
+        
+        
+//        }
     }
     
     func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
@@ -683,7 +695,8 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         let button = sender as! UIButton
         let selectedStore = viewModel.stores[button.tag]
         let location = CLLocationCoordinate2DMake(selectedStore.locLat as! CLLocationDegrees, selectedStore.locLong as! CLLocationDegrees)
-        zoomToLocation(at: location, withZoomDistanceInMiles: 1)
+        mapRadiusActive = 1.0
+        zoomToLocation(at: location, withZoomDistanceInMiles: mapRadiusActive!)
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
@@ -872,9 +885,11 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     }
     
     func userSelectedMapZoomRadius(radius: MapZoomRadius) {
-        self.mapZoomRadius = mapZoomRadiusAsDouble(forRadius: radius)
+        self.mapRadiusSetting = mapZoomRadiusAsDouble(forRadius: radius)
         UserDefaults.standard.setValue(radius.rawValue, forKey: MapZoomRadius.mapZoomKey)
-        zoomToLocation(at: self.mapLocation!, withZoomDistanceInMiles: self.mapZoomRadius!)
+        mapRadiusActive = mapRadiusSetting
+        self.viewModel.loadStores(forLocation: mapLocation!, withRefresh: false)
+        zoomToLocation(at: self.mapLocation!, withZoomDistanceInMiles: self.mapRadiusActive!)
     }
     
     func mapZoomRadiusAsDouble(forRadius radius: MapZoomRadius) -> Double {
