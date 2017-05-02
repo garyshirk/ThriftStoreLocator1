@@ -51,9 +51,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     
     var sortType: StoreSortType?
     
-    var mapRadiusActive: Double?
-    
-    var mapRadiusSetting: Double?
+    var mapArea: (latDelta: Double? , longDelta: Double?)
     
     var mapChangedFromUserInteraction = false
     
@@ -88,11 +86,6 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
             self.sortType = .distance
         }
         
-        
-        // DEBUG temp
-        mapRadiusSetting = 10.0
-        mapRadiusActive = 10.0
-        
         self.displayType = .both
         userSelectedDisplayType(displayType: self.displayType!)
         
@@ -108,8 +101,13 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         searchTextField.delegate = self
         configureSearchButton()
         
+        mapArea.latDelta = 10.0
+        mapArea.longDelta = 10.0
+        
         mapView.mapType = .standard
         mapView.delegate = self
+        
+        
         locationManager.requestWhenInUseAuthorization()
         if CLLocationManager.locationServicesEnabled() {
             locationManager.delegate = self
@@ -291,21 +289,34 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     }
     
     @IBAction func zoomIn(_ sender: Any) {
-        setZoomByDelta(delta: 0.5, animated: true)
+        setMapRegionBy(delta: 0.5, animated: true)
     }
     
     @IBAction func zoomOut(_ sender: Any) {
-        setZoomByDelta(delta: 2.0, animated: true)
+        setMapRegionBy(delta: 2.0, animated: true)
     }
     
-    func setZoomByDelta(delta: Double, animated: Bool) {
+    func setMapRegionBy(delta: Double, animated: Bool) {
         var region = self.mapView.region;
         var span = region.span;
         span.latitudeDelta *= delta
         span.longitudeDelta *= delta
         region.span = span
         mapView.setRegion(region, animated: true)
-        mapRadiusActive = mapRadiusActive! * delta
+        mapArea.latDelta = mapArea.latDelta! * delta
+        mapArea.longDelta = mapArea.longDelta! * delta
+    }
+    
+    func setMapRegionByMilesOf(latDist: Double, longDist: Double) {
+        mapArea.latDelta = latDist
+        mapArea.longDelta = longDist
+        var region = self.mapView.region;
+        var span = region.span;
+        span.latitudeDelta = viewModel.milesToLatDegrees(for: latDist)
+        span.longitudeDelta = viewModel.milesToLongDegrees(for: longDist, atLatitude: (mapLocation?.latitude)!)
+        region.span = span
+        mapView.setRegion(region, animated: true)
+        
     }
     
     // If map region changed because of search, just set the new location.
@@ -319,8 +330,8 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
                 mapLocation = mapView.centerCoordinate
                 
                 // Set the region area to display based on user map gesture (drag, pinch, etc)
-                let milesToShowOnMap = viewModel.latDegreesToMiles(for: mapView.region.span.latitudeDelta)
-                self.mapRadiusActive = milesToShowOnMap / 2.0
+                mapArea.latDelta = viewModel.latDegreesToMiles(for: mapView.region.span.latitudeDelta)
+                mapArea.longDelta = viewModel.longDegreesToMiles(for: mapView.region.span.latitudeDelta, atLatitude: (mapLocation?.longitude)!)
                 
                 // Display the showSearchArea depending on how far the map location changed
                 let newLoc = CLLocation(latitude: (mapLocation?.latitude)!, longitude: (mapLocation?.longitude)!)
@@ -398,10 +409,11 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     }
     
     func handleStoresUpdated(forLocation location:CLLocationCoordinate2D) {
+        self.mapLocation = location
         self.refreshControl?.endRefreshing()
         tableView.reloadData()
         noStoresFoundLabel.isHidden = viewModel.stores.count > 0
-        zoomToLocation(at: location, withZoomDistanceInMiles: self.mapRadiusActive!)
+        zoomToLocation(at: location, forMapAreaLatInMiles: mapArea.latDelta!, mapAreaLongInMiles: mapArea.longDelta!)
         
         for annotation in self.mapView.annotations {
             self.mapView.removeAnnotation(annotation)
@@ -424,10 +436,8 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         return self.sortType
     }
     
-    func getMapZoomDistance() -> Double? {
-        // DEBUG
-        //return 500.0
-        return self.mapRadiusActive
+    func getMapAreaLatLongDeltas() -> (Double, Double) {
+        return self.mapArea as! (Double, Double)
     }
     
     func handleError(type: ErrorType) {
@@ -446,8 +456,8 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         self.refreshControl?.endRefreshing()
     }
     
-    func zoomToLocation(at location: CLLocationCoordinate2D, withZoomDistanceInMiles radius: Double) {
-        let region = MKCoordinateRegionMakeWithDistance(location, milesToMeters(for: radius * 2.0), milesToMeters(for: radius * 2.0))
+    func zoomToLocation(at location: CLLocationCoordinate2D, forMapAreaLatInMiles latDelta: Double, mapAreaLongInMiles longDelta: Double) {
+        let region = MKCoordinateRegionMakeWithDistance(location, milesToMeters(for: latDelta), milesToMeters(for: longDelta))
         mapView.setRegion(region, animated: true)
     }
     
@@ -756,8 +766,9 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         let button = sender as! UIButton
         let selectedStore = viewModel.stores[button.tag]
         let location = CLLocationCoordinate2DMake(selectedStore.locLat as! CLLocationDegrees, selectedStore.locLong as! CLLocationDegrees)
-        mapRadiusActive = 1.0
-        zoomToLocation(at: location, withZoomDistanceInMiles: mapRadiusActive!)
+        mapArea.latDelta = 1.0
+        mapArea.longDelta = 1.0
+        zoomToLocation(at: location, forMapAreaLatInMiles: mapArea.latDelta!, mapAreaLongInMiles: mapArea.longDelta!)
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {

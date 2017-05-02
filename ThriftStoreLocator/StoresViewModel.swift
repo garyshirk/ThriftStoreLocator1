@@ -24,7 +24,7 @@ protocol StoresViewModelDelegate: class {
     
     func getSortType() -> StoreSortType?
     
-    func getMapZoomDistance() -> Double?
+    func getMapAreaLatLongDeltas() -> (Double, Double)
     
     func showActivityIndicator()
     
@@ -295,7 +295,7 @@ class StoresViewModel {
     }
     
     // Get the approximate area (expects radius to be in units of miles)
-    private func setStoreFilters(forLocation location: CLLocationCoordinate2D, withRadiusInMiles radius:Double, andZip zip:String) {
+    private func setStoreFilters(forLocation location: CLLocationCoordinate2D, forMapAreaInMiles mapArea: (Double, Double), andZip zip:String) {
         
         // TODO - Not ready for this yet, but once you start notifying user about geofence entries, will need to use CLCircularRegion
         // let region = CLCircularRegion.init(center: location, radius: radius, identifier: "region")
@@ -307,8 +307,8 @@ class StoresViewModel {
             // Approximate a region based on location and radius, does not account for curvature of earth but ok for short distances
             let locLat = location.latitude
             let locLong = location.longitude
-            let degreesLatDelta = milesToLatDegrees(for: radius * 1.5) // 50% fudge factor to error on side of showing store if it is close to edge of map
-            let degreesLongDelta = milesToLongDegrees(for: radius * 1.5 , atLatitude: locLat)
+            let degreesLatDelta = milesToLatDegrees(for: mapArea.0 * 1.5) // 50% fudge factor to error on side of showing store if it is close to edge of map
+            let degreesLongDelta = milesToLongDegrees(for: mapArea.1 * 1.5 , atLatitude: locLat)
             
             let eastLong = locLong + degreesLongDelta
             let westLong = locLong - degreesLongDelta
@@ -365,7 +365,8 @@ class StoresViewModel {
                         
                         strongSelf.county = county.lowercased().replacingOccurrences(of: " ", with: "+")
                         
-                        strongSelf.setStoreFilters(forLocation: location, withRadiusInMiles: (strongSelf.delegate?.getMapZoomDistance())!, andZip: "")
+                        let mapArea = strongSelf.delegate?.getMapAreaLatLongDeltas()
+                        strongSelf.setStoreFilters(forLocation: location, forMapAreaInMiles: mapArea!, andZip: "")
                         
                         if let state = placemark.administrativeArea {
                             
@@ -389,7 +390,8 @@ class StoresViewModel {
                         
                         strongSelf.locationLoadedFromServer = strongSelf.state
                         
-                        strongSelf.setStoreFilters(forLocation: location, withRadiusInMiles: (strongSelf.delegate?.getMapZoomDistance())!, andZip: "")
+                        let mapArea = strongSelf.delegate?.getMapAreaLatLongDeltas()
+                        strongSelf.setStoreFilters(forLocation: location, forMapAreaInMiles: mapArea!, andZip: "")
                         
                         strongSelf.doLoadStores(deleteOld: deleteOld)
                     
@@ -451,7 +453,9 @@ class StoresViewModel {
                             
                         }
                         
-                        strongSelf.setStoreFilters(forLocation: strongSelf.mapLocation!, withRadiusInMiles: (strongSelf.delegate?.getMapZoomDistance())!, andZip: zip)
+                        let mapArea = strongSelf.delegate?.getMapAreaLatLongDeltas()
+                        strongSelf.setStoreFilters(forLocation: strongSelf.mapLocation!, forMapAreaInMiles: mapArea!, andZip: zip)
+                        
                         strongSelf.doLoadStores(deleteOld: false)
                     }
                 
@@ -479,7 +483,9 @@ class StoresViewModel {
                             
                         }
                         
-                        strongSelf.setStoreFilters(forLocation: strongSelf.mapLocation!, withRadiusInMiles: (strongSelf.delegate?.getMapZoomDistance())!, andZip: zip)
+                        let mapArea = strongSelf.delegate?.getMapAreaLatLongDeltas()
+                        strongSelf.setStoreFilters(forLocation: strongSelf.mapLocation!, forMapAreaInMiles: mapArea!, andZip: zip)
+                        
                         strongSelf.doLoadStores(deleteOld: false)
                     }
                 }
@@ -565,4 +571,45 @@ extension StoresViewModel {
         
         return miles / milesPerDeg
     }
+    
+    func longDegreesToMiles(for degrees:Double, atLatitude lat:Double) -> Double {
+        
+        // Approximations for long degree deltas based on lat found at www.csgnetwork.com/degreelenllavcalc.html
+        
+        let degPerMile:Double
+        
+        switch lat {
+            
+        case 0..<25.0:
+            degPerMile = 1 / 62.7 // lat: 25.0
+            break
+            
+        case 25.0..<30.0:
+            degPerMile = 1 / 61.4 // lat: 27.5
+            break
+            
+        case 30.0..<35.0:
+            degPerMile = 1 / 58.4 // lat: 32.5
+            break
+            
+        case 35.0..<40.0:
+            degPerMile = 1 / 55.0 // lat: 37.5
+            break
+            
+        case 40.0..<45.0:
+            degPerMile = 1 / 51.1 // lat: 42.5
+            break
+            
+        case 45.0..<60.0:
+            degPerMile = 1 / 47.3 // lat: 47.0
+            break
+            
+        default:
+            degPerMile = 1 / 55.0 // lat:
+            break
+        }
+        
+        return degrees / degPerMile
+    }
+
 }
