@@ -11,8 +11,8 @@ import Alamofire
 import SwiftyJSON
 import FirebaseDatabase
 
-private let firebaseThriftStoreBaseURL = "https://thrift-store-locator.firebaseio.com/thriftstores/<QUERY>.json?auth="
-private let firebaseFavoritesBaseURL = "https://thrift-store-locator.firebaseio.com/favorites/<QUERY>.json?auth="
+private let firebaseThriftStoreBaseURL = "https://thrift-store-locator.firebaseio.com/thriftstores/<QUERY>.json?auth=Llvl7BLMTOMPVWjtMCtj8QM9vX9A1UVuHOyvFu56"
+private let firebaseFavoritesBaseURL = "https://thrift-store-locator.firebaseio.com/favorites/<QUERY>.json?auth=Llvl7BLMTOMPVWjtMCtj8QM9vX9A1UVuHOyvFu56"
 private let locationInfoBaseURL = "http://maps.googleapis.com/maps/api/geocode/json?address=<location>&sensor=false"
 
 class NetworkLayer {
@@ -76,7 +76,9 @@ class NetworkLayer {
                         if error != nil {
                             errorType = .serverFavPost(error!.localizedDescription)
                         }
-                        networkLayerPostFavUpdater(errorType)
+                        // DEBUG
+                        networkLayerPostFavUpdater(.none)
+                        //networkLayerPostFavUpdater(.serverFavPost("test fav post error"))
                     }
                 } else {
                     errorType = .serverFavPost(DebugErrorMessage.firebaseDbAccessError)

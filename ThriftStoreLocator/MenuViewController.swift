@@ -14,12 +14,10 @@ enum StoreSortType: String {
     static let sortKey = "sort_type_key"
 }
 
-enum MapZoomRadius: String {
-    case five = "five_miles"
-    case ten = "ten_miles"
-    case fifteen = "fifteen_miles"
-    case twenty = "twenty_miles"
-    static let mapZoomKey = "map_zoom_key"
+enum StoreDisplayType {
+    case map
+    case list
+    case both
 }
 
 protocol MenuViewDelegate: class {
@@ -28,11 +26,9 @@ protocol MenuViewDelegate: class {
     
     func userSelectedManageFavorites()
     
-    func userSelectedDisplayType(isHideMap: Bool)
+    func userSelectedDisplayType(displayType: StoreDisplayType)
     
     func userSelectedSortType(sortType: StoreSortType)
-    
-    func userSelectedMapZoomRadius(radius: MapZoomRadius)
 }
 
 class MenuTableViewController: UITableViewController {
@@ -47,17 +43,13 @@ class MenuTableViewController: UITableViewController {
     var isLoggedIn: Bool?
     var isRegistered: Bool?
     var username: String?
-    var displayTypeMapHidden: Bool?
+    var displayType: StoreDisplayType?
     var sortType: StoreSortType?
-    var mapZoomRadius: MapZoomRadius?
-    var storeDisplayDropDownIsOpen: Bool = false
     
     @IBOutlet weak var displaySegControl: UISegmentedControl!
     @IBOutlet weak var loginCell: UILabel!
     @IBOutlet weak var signedInAs: UILabel!
-    @IBOutlet weak var dropMenuButton: DropMenuButton!
     @IBOutlet weak var sortSegControl: UISegmentedControl!
-    @IBOutlet weak var storeDisplayAreaCell: UITableViewCell!
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -83,45 +75,17 @@ class MenuTableViewController: UITableViewController {
             self.signedInAs.text = self.username
         }
         
-        let zoomRadiusSelections = ["5 miles", "10 miles", "15 miles", "20 miles"]
-        let index: Int
-        if mapZoomRadius == MapZoomRadius.five {
-            index = 0
-        } else if mapZoomRadius == MapZoomRadius.ten {
-            index = 1
-        } else if mapZoomRadius == MapZoomRadius.fifteen {
-            index = 2
-        } else if mapZoomRadius == MapZoomRadius.twenty {
-            index = 3
-        } else {
-            index = 2 // default in case of problem
-        }
-        dropMenuButton.initTitle(to: zoomRadiusSelections[index])
-        dropMenuButton.initMenu(zoomRadiusSelections,
-            actions: [({ [weak self] () -> (Void) in
-                        guard let strongSelf = self else { return }
-                        strongSelf.userSelectedMapZoom(radius: .five)
-                }),
-                      ({ [weak self] () -> (Void) in
-                        guard let strongSelf = self else { return }
-                        strongSelf.userSelectedMapZoom(radius: .ten)
-                }),
-                      ({ [weak self] () -> (Void) in
-                        guard let strongSelf = self else { return }
-                        strongSelf.userSelectedMapZoom(radius: .fifteen)
-                }),
-                      ({ [weak self] () -> (Void) in
-                        guard let strongSelf = self else { return }
-                        strongSelf.userSelectedMapZoom(radius: .twenty)
-                }),
-        ])
+        displaySegControl.setTitle("Map", forSegmentAt: 0)
+        displaySegControl.setTitle("List", forSegmentAt: 1)
+        displaySegControl.setTitle("Both", forSegmentAt:2)
         
-        displaySegControl.setTitle("Map & List", forSegmentAt: 0)
-        displaySegControl.setTitle("List Only", forSegmentAt: 1)
-        if displayTypeMapHidden == true {
-            displaySegControl.selectedSegmentIndex = 1
-        } else {
+        switch self.displayType! {
+        case .map:
             displaySegControl.selectedSegmentIndex = 0
+        case .list:
+            displaySegControl.selectedSegmentIndex = 1
+        case .both:
+            displaySegControl.selectedSegmentIndex = 2
         }
         
         sortSegControl.setTitle("Distance", forSegmentAt: 0)
@@ -180,9 +144,7 @@ class MenuTableViewController: UITableViewController {
                     break
                 } else if row == 1 { // Sort type
                     break
-                } else if row == 2 { // Display radius
-                    break
-                } else if row == 3 { // Go to favorites
+                } else if row == 2 { // Open favorites view
                     dismiss(animated: true, completion: nil)
                     self.menuViewDelegate?.userSelectedManageFavorites()
                 }
@@ -205,13 +167,7 @@ class MenuTableViewController: UITableViewController {
                 return 88.0
             } else if row == 1 { // Sort type
                 return 88.0
-            } else if row == 2 { // Display radius
-                if storeDisplayDropDownIsOpen == true {
-                    return 200.0
-                } else {
-                    return 88.0
-                }
-            } else if row == 3 { // Go to favorites
+            } else if row == 2 { // Go to favorites
                 return 50.0
             }
             
@@ -229,22 +185,17 @@ class MenuTableViewController: UITableViewController {
         let selection = self.displaySegControl.selectedSegmentIndex
         switch selection {
         case 0:
-            displayTypeMapHidden = false
-            self.menuViewDelegate?.userSelectedDisplayType(isHideMap: false)
+            self.displayType = .map
         case 1:
-            displayTypeMapHidden = true
-            self.menuViewDelegate?.userSelectedDisplayType(isHideMap: true)
+            self.displayType = .list
+        case 2:
+            self.displayType = .both
         default:
             break
         }
+        self.menuViewDelegate?.userSelectedDisplayType(displayType: self.displayType!)
     }
     
-    @IBAction func storeDisplayAreaButtonPressed(_ sender: Any) {
-        storeDisplayDropDownIsOpen = !storeDisplayDropDownIsOpen
-        tableView.beginUpdates()
-        tableView.endUpdates()
-    }
-   
     @IBAction func sortTypeSelected(_ sender: Any) {
         let selection = self.sortSegControl.selectedSegmentIndex
         switch selection {
@@ -257,13 +208,6 @@ class MenuTableViewController: UITableViewController {
         default:
             break
         }
-    }
-    
-    func userSelectedMapZoom(radius: MapZoomRadius) {
-        storeDisplayDropDownIsOpen = false
-        tableView.beginUpdates()
-        tableView.endUpdates()
-        self.menuViewDelegate?.userSelectedMapZoomRadius(radius: radius)
     }
     
     override func didReceiveMemoryWarning() {

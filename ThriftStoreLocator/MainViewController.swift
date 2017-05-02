@@ -17,7 +17,7 @@ import Firebase
 // TODO - Define a CLCicularRegion based on user's current location and update store map and list when user leaves that region
 class MainViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UITextFieldDelegate, MKMapViewDelegate, CLLocationManagerDelegate, StoresViewModelDelegate, LogInDelegate, MenuViewDelegate, FavoriteButtonPressedDelegate {
     
-    var mapHiddenView: Bool?
+    var displayType: StoreDisplayType?
     
     var loginType: String?
     
@@ -65,6 +65,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     @IBOutlet weak var mapView: MKMapView!
     @IBOutlet weak var mapViewHeightConstraint: NSLayoutConstraint!
     @IBOutlet weak var mapViewYConstraint: NSLayoutConstraint!
+    @IBOutlet weak var searchThisAreaBtn: UIButton!
     @IBOutlet weak var dimmerView: UIView!
     @IBOutlet weak var noStoresFoundLabel: UILabel!
     
@@ -87,20 +88,13 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
             self.sortType = .distance
         }
         
-        if let mapZoomRadiusUserDef = UserDefaults.standard.value(forKey: MapZoomRadius.mapZoomKey) {
-            let mapZoomRadius = MapZoomRadius(rawValue: mapZoomRadiusUserDef as! String)
-            if let mapZoomRadiusNonNil = mapZoomRadius {
-                self.mapRadiusActive = mapZoomRadiusAsDouble(forRadius: mapZoomRadiusNonNil)
-            } else {
-                self.mapRadiusActive = 10.0
-            }
-        } else {
-            self.mapRadiusActive = 10.0
-        }
-        mapRadiusSetting = mapRadiusActive
         
-        self.mapHiddenView = false
-        userSelectedDisplayType(isHideMap: self.mapHiddenView!)
+        // DEBUG temp
+        mapRadiusSetting = 10.0
+        mapRadiusActive = 10.0
+        
+        self.displayType = .both
+        userSelectedDisplayType(displayType: self.displayType!)
         
         refreshControl = UIRefreshControl()
         if let refresh = refreshControl {
@@ -149,7 +143,12 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        
         tableView.isUserInteractionEnabled = true
+        
+        setShadowButton(button: self.searchThisAreaBtn)
+        searchThisAreaBtn.isHidden = true
+
     }
     
     override func viewWillDisappear(_ animated: Bool) {
@@ -214,9 +213,8 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         } else {
             sideMenuViewController.username = self.username ?? ""
         }
-        sideMenuViewController.displayTypeMapHidden = self.mapHiddenView
+        sideMenuViewController.displayType = self.displayType
         sideMenuViewController.sortType = self.sortType
-        sideMenuViewController.mapZoomRadius = self.mapZoomRadiusAsEnum(forRadius: self.mapRadiusSetting!)
         sideMenuViewController.menuViewDelegate = self
         
         present(SideMenuManager.menuLeftNavigationController!, animated: true, completion: nil)
@@ -226,6 +224,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     @IBAction func didPressLocArrow(_ sender: Any) {
         setSearchEnabledMode(doSet: false)
         viewModel.prepareForZoomToMyLocation(location: myLocation!)
+        searchThisAreaBtn.isHidden = true
     }
     
     // TODO - Currently no longer getting location after I get it first time; need to change this to update every couple minutes
@@ -246,9 +245,36 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         }
     }
     
+    @IBAction func didPressSearchAreaBtn(_ sender: Any) {
+        viewModel.loadStores(forLocation: mapLocation!, withRefresh: false)
+        searchThisAreaBtn.isHidden = true
+    }
+
+    
     // MARK - MKMapViewDelegates
     
+    public func mapViewWillStartLoadingMap(_ mapView: MKMapView) {
+        print("will start loading")
+    }
+    
+    public func mapViewDidFinishLoadingMap(_ mapView: MKMapView) {
+        print("will finish loading")
+    }
+
+    public func mapViewDidFailLoadingMap(_ mapView: MKMapView, withError error: Error) {
+        print("did fail loading map")
+    }
+    
+    public func mapViewWillStartRenderingMap(_ mapView: MKMapView) {
+        print("will start rendering")
+    }
+    
+    public func mapViewDidFinishRenderingMap(_ mapView: MKMapView, fullyRendered: Bool) {
+        print("did finish rendering")
+    }
+    
     func mapViewRegionDidChangeFromUserInteraction() -> Bool {
+        print("did change from user interaction")
         let view = self.mapView.subviews[0]
         if let gestureRecognizers = view.gestureRecognizers {
             for recognizer in gestureRecognizers {
@@ -264,18 +290,49 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         mapChangedFromUserInteraction = mapViewRegionDidChangeFromUserInteraction()
     }
     
+    @IBAction func zoomIn(_ sender: Any) {
+        setZoomByDelta(delta: 0.5, animated: true)
+    }
+    
+    @IBAction func zoomOut(_ sender: Any) {
+        setZoomByDelta(delta: 2.0, animated: true)
+    }
+    
+    func setZoomByDelta(delta: Double, animated: Bool) {
+        var region = self.mapView.region;
+        var span = region.span;
+        span.latitudeDelta *= delta
+        span.longitudeDelta *= delta
+        region.span = span
+        mapView.setRegion(region, animated: true)
+        mapRadiusActive = mapRadiusActive! * delta
+    }
+    
     // If map region changed because of search, just set the new location.
     // If map region changed because of user interaction (drag, pinch), then load stores for the new map region and radius
     // Pinch or expanding map will cause mapRadiusActive to get set to the new region
     func mapView(_ mapView: MKMapView, regionDidChangeAnimated animated: Bool) {
         
-        mapLocation = mapView.centerCoordinate
-        
         if (mapChangedFromUserInteraction) {
-            let milesToShowOnMap = viewModel.latDegreesToMiles(for: mapView.region.span.latitudeDelta)
-            self.mapRadiusActive = milesToShowOnMap / 2.0
-            self.viewModel.loadStores(forLocation: mapLocation!, withRefresh: false)
-            zoomToLocation(at: self.mapLocation!, withZoomDistanceInMiles: self.mapRadiusActive!)
+
+            if let previousMapLocation = mapLocation {
+                mapLocation = mapView.centerCoordinate
+                
+                // Set the region area to display based on user map gesture (drag, pinch, etc)
+                let milesToShowOnMap = viewModel.latDegreesToMiles(for: mapView.region.span.latitudeDelta)
+                self.mapRadiusActive = milesToShowOnMap / 2.0
+                
+                // Display the showSearchArea depending on how far the map location changed
+                let newLoc = CLLocation(latitude: (mapLocation?.latitude)!, longitude: (mapLocation?.longitude)!)
+                let previousLoc = CLLocation(latitude: previousMapLocation.latitude, longitude: previousMapLocation.longitude)
+                let changeInDistance = newLoc.distance(from: previousLoc) * 0.000621371
+                
+                if changeInDistance > 0.5 { // miles
+                    searchThisAreaBtn.isHidden = false
+                } else {
+                    searchThisAreaBtn.isHidden = true
+                }
+            }
         }
     }
     
@@ -315,9 +372,11 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         return nil
     }
     
-    func timer() {
-        let when = DispatchTime.now() + 1 // seconds
-        DispatchQueue.main.asyncAfter(deadline: when) {}
+    func delayedStoreLoad() {
+        let when = DispatchTime.now() + 0.5 // seconds
+        DispatchQueue.main.asyncAfter(deadline: when) {
+            //self.viewModel.loadStores(forLocation: self.mapLocation!, withRefresh: false)
+        }
     }
     
     // MARK - StoresViewModelDelegate methods
@@ -373,16 +432,18 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     
     func handleError(type: ErrorType) {
         // TODO - Receiving runtime warning when attempting to present alert view for Favorite post/delete errors:
-        // "Presenting VC on detached VC is discouraged". Possible fix below, but not working:
-        // http://stackoverflow.com/q/25401889/7601815
-        // Note: At time of this writing error dialogs are not being shown for fav/unfav update failures
-        DispatchQueue.main.async(execute: { () -> Void in
-            let errorHandler = ErrorHandler()
-            if let errorAlert = errorHandler.handleError(ofType: type) {
-                 self.present(errorAlert, animated: true, completion: nil)
+        // "Presenting VC on detached VC is discouraged". It's working ok for Favorites view controller,
+        // but presenting error dialog when error occurs in DetailedViewController gives this warning
+        // (I don't have a reference to DetailedViewController here
+        let errorHandler = ErrorHandler()
+        if let errorAlert = errorHandler.handleError(ofType: type) {
+            if let favViewController = self.favoritesViewController {
+                favViewController.present(errorAlert, animated: true, completion: nil)
+            } else {
+                self.present(errorAlert, animated: true, completion: nil)
             }
-            self.refreshControl?.endRefreshing()
-        })
+        }
+        self.refreshControl?.endRefreshing()
     }
     
     func zoomToLocation(at location: CLLocationCoordinate2D, withZoomDistanceInMiles radius: Double) {
@@ -401,11 +462,11 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         
         if distance < 0.1 {
             distance = distance * 5280.0
-            return ("\(distance.roundTo(places: 1)) feet")
+            return ("\(distance.roundTo(places: 1)) ft")
         } else if (distance >= 9) {
-            return ("\(Int(distance)) miles")
+            return ("\(Int(distance)) mi")
         } else {
-            return ("\(distance.roundTo(places: 1)) miles")
+            return ("\(distance.roundTo(places: 1)) mi")
         }
     }
     
@@ -621,7 +682,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         
-        if mapHiddenView == true {
+        if self.displayType == .list {
             return 88
         } else {
             return 68
@@ -642,7 +703,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         var selectedStore: Store
         selectedStore = viewModel.stores[indexPath.row]
         
-        if mapHiddenView == true {
+        if self.displayType == .list {
             
             let cell = tableView.dequeueReusableCell(withIdentifier: "storeCellListView", for: indexPath) as! StoreCellListView
             
@@ -865,12 +926,19 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         viewModel.getListOfFavorites()
     }
     
-    func userSelectedDisplayType(isHideMap: Bool) {
-        mapHiddenView = isHideMap
-        if isHideMap == true {
+    func userSelectedDisplayType(displayType: StoreDisplayType) {
+        
+        self.displayType = displayType
+        
+        let screenSize: CGRect = UIScreen.main.bounds
+        let availableScreenHt = screenSize.height - 64.0
+        
+        if self.displayType == .map {
+           mapViewHeightConstraint.constant = availableScreenHt
+        } else if self.displayType == .list {
             mapViewHeightConstraint.constant = 0.0
         } else {
-            mapViewHeightConstraint.constant = 202.0
+            mapViewHeightConstraint.constant = availableScreenHt / 2
         }
         self.tableView.reloadData()
     }
@@ -882,46 +950,6 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
             viewModel.setStoreSortOrder(by: sortType)
             self.tableView.reloadData()
         }
-    }
-    
-    func userSelectedMapZoomRadius(radius: MapZoomRadius) {
-        self.mapRadiusSetting = mapZoomRadiusAsDouble(forRadius: radius)
-        UserDefaults.standard.setValue(radius.rawValue, forKey: MapZoomRadius.mapZoomKey)
-        mapRadiusActive = mapRadiusSetting
-        self.viewModel.loadStores(forLocation: mapLocation!, withRefresh: false)
-        zoomToLocation(at: self.mapLocation!, withZoomDistanceInMiles: self.mapRadiusActive!)
-    }
-    
-    func mapZoomRadiusAsDouble(forRadius radius: MapZoomRadius) -> Double {
-        var radiusDouble = 10.0 // default
-        switch radius {
-        case .five:
-            radiusDouble = 5.0
-        case .ten:
-            radiusDouble = 10.0
-        case .fifteen:
-            radiusDouble = 15.0
-        case .twenty:
-            radiusDouble = 20.0
-        }
-        return radiusDouble
-    }
-    
-    func mapZoomRadiusAsEnum(forRadius radius: Double) -> MapZoomRadius {
-        var mapZoomRadiusEnum: MapZoomRadius
-        switch radius {
-        case 5.0:
-            mapZoomRadiusEnum = MapZoomRadius.five
-        case 10.0:
-            mapZoomRadiusEnum = MapZoomRadius.ten
-        case 15.0:
-            mapZoomRadiusEnum = MapZoomRadius.fifteen
-        case 20.0:
-            mapZoomRadiusEnum = MapZoomRadius.twenty
-        default:
-            mapZoomRadiusEnum = MapZoomRadius.ten // default in case of problem
-        }
-        return mapZoomRadiusEnum
     }
 
     override func didReceiveMemoryWarning() {

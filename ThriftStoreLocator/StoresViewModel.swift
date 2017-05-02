@@ -351,6 +351,7 @@ class StoresViewModel {
             
             if error != nil {
                 print("Reverse geocoder failed with error" + (error?.localizedDescription)!)
+                // TODO - Needs error handling
                 return
             }
             

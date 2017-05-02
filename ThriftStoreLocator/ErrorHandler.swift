@@ -79,7 +79,7 @@ class ErrorHandler {
             
         case .serverFavPost(let debugMsg):
             displayMsg = UserErrorMessage.postFav
-            displayErrorDialog = false
+            displayErrorDialog = true
             Logger.print(debugMsg)
             
         case .serverFavDelete(let debugMsg):
