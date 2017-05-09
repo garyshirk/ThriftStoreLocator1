@@ -307,8 +307,8 @@ class StoresViewModel {
             // Approximate a region based on location and radius, does not account for curvature of earth but ok for short distances
             let locLat = location.latitude
             let locLong = location.longitude
-            let degreesLatDelta = milesToLatDegrees(for: mapArea.0 * 1.5) // 50% fudge factor to error on side of showing store if it is close to edge of map
-            let degreesLongDelta = milesToLongDegrees(for: mapArea.1 * 1.5 , atLatitude: locLat)
+            let degreesLatDelta = milesToLatDegrees(for: mapArea.0) // .0 is lat distance, .1 is long distance
+            let degreesLongDelta = milesToLongDegrees(for: mapArea.1 , atLatitude: locLat)
             
             let eastLong = locLong + degreesLongDelta
             let westLong = locLong - degreesLongDelta

@@ -80,6 +80,8 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         titleLabel.text = "Thrift Store Locator"
         barButtonDefaultTintColor = self.view.tintColor
         
+        viewModel = StoresViewModel(delegate: self)
+        
         if let sortTypeUserDef = UserDefaults.standard.value(forKey: StoreSortType.sortKey) {
             self.sortType = StoreSortType(rawValue: sortTypeUserDef as! String)
         } else {
@@ -101,20 +103,20 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         searchTextField.delegate = self
         configureSearchButton()
         
-        mapArea.latDelta = 10.0
-        mapArea.longDelta = 10.0
-        
+        let screenSize: CGRect = UIScreen.main.bounds
+        let availableScreenHt = screenSize.height - 64.0
+        self.mapViewYConstraint.constant = 0
+        self.mapViewHeightConstraint.constant = availableScreenHt * 0.5
+        mapArea.latDelta = 40.0
+        mapArea.longDelta = 40.0
         mapView.mapType = .standard
         mapView.delegate = self
-        
         
         locationManager.requestWhenInUseAuthorization()
         if CLLocationManager.locationServicesEnabled() {
             locationManager.delegate = self
             locationManager.desiredAccuracy = kCLLocationAccuracyHundredMeters // KCLLocationAccuracyNearestTenMeters
         }
-        
-        viewModel = StoresViewModel(delegate: self)
         
         let user = FIRAuth.auth()?.currentUser
         updateLoginStatus(forUser: user)
@@ -145,7 +147,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         tableView.isUserInteractionEnabled = true
         
         setShadowButton(button: self.searchThisAreaBtn)
-        searchThisAreaBtn.isHidden = true
+        searchThisAreaBtn.isHidden = true && self.displayType != .map
 
     }
     
@@ -222,7 +224,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     @IBAction func didPressLocArrow(_ sender: Any) {
         setSearchEnabledMode(doSet: false)
         viewModel.prepareForZoomToMyLocation(location: myLocation!)
-        searchThisAreaBtn.isHidden = true
+        searchThisAreaBtn.isHidden = true && self.displayType != .map
     }
     
     // TODO - Currently no longer getting location after I get it first time; need to change this to update every couple minutes
@@ -235,6 +237,8 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
             myLocation = loc
             mapLocation = loc
             
+            setMapRegionByMilesOf(latDist: mapArea.latDelta!, longDist: mapArea.longDelta!)
+            
             if needsInitialStoreLoad == true {
                 needsInitialStoreLoad = false
                 locationManager.stopUpdatingLocation()
@@ -245,34 +249,33 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     
     @IBAction func didPressSearchAreaBtn(_ sender: Any) {
         viewModel.loadStores(forLocation: mapLocation!, withRefresh: false)
-        searchThisAreaBtn.isHidden = true
+        searchThisAreaBtn.isHidden = true && self.displayType != .map
     }
 
     
     // MARK - MKMapViewDelegates
     
     public func mapViewWillStartLoadingMap(_ mapView: MKMapView) {
-        print("will start loading")
+    
     }
     
     public func mapViewDidFinishLoadingMap(_ mapView: MKMapView) {
-        print("will finish loading")
+        
     }
 
     public func mapViewDidFailLoadingMap(_ mapView: MKMapView, withError error: Error) {
-        print("did fail loading map")
+        
     }
     
     public func mapViewWillStartRenderingMap(_ mapView: MKMapView) {
-        print("will start rendering")
+        
     }
     
     public func mapViewDidFinishRenderingMap(_ mapView: MKMapView, fullyRendered: Bool) {
-        print("did finish rendering")
+        
     }
     
     func mapViewRegionDidChangeFromUserInteraction() -> Bool {
-        print("did change from user interaction")
         let view = self.mapView.subviews[0]
         if let gestureRecognizers = view.gestureRecognizers {
             for recognizer in gestureRecognizers {
@@ -293,6 +296,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     }
     
     @IBAction func zoomOut(_ sender: Any) {
+        searchThisAreaBtn.isHidden = false
         setMapRegionBy(delta: 2.0, animated: true)
     }
     
@@ -324,7 +328,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     // Pinch or expanding map will cause mapRadiusActive to get set to the new region
     func mapView(_ mapView: MKMapView, regionDidChangeAnimated animated: Bool) {
         
-        if (mapChangedFromUserInteraction) {
+        if mapChangedFromUserInteraction {
 
             if let previousMapLocation = mapLocation {
                 mapLocation = mapView.centerCoordinate
@@ -338,10 +342,10 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
                 let previousLoc = CLLocation(latitude: previousMapLocation.latitude, longitude: previousMapLocation.longitude)
                 let changeInDistance = newLoc.distance(from: previousLoc) * 0.000621371
                 
-                if changeInDistance > 0.5 { // miles
+                if changeInDistance > 0.25 * mapArea.latDelta! { // miles
                     searchThisAreaBtn.isHidden = false
                 } else {
-                    searchThisAreaBtn.isHidden = true
+                    searchThisAreaBtn.isHidden = true && self.displayType != .map
                 }
             }
         }
@@ -945,11 +949,14 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         let availableScreenHt = screenSize.height - 64.0
         
         if self.displayType == .map {
+            self.searchThisAreaBtn.isHidden = false
            mapViewHeightConstraint.constant = availableScreenHt
         } else if self.displayType == .list {
+            self.searchThisAreaBtn.isHidden = true
             mapViewHeightConstraint.constant = 0.0
         } else {
-            mapViewHeightConstraint.constant = availableScreenHt / 2
+            self.searchThisAreaBtn.isHidden = true
+            mapViewHeightConstraint.constant = availableScreenHt * 0.5
         }
         self.tableView.reloadData()
     }
