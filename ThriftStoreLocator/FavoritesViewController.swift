@@ -9,7 +9,7 @@
 import UIKit
 import CoreLocation
 
-class FavoritesViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
+class FavoritesViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, FavoriteButtonPressedDelegate {
     
     weak var delegate: FavoriteButtonPressedDelegate?
     
@@ -74,7 +74,7 @@ class FavoritesViewController: UIViewController, UITableViewDataSource, UITableV
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        favCellSelected(index: indexPath.row)
+        performSegue(withIdentifier: "favListToStoreDetail", sender: nil)
         tableView.deselectRow(at: indexPath, animated: true)
     }
     
@@ -116,6 +116,39 @@ class FavoritesViewController: UIViewController, UITableViewDataSource, UITableV
         } else {
             return ("\(distance.roundTo(places: 1)) miles")
         }
+    }
+    
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        
+        if segue.identifier == "favListToStoreDetail" {
+            
+            if let indexPath = tableView.indexPathForSelectedRow {
+                
+                let selectedFav = favoriteStores[indexPath.row]
+                
+                if let detailViewController = segue.destination as? DetailViewController {
+                    detailViewController.delegate = self
+                    detailViewController.selectedStoreIndex = indexPath.row
+                    detailViewController.storeNameStr = selectedFav.name
+                    detailViewController.isFav = selectedFav.isFavorite as! Bool!
+                    detailViewController.streetStr = selectedFav.address
+                    detailViewController.cityStr = selectedFav.city
+                    detailViewController.stateStr = selectedFav.state
+                    detailViewController.zipStr = selectedFav.zip
+                    detailViewController.distanceStr = ("\(distanceFromMyLocation(toLat: selectedFav.locLat!, long: selectedFav.locLong!)) away")
+                    let locLat = selectedFav.locLat as! Double
+                    let locLong = selectedFav.locLong as! Double
+                    detailViewController.storeLocation = (locLat, locLong)
+                }
+            }
+            
+        }
+    }
+    
+    // MARK - FavoriteButtonPressedDelegate
+    
+    func favoriteButtonPressed(forStore index: Int, isFav: Bool, isCallFromFavoritesVC: Bool) {
+        favCellSelected(index: index)
     }
     
     override func didReceiveMemoryWarning() {

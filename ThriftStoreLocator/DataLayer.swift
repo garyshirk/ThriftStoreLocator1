@@ -9,7 +9,7 @@
 import Foundation
 import CoreData
 
-typealias VoidBlock = ()->Void
+typealias DataLayerBlock = (ErrorType)->Void
 
 class DataLayer {
     
@@ -28,7 +28,9 @@ class DataLayer {
 
 extension DataLayer {
     
-    func deleteCoreDataObjectsExceptFavorites(deleteAllStoresExceptFavsUpdater: VoidBlock? = nil) {
+    func deleteCoreDataObjectsExceptFavorites(deleteAllStoresExceptFavsUpdater: DataLayerBlock? = nil) {
+        
+        var errorType = ErrorType.none
         
         persistentContainer.performBackgroundTask( {context in
             
@@ -43,29 +45,30 @@ extension DataLayer {
                 for object in result {
                     context.delete(object)
                 }
+            } else {
+                errorType = ErrorType.coreDataSave(DebugErrorMessage.coreDataFetch)
             }
             
             do {
                 try context.save()
-                print("saved!")
+        
             } catch let error as NSError  {
-                print("Could not save \(error), \(error.userInfo)")
-            } catch {
-                
+                errorType = ErrorType.coreDataSave(error.localizedDescription)
             }
             
             let finalCount = try? context.count(for: fetchRequest)
             
-            print("Deleting all existing Stores except favorites: InitialCount: \(initialCount) --- FinalCount: \(finalCount)")
-                
-            // Update the main thread
+            print("Deleting all existing Stores except favorites: InitialCount: \(String(describing: initialCount)) --- FinalCount: \(String(describing: finalCount))")
+            
             DispatchQueue.main.sync {
-                deleteAllStoresExceptFavsUpdater?()
+                deleteAllStoresExceptFavsUpdater?(errorType)
             }
         })
     }
     
-    func updateFavorite(isFavOn: Bool, forStoreEntity store: Store, saveInBackgroundSuccess: VoidBlock? = nil) {
+    func updateFavorite(isFavOn: Bool, forStoreEntity store: Store, saveInBackgroundSuccess: DataLayerBlock? = nil) {
+        
+        var errorType = ErrorType.none
         
         persistentContainer.performBackgroundTask( {context in
         
@@ -84,26 +87,27 @@ extension DataLayer {
                     storeEntity?.isFavorite = 0
                 }
 
-            } catch _ as NSError {
-                // TODO - Error handling
+            } catch let error as NSError {
+                errorType = ErrorType.coreDataFetch(error.localizedDescription)
             }
             
             do {
                 
                 try storeEntity?.managedObjectContext?.save()
                 
-            } catch _ as NSError {
-                // TODO - Error handling
+            } catch let error as NSError {
+                errorType = ErrorType.coreDataSave(error.localizedDescription)
             }
             
-            // Update the main thread
             DispatchQueue.main.sync {
-                saveInBackgroundSuccess?()
+                saveInBackgroundSuccess?(errorType)
             }
         })
     }
     
-    func saveInBackground(stores: [[String:Any]], withDeleteOld deleteOld: Bool, isFavs: Bool, saveInBackgroundSuccess: VoidBlock? = nil) {
+    func saveInBackground(stores: [[String:Any]], withDeleteOld deleteOld: Bool, isFavs: Bool, saveInBackgroundSuccess: DataLayerBlock? = nil) {
+        
+        var errorType = ErrorType.none
         
         // On background thread
         persistentContainer.performBackgroundTask( {context in
@@ -125,10 +129,10 @@ extension DataLayer {
                     try context.persistentStoreCoordinator?.execute(deleteRequst, with: context)
                     let finalCount = try? context.count(for: fetchRequest)
                     
-                    print("Deleting existing Stores: InitialCount: \(initialCount) --- FinalCount: \(finalCount)")
+                    print("Deleting existing Stores: InitialCount: \(String(describing: initialCount)) --- FinalCount: \(String(describing: finalCount))")
                     
-                } catch _ as NSError {
-                    // TODO - Error handling
+                } catch let error as NSError {
+                    errorType = ErrorType.coreDataDelete(error.localizedDescription)
                 }
                 
             } else {
@@ -161,9 +165,11 @@ extension DataLayer {
             // Save stores downloaded from server to Core Data
             do {
                 
-//                let favEntity = NSEntityDescription.entity(forEntityName: "Favorite", in: context)
-//                let favorite = Favorite(entity: favEntity!, insertInto: context)
-//                favorite.username = "myuser"
+                // Note: Below commented-out code shows how to manage core data relations between Store and Favorite entities
+                // Current, this relationship is not being used
+                // let favEntity = NSEntityDescription.entity(forEntityName: "Favorite", in: context)
+                // let favorite = Favorite(entity: favEntity!, insertInto: context)
+                // favorite.username = "myuser"
                 
             
                 for storeDict:[String:Any] in uniqueStores {
@@ -201,13 +207,12 @@ extension DataLayer {
                     }
                     //try favorite.managedObjectContext?.save()
                 }
-            } catch {
-                print("Error saving Stores")
+            } catch let error as NSError {
+                errorType = ErrorType.coreDataSave(error.localizedDescription)
             }
             
-            // Update the main thread
             DispatchQueue.main.sync {
-                saveInBackgroundSuccess?()
+                saveInBackgroundSuccess?(errorType)
             }
         })
     }

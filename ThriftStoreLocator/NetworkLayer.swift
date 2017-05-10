@@ -11,10 +11,8 @@ import Alamofire
 import SwiftyJSON
 import FirebaseDatabase
 
-// TODO - constants should use pattern for constants (struct or enum)
-private let djangoThriftStoreBaseURL = "http://localhost:8000/thriftstores/"
-private let firebaseThriftStoreBaseURL = "https://thrift-store-locator.firebaseio.com/thriftstores/<QUERY>.json?auth=<AUTH>"
-private let firebaseFavoritesBaseURL = "https://thrift-store-locator.firebaseio.com/favorites/<QUERY>.json?auth=<AUTH>"
+private let firebaseThriftStoreBaseURL = "https://thrift-store-locator.firebaseio.com/thriftstores/<QUERY>.json?auth="
+private let firebaseFavoritesBaseURL = "https://thrift-store-locator.firebaseio.com/favorites/<QUERY>.json?auth="
 private let locationInfoBaseURL = "http://maps.googleapis.com/maps/api/geocode/json?address=<location>&sensor=false"
 
 class NetworkLayer {
@@ -25,7 +23,9 @@ class NetworkLayer {
     var storesArrayOfDicts = [[String: Any]]()
     var atLeastOneFoundFavSuccessfullyLoaded: Bool?
     
-    func removeFavorite(store: Store, forUser user: String, networkLayerRemoveFavUpdater: () -> Void) {
+    func removeFavorite(store: Store, forUser user: String, networkLayerRemoveFavUpdater: @escaping (ErrorType) -> Void) {
+        
+        var errorType: ErrorType = .none
         
         dbFavoritesRef = FIRDatabase.database().reference(withPath: "favorites")
         let userRef = dbFavoritesRef!.child(user)
@@ -35,13 +35,25 @@ class NetworkLayer {
                 let countyRef = stateRef.child(countyStr.lowercased())
                 let storeIdStr = (store.storeId?.stringValue)!
                 let storeIdRef = countyRef.child(storeIdStr)
-                storeIdRef.removeValue()
+                storeIdRef.removeValue() { (error, ref) -> Void in
+                    if error != nil {
+                        errorType = .serverFavDelete(error!.localizedDescription)
+                    }
+                    networkLayerRemoveFavUpdater(errorType)
+                }
+            } else {
+                errorType = .serverFavDelete(DebugErrorMessage.firebaseDbAccessError)
+                networkLayerRemoveFavUpdater(errorType)
             }
+        } else {
+            errorType = .serverFavDelete(DebugErrorMessage.firebaseDbAccessError)
+            networkLayerRemoveFavUpdater(errorType)
         }
-        networkLayerRemoveFavUpdater()
     }
     
-    func postFavorite(store: Store, forUser user: String, networkLayerPostFavUpdater: () -> Void) {
+    func postFavorite(store: Store, forUser user: String, networkLayerPostFavUpdater: @escaping (ErrorType) -> Void) {
+        
+        var errorType: ErrorType = .none
         
         dbFavoritesRef = FIRDatabase.database().reference(withPath: "favorites")
         
@@ -60,21 +72,37 @@ class NetworkLayer {
                 // Set store id key
                 if let storeId = store.storeId {
                     let storeIdRef = storeCountyRef.child(storeId.stringValue)
-                    storeIdRef.setValue(storeId)
+                    storeIdRef.setValue(storeId) { (error, ref) -> Void in
+                        if error != nil {
+                            errorType = .serverFavPost(error!.localizedDescription)
+                        }
+                        // DEBUG
+                        networkLayerPostFavUpdater(.none)
+                        //networkLayerPostFavUpdater(.serverFavPost("test fav post error"))
+                    }
+                } else {
+                    errorType = .serverFavPost(DebugErrorMessage.firebaseDbAccessError)
+                    networkLayerPostFavUpdater(errorType)
                 }
+            } else {
+                errorType = .serverFavPost(DebugErrorMessage.firebaseDbAccessError)
+                networkLayerPostFavUpdater(errorType)
             }
+        } else {
+            errorType = .serverFavPost(DebugErrorMessage.firebaseDbAccessError)
+            networkLayerPostFavUpdater(errorType)
         }
-        
-        networkLayerPostFavUpdater()
     }
     
-    func loadFavoritesFromServer(forUser user: String, networkLayerLoadFavoritesUpdater: @escaping ([[String: Any]]) -> Void) {
+    func loadFavoritesFromServer(forUser user: String, networkLayerLoadFavoritesUpdater: @escaping ([[String: Any]], ErrorType) -> Void) {
         
         dbFavoritesRef = FIRDatabase.database().reference(withPath: "favorites")
         
         self.favoritesArrayOfDicts.removeAll()
         
         let urlString = firebaseFavoritesBaseURL.replacingOccurrences(of: "<QUERY>", with: user)
+        
+        var errorType: ErrorType = .none
         
         // First: Do a rest GET to get storeId references to all user favorites
         Alamofire.request(urlString, method: .get).validate()
@@ -88,8 +116,6 @@ class NetworkLayer {
                 case .success(let value):
                     
                     let json = JSON(value)
-                    
-                    //print(json)
                     
                     for (state, subJson):(String, JSON) in json {
                         
@@ -117,7 +143,7 @@ class NetworkLayer {
                     
                     if favoritesCount <= 0 {
                         // No favorites, return
-                        networkLayerLoadFavoritesUpdater(strongSelf.storesArrayOfDicts)
+                        networkLayerLoadFavoritesUpdater(strongSelf.storesArrayOfDicts, ErrorType.none)
                         return
                     } else {
                         strongSelf.atLeastOneFoundFavSuccessfullyLoaded = false
@@ -163,31 +189,32 @@ class NetworkLayer {
                                             strongSelf.atLeastOneFoundFavSuccessfullyLoaded = true
                                             
                                             if favoritesCount <= 0 {
-                                                networkLayerLoadFavoritesUpdater(strongSelf.storesArrayOfDicts)
+                                                networkLayerLoadFavoritesUpdater(strongSelf.storesArrayOfDicts, ErrorType.none)
                                                 strongSelf.storesArrayOfDicts.removeAll()
                                                 strongSelf.favoritesArrayOfDicts.removeAll()
                                             }
                                         }
                                         
                                     }) { (error) in
-                                        print(error.localizedDescription)
+                                        errorType = ErrorType.serverError(error.localizedDescription)
+                                        networkLayerLoadFavoritesUpdater(strongSelf.storesArrayOfDicts, errorType)
                                     }
                                 }
                             }
                         }
                     }
                     if strongSelf.atLeastOneFoundFavSuccessfullyLoaded == false {
-                        networkLayerLoadFavoritesUpdater(strongSelf.storesArrayOfDicts)
+                        networkLayerLoadFavoritesUpdater(strongSelf.storesArrayOfDicts, ErrorType.none)
                     }
                     
                 case .failure(let error):
-                    // TODO - Proper error handling for Alamofire request
-                    print(error)
+                    errorType = ErrorType.serverError(error.localizedDescription)
+                    networkLayerLoadFavoritesUpdater(strongSelf.storesArrayOfDicts, errorType)
                 }
             })
     }
     
-    func loadStoresFromServer(forQuery query: String, networkLayerStoreUpdater: @escaping ([[String: Any]]) -> Void) {
+    func loadStoresFromServer(forQuery query: String, networkLayerStoreUpdater: @escaping ([[String: Any]], ErrorType) -> Void) {
         
         self.storesArrayOfDicts.removeAll()
         
@@ -200,6 +227,8 @@ class NetworkLayer {
         
         // Load stores by county
         if isLoadingByState == false {
+            
+            var errorType: ErrorType = .none
         
             Alamofire.request(urlString, method: .get).validate()
                 
@@ -235,19 +264,21 @@ class NetworkLayer {
                             strongSelf.storesArrayOfDicts.append(itemDict as [String: Any])
                         }
                         
-                        networkLayerStoreUpdater(strongSelf.storesArrayOfDicts)
+                        networkLayerStoreUpdater(strongSelf.storesArrayOfDicts, ErrorType.none)
                         
                         strongSelf.storesArrayOfDicts.removeAll()
                     
                     case .failure(let error):
-                        // TODO - Proper error handling
-                        print(error)
+                        errorType = ErrorType.serverError(error.localizedDescription)
+                        networkLayerStoreUpdater(strongSelf.storesArrayOfDicts, errorType)
                     }
             })
         
         } else {
             
             // Load stores by state
+            var errorType: ErrorType = .none
+            
             Alamofire.request(urlString, method: .get).validate()
                 
                 .responseJSON(completionHandler: { [weak self] response in
@@ -285,13 +316,13 @@ class NetworkLayer {
                             }
                         }
                         
-                        networkLayerStoreUpdater(strongSelf.storesArrayOfDicts)
+                        networkLayerStoreUpdater(strongSelf.storesArrayOfDicts, ErrorType.none)
                         
                         strongSelf.storesArrayOfDicts.removeAll()
                         
                     case .failure(let error):
-                        // TODO - Proper error handling
-                        print(error)
+                        errorType = ErrorType.serverError(error.localizedDescription)
+                        networkLayerStoreUpdater(strongSelf.storesArrayOfDicts, errorType)
                     }
                 })
         }

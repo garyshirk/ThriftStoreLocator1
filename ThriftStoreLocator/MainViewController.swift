@@ -17,6 +17,8 @@ import Firebase
 // TODO - Define a CLCicularRegion based on user's current location and update store map and list when user leaves that region
 class MainViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UITextFieldDelegate, MKMapViewDelegate, CLLocationManagerDelegate, StoresViewModelDelegate, LogInDelegate, MenuViewDelegate, FavoriteButtonPressedDelegate {
     
+    var displayType: StoreDisplayType?
+    
     var loginType: String?
     
     var username: String?
@@ -45,13 +47,13 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     
     var refreshControl: UIRefreshControl?
     
-    var showSearchAreaButton = false
-    
     var favoritesViewController: FavoritesViewController?
     
     var sortType: StoreSortType?
     
-    var mapZoomRadius: Double?
+    var mapArea: (latDelta: Double? , longDelta: Double?)
+    
+    var mapChangedFromUserInteraction = false
     
     @IBOutlet weak var tableView: UITableView!
     @IBOutlet weak var titleLabel: UILabel!
@@ -59,11 +61,11 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     @IBOutlet weak var searchTextField: UITextField!
     @IBOutlet weak var menuBarButton: UIBarButtonItem!
     @IBOutlet weak var mapView: MKMapView!
-    @IBOutlet weak var searchThisAreaBtn: UIButton!
     @IBOutlet weak var mapViewHeightConstraint: NSLayoutConstraint!
     @IBOutlet weak var mapViewYConstraint: NSLayoutConstraint!
-    // TODO - Move dimmerView to front of view on storyboard. Keeping it behind tableView during development
+    @IBOutlet weak var searchThisAreaBtn: UIButton!
     @IBOutlet weak var dimmerView: UIView!
+    @IBOutlet weak var noStoresFoundLabel: UILabel!
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -78,22 +80,16 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         titleLabel.text = "Thrift Store Locator"
         barButtonDefaultTintColor = self.view.tintColor
         
+        viewModel = StoresViewModel(delegate: self)
+        
         if let sortTypeUserDef = UserDefaults.standard.value(forKey: StoreSortType.sortKey) {
             self.sortType = StoreSortType(rawValue: sortTypeUserDef as! String)
         } else {
             self.sortType = .distance
         }
         
-        if let mapZoomRadiusUserDef = UserDefaults.standard.value(forKey: MapZoomRadius.mapZoomKey) {
-            let mapZoomRadius = MapZoomRadius(rawValue: mapZoomRadiusUserDef as! String)
-            if let mapZoomRadiusNonNil = mapZoomRadius {
-                self.mapZoomRadius = mapZoomRadiusAsDouble(forRadius: mapZoomRadiusNonNil)
-            } else {
-                self.mapZoomRadius = 10.0
-            }
-        } else {
-            self.mapZoomRadius = 10.0
-        }
+        self.displayType = .both
+        userSelectedDisplayType(displayType: self.displayType!)
         
         refreshControl = UIRefreshControl()
         if let refresh = refreshControl {
@@ -107,15 +103,20 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         searchTextField.delegate = self
         configureSearchButton()
         
+        let screenSize: CGRect = UIScreen.main.bounds
+        let availableScreenHt = screenSize.height - 64.0
+        self.mapViewYConstraint.constant = 0
+        self.mapViewHeightConstraint.constant = availableScreenHt * 0.5
+        mapArea.latDelta = 40.0
+        mapArea.longDelta = 40.0
         mapView.mapType = .standard
         mapView.delegate = self
+        
         locationManager.requestWhenInUseAuthorization()
         if CLLocationManager.locationServicesEnabled() {
             locationManager.delegate = self
             locationManager.desiredAccuracy = kCLLocationAccuracyHundredMeters // KCLLocationAccuracyNearestTenMeters
         }
-        
-        viewModel = StoresViewModel(delegate: self)
         
         let user = FIRAuth.auth()?.currentUser
         updateLoginStatus(forUser: user)
@@ -133,13 +134,21 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         } else {
             doInitialLoad()
         }
+        
+        dimmerView.isHidden = true
+        noStoresFoundLabel.isHidden = true
+        // Do not show empty tableView cells
+        tableView.tableFooterView = UIView()
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        setShadowButton(button: self.searchThisAreaBtn)
-        searchThisAreaBtn.isHidden = true
+        
         tableView.isUserInteractionEnabled = true
+        
+        setShadowButton(button: self.searchThisAreaBtn)
+        searchThisAreaBtn.isHidden = true && self.displayType != .map
+
     }
     
     override func viewWillDisappear(_ animated: Bool) {
@@ -156,6 +165,20 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     
     func refresh(sender: Any) {
         viewModel.loadStores(forLocation: mapLocation!, withRefresh: false)
+    }
+    
+    func showActivityIndicator() {
+        if IJProgressView.shared.isShowing() == false {
+            IJProgressView.shared.showProgressView(view)
+            UIApplication.shared.beginIgnoringInteractionEvents()
+            dimmerView.isHidden = false
+        }
+    }
+    
+    func hideActivityIndicator() {
+        IJProgressView.shared.hideProgressView()
+        UIApplication.shared.endIgnoringInteractionEvents()
+        dimmerView.isHidden = true
     }
     
     func setShadowButton(button: UIButton) {
@@ -185,9 +208,13 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         let sideMenuViewController = menuRightNavigationController.viewControllers[0] as! MenuTableViewController
         sideMenuViewController.isLoggedIn = isLoggedIn()
         sideMenuViewController.isRegistered = (getRegistrationType() == RegistrationType.registered)
-        sideMenuViewController.username = self.username ?? ""
+        if loginType == LogInType.facebook as String {
+            sideMenuViewController.username = "Signed in via facebook"
+        } else {
+            sideMenuViewController.username = self.username ?? ""
+        }
+        sideMenuViewController.displayType = self.displayType
         sideMenuViewController.sortType = self.sortType
-        sideMenuViewController.mapZoomRadius = self.mapZoomRadiusAsEnum(forRadius: self.mapZoomRadius!)
         sideMenuViewController.menuViewDelegate = self
         
         present(SideMenuManager.menuLeftNavigationController!, animated: true, completion: nil)
@@ -197,11 +224,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     @IBAction func didPressLocArrow(_ sender: Any) {
         setSearchEnabledMode(doSet: false)
         viewModel.prepareForZoomToMyLocation(location: myLocation!)
-    }
-    
-    @IBAction func didPressSearchAreaBtn(_ sender: Any) {
-        viewModel.loadStores(forLocation: mapLocation!, withRefresh: false)
-        searchThisAreaBtn.isHidden = true
+        searchThisAreaBtn.isHidden = true && self.displayType != .map
     }
     
     // TODO - Currently no longer getting location after I get it first time; need to change this to update every couple minutes
@@ -214,6 +237,8 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
             myLocation = loc
             mapLocation = loc
             
+            setMapRegionByMilesOf(latDist: mapArea.latDelta!, longDist: mapArea.longDelta!)
+            
             if needsInitialStoreLoad == true {
                 needsInitialStoreLoad = false
                 locationManager.stopUpdatingLocation()
@@ -222,34 +247,151 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         }
     }
     
+    @IBAction func didPressSearchAreaBtn(_ sender: Any) {
+        viewModel.loadStores(forLocation: mapLocation!, withRefresh: false)
+        searchThisAreaBtn.isHidden = true && self.displayType != .map
+    }
+
+    
+    // MARK - MKMapViewDelegates
+    
+    public func mapViewWillStartLoadingMap(_ mapView: MKMapView) {
+    
+    }
+    
+    public func mapViewDidFinishLoadingMap(_ mapView: MKMapView) {
+        
+    }
+
+    public func mapViewDidFailLoadingMap(_ mapView: MKMapView, withError error: Error) {
+        
+    }
+    
+    public func mapViewWillStartRenderingMap(_ mapView: MKMapView) {
+        
+    }
+    
+    public func mapViewDidFinishRenderingMap(_ mapView: MKMapView, fullyRendered: Bool) {
+        
+    }
+    
+    func mapViewRegionDidChangeFromUserInteraction() -> Bool {
+        let view = self.mapView.subviews[0]
+        if let gestureRecognizers = view.gestureRecognizers {
+            for recognizer in gestureRecognizers {
+                if( recognizer.state == UIGestureRecognizerState.began || recognizer.state == UIGestureRecognizerState.ended ) {
+                    return true
+                }
+            }
+        }
+        return false
+    }
+    
+    func mapView(_ mapView: MKMapView, regionWillChangeAnimated animated: Bool) {
+        mapChangedFromUserInteraction = mapViewRegionDidChangeFromUserInteraction()
+    }
+    
+    @IBAction func zoomIn(_ sender: Any) {
+        setMapRegionBy(delta: 0.5, animated: true)
+    }
+    
+    @IBAction func zoomOut(_ sender: Any) {
+        searchThisAreaBtn.isHidden = false
+        setMapRegionBy(delta: 2.0, animated: true)
+    }
+    
+    func setMapRegionBy(delta: Double, animated: Bool) {
+        var region = self.mapView.region;
+        var span = region.span;
+        span.latitudeDelta *= delta
+        span.longitudeDelta *= delta
+        region.span = span
+        mapView.setRegion(region, animated: true)
+        mapArea.latDelta = mapArea.latDelta! * delta
+        mapArea.longDelta = mapArea.longDelta! * delta
+    }
+    
+    func setMapRegionByMilesOf(latDist: Double, longDist: Double) {
+        mapArea.latDelta = latDist
+        mapArea.longDelta = longDist
+        var region = self.mapView.region;
+        var span = region.span;
+        span.latitudeDelta = viewModel.milesToLatDegrees(for: latDist)
+        span.longitudeDelta = viewModel.milesToLongDegrees(for: longDist, atLatitude: (mapLocation?.latitude)!)
+        region.span = span
+        mapView.setRegion(region, animated: true)
+        
+    }
+    
+    // If map region changed because of search, just set the new location.
+    // If map region changed because of user interaction (drag, pinch), then load stores for the new map region and radius
+    // Pinch or expanding map will cause mapRadiusActive to get set to the new region
     func mapView(_ mapView: MKMapView, regionDidChangeAnimated animated: Bool) {
-        if let previousMapLocation = mapLocation {
-            mapLocation = mapView.centerCoordinate
-            
-            let newLoc = CLLocation(latitude: (mapLocation?.latitude)!, longitude: (mapLocation?.longitude)!)
-            let previousLoc = CLLocation(latitude: previousMapLocation.latitude, longitude: previousMapLocation.longitude)
-            let changeInDistance = newLoc.distance(from: previousLoc) * 0.000621371
-            
-            if showSearchAreaButton == true {
-                if changeInDistance > 0.5 { // miles
+        
+        if mapChangedFromUserInteraction {
+
+            if let previousMapLocation = mapLocation {
+                mapLocation = mapView.centerCoordinate
+                
+                // Set the region area to display based on user map gesture (drag, pinch, etc)
+                mapArea.latDelta = viewModel.latDegreesToMiles(for: mapView.region.span.latitudeDelta)
+                mapArea.longDelta = viewModel.longDegreesToMiles(for: mapView.region.span.latitudeDelta, atLatitude: (mapLocation?.longitude)!)
+                
+                // Display the showSearchArea depending on how far the map location changed
+                let newLoc = CLLocation(latitude: (mapLocation?.latitude)!, longitude: (mapLocation?.longitude)!)
+                let previousLoc = CLLocation(latitude: previousMapLocation.latitude, longitude: previousMapLocation.longitude)
+                let changeInDistance = newLoc.distance(from: previousLoc) * 0.000621371
+                
+                if changeInDistance > 0.25 * mapArea.latDelta! { // miles
                     searchThisAreaBtn.isHidden = false
                 } else {
-                    searchThisAreaBtn.isHidden = true
+                    searchThisAreaBtn.isHidden = true && self.displayType != .map
                 }
-            } else {
-                searchThisAreaBtn.isHidden = true
-                showSearchAreaButton = true
             }
         }
     }
     
     func mapView(_ mapView: MKMapView, didSelect view: MKAnnotationView) {
-        print("Did click on annotation: \(mapView.selectedAnnotations.first)")
+        // Not needed. MapView annotations set up to show callout when clicked
     }
     
-    func timer() {
-        let when = DispatchTime.now() + 1 // seconds
-        DispatchQueue.main.asyncAfter(deadline: when) {}
+    func mapView(_ mapView: MKMapView, annotationView view: MKAnnotationView, calloutAccessoryControlTapped control: UIControl) {
+        let annotationTag = (view.annotation as! StoreAnnotation).tag
+        let storyBoard = UIStoryboard(name: "Main", bundle: nil)
+        let detailViewController = storyBoard.instantiateViewController(withIdentifier: "detailViewController") as! DetailViewController
+        configure(detailViewController: detailViewController, forStoreIndex: annotationTag)
+        self.navigationController?.pushViewController(detailViewController, animated: true)
+    }
+    
+    func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
+        
+        let appDelegate = UIApplication.shared.delegate as! AppDelegate
+        let pinTintColor = appDelegate.uicolorFromHex(rgbValue: UInt32(AppDelegate.DEFAULT_BLUE_COLOR))
+        
+        if let annotation = annotation as? StoreAnnotation {
+            let identifier = "storePin"
+            var view: MKPinAnnotationView
+            if let dequeuedView = mapView.dequeueReusableAnnotationView(withIdentifier: identifier) as? MKPinAnnotationView {
+                dequeuedView.annotation = annotation
+                view = dequeuedView
+            } else {
+                view = MKPinAnnotationView(annotation: annotation, reuseIdentifier: identifier)
+                view.canShowCallout = true
+                view.calloutOffset = CGPoint(x: -5, y: 5)
+                view.rightCalloutAccessoryView = UIButton(type: .detailDisclosure) as UIView
+            }
+            view.pinTintColor = pinTintColor
+            
+            return view
+        }
+        return nil
+    }
+    
+    func delayedStoreLoad() {
+        let when = DispatchTime.now() + 0.5 // seconds
+        DispatchQueue.main.asyncAfter(deadline: when) {
+            //self.viewModel.loadStores(forLocation: self.mapLocation!, withRefresh: false)
+        }
     }
     
     // MARK - StoresViewModelDelegate methods
@@ -270,19 +412,23 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         performSegue(withIdentifier: "showFavorites", sender: nil)
     }
     
-    func handleStoresUpdated(forLocation location:CLLocationCoordinate2D, withZoomDistance distance: Double) {
+    func handleStoresUpdated(forLocation location:CLLocationCoordinate2D) {
+        self.mapLocation = location
         self.refreshControl?.endRefreshing()
         tableView.reloadData()
-        zoomToLocation(at: location, withZoomDistanceInMiles: distance)
+        noStoresFoundLabel.isHidden = viewModel.stores.count > 0
+        zoomToLocation(at: location, forMapAreaLatInMiles: mapArea.latDelta!, mapAreaLongInMiles: mapArea.longDelta!)
         
         for annotation in self.mapView.annotations {
             self.mapView.removeAnnotation(annotation)
         }
         
+        var i = 0
         for store in viewModel.stores {
-            let annotation = MKPointAnnotation()
-            annotation.coordinate = CLLocationCoordinate2D(latitude: store.locLat as! CLLocationDegrees, longitude: store.locLong as! CLLocationDegrees)
-            mapView.addAnnotation(annotation)
+            let coordinate = CLLocationCoordinate2D(latitude: store.locLat as! CLLocationDegrees, longitude: store.locLong as! CLLocationDegrees)
+            let storeAnnotation = StoreAnnotation(tag: i, title: store.name!, coordinate: coordinate)
+            mapView.addAnnotation(storeAnnotation)
+            i += 1
         }
     }
     
@@ -294,14 +440,29 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         return self.sortType
     }
     
-    func getMapZoomDistance() -> Double? {
-        return self.mapZoomRadius
+    func getMapAreaLatLongDeltas() -> (Double, Double) {
+        return self.mapArea as! (Double, Double)
     }
     
-    func zoomToLocation(at location: CLLocationCoordinate2D, withZoomDistanceInMiles distance: Double) {
-        let region = MKCoordinateRegionMakeWithDistance(location, milesToMeters(for: distance), milesToMeters(for: distance))
+    func handleError(type: ErrorType) {
+        // TODO - Receiving runtime warning when attempting to present alert view for Favorite post/delete errors:
+        // "Presenting VC on detached VC is discouraged". It's working ok for Favorites view controller,
+        // but presenting error dialog when error occurs in DetailedViewController gives this warning
+        // (I don't have a reference to DetailedViewController here
+        let errorHandler = ErrorHandler()
+        if let errorAlert = errorHandler.handleError(ofType: type) {
+            if let favViewController = self.favoritesViewController {
+                favViewController.present(errorAlert, animated: true, completion: nil)
+            } else {
+                self.present(errorAlert, animated: true, completion: nil)
+            }
+        }
+        self.refreshControl?.endRefreshing()
+    }
+    
+    func zoomToLocation(at location: CLLocationCoordinate2D, forMapAreaLatInMiles latDelta: Double, mapAreaLongInMiles longDelta: Double) {
+        let region = MKCoordinateRegionMakeWithDistance(location, milesToMeters(for: latDelta), milesToMeters(for: longDelta))
         mapView.setRegion(region, animated: true)
-        showSearchAreaButton = false
     }
     
     func distanceFromMyLocation(toLat: NSNumber, long: NSNumber) -> String {
@@ -315,11 +476,11 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         
         if distance < 0.1 {
             distance = distance * 5280.0
-            return ("\(distance.roundTo(places: 1)) feet")
+            return ("\(distance.roundTo(places: 1)) ft")
         } else if (distance >= 9) {
-            return ("\(Int(distance)) miles")
+            return ("\(Int(distance)) mi")
         } else {
-            return ("\(distance.roundTo(places: 1)) miles")
+            return ("\(distance.roundTo(places: 1)) mi")
         }
     }
     
@@ -388,7 +549,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
             self.searchBarButton = UIBarButtonItem(barButtonSystemItem: .search, target: self, action: #selector(MainViewController.searchPressed))
             self.navigationItem.rightBarButtonItem = self.searchBarButton
         } else {
-            self.searchBarButton = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(MainViewController.searchPressed))
+            self.searchBarButton = UIBarButtonItem(barButtonSystemItem: .cancel, target: self, action: #selector(MainViewController.searchPressed))
             self.navigationItem.rightBarButtonItem = self.searchBarButton
         }
     }
@@ -463,34 +624,34 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         
-        if var frame = self.navigationController?.navigationBar.frame {
-            let navHeightMinus21 = (frame.size.height) - 21
-            let scrollOffset = scrollView.contentOffset.y
-            let scrollDiff = scrollOffset - self.previousScrollViewOffset
-            let scrollHeight = scrollView.frame.size.height
-            let scrollContentSizeHeight = scrollView.contentSize.height + scrollView.contentInset.bottom
-            
-            if scrollOffset <= -scrollView.contentInset.top {
-                frame.origin.y = 20
-                //print("scrollOffset <= -scrollview: Nav bar should show")
-                
-            } else if ((scrollOffset + scrollHeight) >= scrollContentSizeHeight) {
-                frame.origin.y = -navHeightMinus21
-                //print("scrollOffset <+ scrollHeight >= -scrollContentSizeHeight: Nav bar should hide")
-                
-            } else {
-                frame.origin.y = min(20, max(-navHeightMinus21, frame.origin.y - scrollDiff))
-                //print("else clause: Nav bar should be moving")
-            }
-            
-            let framePercentageHidden = (( 20 - (frame.origin.y)) / ((frame.size.height) - 1))
-            updateBarButtonItems(alpha: 1.0 - framePercentageHidden)
-            
-            self.navigationController?.navigationBar.frame = frame
-            self.previousScrollViewOffset = scrollOffset
-            
-            mapViewYConstraint.constant = frame.origin.y - 20
-            
+//        if var frame = self.navigationController?.navigationBar.frame {
+//            let navHeightMinus21 = (frame.size.height) - 21
+//            let scrollOffset = scrollView.contentOffset.y
+//            let scrollDiff = scrollOffset - self.previousScrollViewOffset
+//            let scrollHeight = scrollView.frame.size.height
+//            let scrollContentSizeHeight = scrollView.contentSize.height + scrollView.contentInset.bottom
+//            
+//            if scrollOffset <= -scrollView.contentInset.top {
+//                frame.origin.y = 20
+//                //print("scrollOffset <= -scrollview: Nav bar should show")
+//                
+//            } else if ((scrollOffset + scrollHeight) >= scrollContentSizeHeight) {
+//                frame.origin.y = -navHeightMinus21
+//                //print("scrollOffset <+ scrollHeight >= -scrollContentSizeHeight: Nav bar should hide")
+//                
+//            } else {
+//                frame.origin.y = min(20, max(-navHeightMinus21, frame.origin.y - scrollDiff))
+//                //print("else clause: Nav bar should be moving")
+//            }
+//            
+//            let framePercentageHidden = (( 20 - (frame.origin.y)) / ((frame.size.height) - 1))
+//            updateBarButtonItems(alpha: 1.0 - framePercentageHidden)
+//            
+//            self.navigationController?.navigationBar.frame = frame
+//            self.previousScrollViewOffset = scrollOffset
+//            
+//            mapViewYConstraint.constant = frame.origin.y - 20
+        
             // DEBUG
 //            print("navBarY = \(frame.origin.y), mapViewY = \(mapViewYConstraint.constant)")
 //            print("navHeightMinus21: \(navHeightMinus21)")
@@ -510,7 +671,9 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
 //            else if (frame.origin.y == 20) && (mapViewHeightConstraint.constant <= 200.0) {
 //                mapViewHeightConstraint.constant = mapViewHeightConstraint.constant + 10
 //            }
-        }
+        
+        
+//        }
     }
     
     func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
@@ -526,28 +689,18 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     }
     
     // MARK: - Table view data source and delegates
-    
-//    func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
-//        let v = UIView()
-//        v.backgroundColor = .blue
-//        let segmentedControl = UISegmentedControl(frame: CGRect(x: 10, y: 5, width: tableView.frame.width - 20, height: 30))
-//        segmentedControl.insertSegment(withTitle: "One", at: 0, animated: false)
-//        segmentedControl.insertSegment(withTitle: "Two", at: 1, animated: false)
-//        segmentedControl.insertSegment(withTitle: "Three", at: 2, animated: false)
-//        v.addSubview(segmentedControl)
-//        return v
-//    }
-//    
-//    func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
-//        return mapViewHeight
-//    }
 
     func numberOfSections(in tableView: UITableView) -> Int {
         return 1
     }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        return 90
+        
+        if self.displayType == .list {
+            return 88
+        } else {
+            return 68
+        }
     }
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -561,29 +714,52 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
-        let cell = tableView.dequeueReusableCell(withIdentifier: "storeCell", for: indexPath) as! StoreCell
-        
         var selectedStore: Store
-        
         selectedStore = viewModel.stores[indexPath.row]
         
-        cell.storeLabel.text = selectedStore.name
-        if let city = selectedStore.city, let state = selectedStore.state {
-            cell.cityStateLabel.text = "\(city), \(state)"
-        }
-        cell.distanceLabel.text = ("\(distanceFromMyLocation(toLat: selectedStore.locLat!, long: selectedStore.locLong!)) away")
-        
-        cell.locationButton.tag = indexPath.row
-        
-        cell.locationButton.addTarget(self, action: #selector(locationButtonPressed), for: .touchUpInside)
-       
-        if selectedStore.isFavorite == true {
-            cell.favImgView.isHidden = false
+        if self.displayType == .list {
+            
+            let cell = tableView.dequeueReusableCell(withIdentifier: "storeCellListView", for: indexPath) as! StoreCellListView
+            
+            cell.storeLabel.text = selectedStore.name
+            
+            if let address = selectedStore.address, let city = selectedStore.city, let state = selectedStore.state {
+                cell.addressLabel.text = "\(address), \(city), \(state)"
+            }
+            
+            cell.distanceLabel.text = ("\(distanceFromMyLocation(toLat: selectedStore.locLat!, long: selectedStore.locLong!)) away")
+            
+            if selectedStore.isFavorite == true {
+                cell.favImgView.isHidden = false
+            } else {
+                cell.favImgView.isHidden = true
+            }
+            
+            return cell
+            
         } else {
-            cell.favImgView.isHidden = true
-        }
+            
+            let cell = tableView.dequeueReusableCell(withIdentifier: "storeCellMapView", for: indexPath) as! StoreCellMapView
+            
+            cell.storeLabel.text = selectedStore.name
+            
+            let dist = ("\(distanceFromMyLocation(toLat: selectedStore.locLat!, long: selectedStore.locLong!))")
+            
+            if let city = selectedStore.city, let state = selectedStore.state {
+                cell.cityStateLabel.text = "\(city), \(state)  \(dist)"
+            }
         
-        return cell
+            cell.locationButton.tag = indexPath.row
+            cell.locationButton.addTarget(self, action: #selector(locationButtonPressed), for: .touchUpInside)
+            
+            if selectedStore.isFavorite == true {
+                cell.favImgView.isHidden = false
+            } else {
+                cell.favImgView.isHidden = true
+            }
+            
+            return cell
+        }
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
@@ -594,7 +770,9 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         let button = sender as! UIButton
         let selectedStore = viewModel.stores[button.tag]
         let location = CLLocationCoordinate2DMake(selectedStore.locLat as! CLLocationDegrees, selectedStore.locLong as! CLLocationDegrees)
-        zoomToLocation(at: location, withZoomDistanceInMiles: 1)
+        mapArea.latDelta = 1.0
+        mapArea.longDelta = 1.0
+        zoomToLocation(at: location, forMapAreaLatInMiles: mapArea.latDelta!, mapAreaLongInMiles: mapArea.longDelta!)
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
@@ -606,22 +784,12 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
             
             if let indexPath = tableView.indexPathForSelectedRow {
                 
-                selectedStore = viewModel.stores[(indexPath.row)]
+               // selectedStore = viewModel.stores[(indexPath.row)]
                 
                 if let detailViewController = segue.destination as? DetailViewController {
-                    detailViewController.delegate = self
-                    detailViewController.selectedStoreIndex = indexPath.row
-                    detailViewController.storeNameStr = selectedStore.name
-                    detailViewController.isFav = selectedStore.isFavorite as Bool!
-                    detailViewController.streetStr = selectedStore.address
-                    detailViewController.cityStr = selectedStore.city
-                    detailViewController.stateStr = selectedStore.state
-                    detailViewController.zipStr = selectedStore.zip
-                    detailViewController.distanceStr = ("\(distanceFromMyLocation(toLat: selectedStore.locLat!, long: selectedStore.locLong!)) away")
-                    let locLat = selectedStore.locLat as! Double
-                    let locLong = selectedStore.locLong as! Double
-                    detailViewController.storeLocation = (locLat, locLong)
-                }
+                    
+                    configure(detailViewController: detailViewController, forStoreIndex: indexPath.row)
+                 }
             }
             
         } else if segue.identifier == "presentLoginView" {
@@ -639,6 +807,22 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
             self.favoritesViewController?.favoriteStores = viewModel.favoriteStores
             self.favoritesViewController?.userLocation = self.myLocation
         }
+    }
+    
+    func configure(detailViewController: DetailViewController, forStoreIndex index: Int) {
+        let selectedStore = self.viewModel.stores[index]
+        detailViewController.delegate = self
+        detailViewController.selectedStoreIndex = index
+        detailViewController.storeNameStr = selectedStore.name
+        detailViewController.isFav = selectedStore.isFavorite as! Bool!
+        detailViewController.streetStr = selectedStore.address
+        detailViewController.cityStr = selectedStore.city
+        detailViewController.stateStr = selectedStore.state
+        detailViewController.zipStr = selectedStore.zip
+        detailViewController.distanceStr = ("\(distanceFromMyLocation(toLat: selectedStore.locLat!, long: selectedStore.locLong!)) away")
+        let locLat = selectedStore.locLat as! Double
+        let locLong = selectedStore.locLong as! Double
+        detailViewController.storeLocation = (locLat, locLong)
     }
     
     // MARK - FavoriteButtonPressedDelegate
@@ -698,6 +882,8 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
             
             self.username = user!.email
             
+            print(self.username ?? "")
+            
             if let providerData = user?.providerData {
                 for userInfo in providerData {
                     switch userInfo.providerID {
@@ -745,7 +931,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
                 try firebaseAuth?.signOut()
                 loginType = LogInType.isNotLoggedIn as String
             } catch let signOutError as NSError {
-                print ("Error logging out: %@", signOutError)
+                Logger.print("Error logging out: \(signOutError)")
             }
         }
         performSegue(withIdentifier: "presentLoginView", sender: nil)
@@ -755,6 +941,26 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         viewModel.getListOfFavorites()
     }
     
+    func userSelectedDisplayType(displayType: StoreDisplayType) {
+        
+        self.displayType = displayType
+        
+        let screenSize: CGRect = UIScreen.main.bounds
+        let availableScreenHt = screenSize.height - 64.0
+        
+        if self.displayType == .map {
+            self.searchThisAreaBtn.isHidden = false
+           mapViewHeightConstraint.constant = availableScreenHt
+        } else if self.displayType == .list {
+            self.searchThisAreaBtn.isHidden = true
+            mapViewHeightConstraint.constant = 0.0
+        } else {
+            self.searchThisAreaBtn.isHidden = true
+            mapViewHeightConstraint.constant = availableScreenHt * 0.5
+        }
+        self.tableView.reloadData()
+    }
+    
     func userSelectedSortType(sortType: StoreSortType) {
         if self.sortType != sortType {
             UserDefaults.standard.setValue(sortType.rawValue, forKey: StoreSortType.sortKey)
@@ -762,44 +968,6 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
             viewModel.setStoreSortOrder(by: sortType)
             self.tableView.reloadData()
         }
-    }
-    
-    func userSelectedMapZoomRadius(radius: MapZoomRadius) {
-        self.mapZoomRadius = mapZoomRadiusAsDouble(forRadius: radius)
-        UserDefaults.standard.setValue(radius.rawValue, forKey: MapZoomRadius.mapZoomKey)
-        zoomToLocation(at: self.mapLocation!, withZoomDistanceInMiles: self.mapZoomRadius!)
-    }
-    
-    func mapZoomRadiusAsDouble(forRadius radius: MapZoomRadius) -> Double {
-        var radiusDouble = 10.0 // default
-        switch radius {
-        case .five:
-            radiusDouble = 5.0
-        case .ten:
-            radiusDouble = 10.0
-        case .fifteen:
-            radiusDouble = 15.0
-        case .twenty:
-            radiusDouble = 20.0
-        }
-        return radiusDouble
-    }
-    
-    func mapZoomRadiusAsEnum(forRadius radius: Double) -> MapZoomRadius {
-        var mapZoomRadiusEnum: MapZoomRadius
-        switch radius {
-        case 5.0:
-            mapZoomRadiusEnum = MapZoomRadius.five
-        case 10.0:
-            mapZoomRadiusEnum = MapZoomRadius.ten
-        case 15.0:
-            mapZoomRadiusEnum = MapZoomRadius.fifteen
-        case 20.0:
-            mapZoomRadiusEnum = MapZoomRadius.twenty
-        default:
-            mapZoomRadiusEnum = MapZoomRadius.ten // default in case of problem
-        }
-        return mapZoomRadiusEnum
     }
 
     override func didReceiveMemoryWarning() {

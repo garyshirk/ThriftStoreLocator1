@@ -8,12 +8,16 @@
 
 /* Begin PBXBuildFile section */
 		314D2EADF3C475E290BC2116 /* Pods_ThriftStoreLocator.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 796EB802B8425583242F5A32 /* Pods_ThriftStoreLocator.framework */; };
+		E10E287B1EABA433009C1F13 /* StoreAnnotation.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10E287A1EABA433009C1F13 /* StoreAnnotation.swift */; };
 		E121A4E11E7F1833009AB717 /* LoginViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E121A4E01E7F1833009AB717 /* LoginViewController.swift */; };
 		E12F1C911E66304B006371A9 /* DataLayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = E12F1C901E66304B006371A9 /* DataLayer.swift */; };
 		E12F1C941E663E81006371A9 /* NetworkLayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = E12F1C931E663E81006371A9 /* NetworkLayer.swift */; };
 		E12F1C971E664D87006371A9 /* Store.swift in Sources */ = {isa = PBXBuildFile; fileRef = E12F1C951E664D87006371A9 /* Store.swift */; };
 		E12F1C981E664D87006371A9 /* Store+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = E12F1C961E664D87006371A9 /* Store+CoreDataProperties.swift */; };
+		E14659EF1EAA68B300ED1FFD /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = E14659EE1EAA68B300ED1FFD /* Logger.swift */; };
+		E14659F11EAAB07E00ED1FFD /* StoreCellListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E14659F01EAAB07E00ED1FFD /* StoreCellListView.swift */; };
 		E160B1641E808BE800D9C2FC /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = E160B1631E808BE800D9C2FC /* GoogleService-Info.plist */; };
+		E166FCC71EC27B8F00F59F30 /* ResetPwViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E166FCC61EC27B8F00F59F30 /* ResetPwViewController.swift */; };
 		E16BFB681E6777E8007438C8 /* FavoritesViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E16BFB671E6777E8007438C8 /* FavoritesViewController.swift */; };
 		E1724D101E5B732F00E71909 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1724D0F1E5B732F00E71909 /* AppDelegate.swift */; };
 		E1724D151E5B732F00E71909 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = E1724D131E5B732F00E71909 /* Main.storyboard */; };
@@ -23,11 +27,13 @@
 		E1724D251E5B741000E71909 /* MainViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1724D241E5B741000E71909 /* MainViewController.swift */; };
 		E1724D271E5B7BAC00E71909 /* DetailViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1724D261E5B7BAC00E71909 /* DetailViewController.swift */; };
 		E173E9891E5BA850001FF201 /* MenuViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E173E9881E5BA850001FF201 /* MenuViewController.swift */; };
-		E1C20C441E7842F5004CEEDD /* StoreCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1C20C431E7842F5004CEEDD /* StoreCell.swift */; };
+		E1C20C441E7842F5004CEEDD /* StoreCellMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1C20C431E7842F5004CEEDD /* StoreCellMapView.swift */; };
 		E1C771F11E7236BB00B98EA8 /* MapKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E1C771F01E7236BB00B98EA8 /* MapKit.framework */; };
 		E1C771F31E7236C600B98EA8 /* CoreLocation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E1C771F21E7236C600B98EA8 /* CoreLocation.framework */; };
 		E1C9A0851E9E84B300EEE8A4 /* FavoriteStoreCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1C9A0841E9E84B300EEE8A4 /* FavoriteStoreCell.swift */; };
 		E1C9A0871E9EE9CF00EEE8A4 /* DropMenuButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1C9A0861E9EE9CF00EEE8A4 /* DropMenuButton.swift */; };
+		E1D7D93F1EA94DAB00E3EFE8 /* ErrorHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1D7D93E1EA94DAB00E3EFE8 /* ErrorHandler.swift */; };
+		E1EA9B791EA6BBB4007869E9 /* IJProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1EA9B781EA6BBB4007869E9 /* IJProgressView.swift */; };
 		E1F920A41E95B67E00BA67AA /* Favorite.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1F920A31E95B67E00BA67AA /* Favorite.swift */; };
 		E1F920A61E95B6A400BA67AA /* Favorite+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1F920A51E95B6A400BA67AA /* Favorite+CoreDataProperties.swift */; };
 		E1F93D121E66293200660A36 /* StoresViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1F93D111E66293200660A36 /* StoresViewModel.swift */; };
@@ -38,13 +44,17 @@
 		1CE09159045F46D114E86841 /* Pods-ThriftStoreLocator.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ThriftStoreLocator.release.xcconfig"; path = "Pods/Target Support Files/Pods-ThriftStoreLocator/Pods-ThriftStoreLocator.release.xcconfig"; sourceTree = "<group>"; };
 		796EB802B8425583242F5A32 /* Pods_ThriftStoreLocator.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_ThriftStoreLocator.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		AE5829B3E21A93676FAE59BF /* Pods-ThriftStoreLocator.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ThriftStoreLocator.debug.xcconfig"; path = "Pods/Target Support Files/Pods-ThriftStoreLocator/Pods-ThriftStoreLocator.debug.xcconfig"; sourceTree = "<group>"; };
+		E10E287A1EABA433009C1F13 /* StoreAnnotation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StoreAnnotation.swift; sourceTree = "<group>"; };
 		E121A4E01E7F1833009AB717 /* LoginViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LoginViewController.swift; sourceTree = "<group>"; };
 		E121A4E21E7F3379009AB717 /* ThriftStoreLocator.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ThriftStoreLocator.entitlements; sourceTree = "<group>"; };
 		E12F1C901E66304B006371A9 /* DataLayer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DataLayer.swift; sourceTree = "<group>"; };
 		E12F1C931E663E81006371A9 /* NetworkLayer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NetworkLayer.swift; sourceTree = "<group>"; };
 		E12F1C951E664D87006371A9 /* Store.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Store.swift; sourceTree = "<group>"; };
 		E12F1C961E664D87006371A9 /* Store+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Store+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		E14659EE1EAA68B300ED1FFD /* Logger.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
+		E14659F01EAAB07E00ED1FFD /* StoreCellListView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StoreCellListView.swift; sourceTree = "<group>"; };
 		E160B1631E808BE800D9C2FC /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		E166FCC61EC27B8F00F59F30 /* ResetPwViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ResetPwViewController.swift; sourceTree = "<group>"; };
 		E16BFB671E6777E8007438C8 /* FavoritesViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FavoritesViewController.swift; sourceTree = "<group>"; };
 		E1724D0C1E5B732F00E71909 /* ThriftStoreLocator.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ThriftStoreLocator.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E1724D0F1E5B732F00E71909 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -56,11 +66,13 @@
 		E1724D241E5B741000E71909 /* MainViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MainViewController.swift; sourceTree = "<group>"; };
 		E1724D261E5B7BAC00E71909 /* DetailViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DetailViewController.swift; sourceTree = "<group>"; };
 		E173E9881E5BA850001FF201 /* MenuViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MenuViewController.swift; sourceTree = "<group>"; };
-		E1C20C431E7842F5004CEEDD /* StoreCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StoreCell.swift; sourceTree = "<group>"; };
+		E1C20C431E7842F5004CEEDD /* StoreCellMapView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StoreCellMapView.swift; sourceTree = "<group>"; };
 		E1C771F01E7236BB00B98EA8 /* MapKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MapKit.framework; path = System/Library/Frameworks/MapKit.framework; sourceTree = SDKROOT; };
 		E1C771F21E7236C600B98EA8 /* CoreLocation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreLocation.framework; path = System/Library/Frameworks/CoreLocation.framework; sourceTree = SDKROOT; };
 		E1C9A0841E9E84B300EEE8A4 /* FavoriteStoreCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FavoriteStoreCell.swift; sourceTree = "<group>"; };
 		E1C9A0861E9EE9CF00EEE8A4 /* DropMenuButton.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DropMenuButton.swift; sourceTree = "<group>"; };
+		E1D7D93E1EA94DAB00E3EFE8 /* ErrorHandler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ErrorHandler.swift; sourceTree = "<group>"; };
+		E1EA9B781EA6BBB4007869E9 /* IJProgressView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IJProgressView.swift; sourceTree = "<group>"; };
 		E1F920A31E95B67E00BA67AA /* Favorite.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Favorite.swift; sourceTree = "<group>"; };
 		E1F920A51E95B6A400BA67AA /* Favorite+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Favorite+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		E1F93D111E66293200660A36 /* StoresViewModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StoresViewModel.swift; sourceTree = "<group>"; };
@@ -111,6 +123,7 @@
 			isa = PBXGroup;
 			children = (
 				E1724D0E1E5B732F00E71909 /* ThriftStoreLocator */,
+				E1D7D93D1EA94D3400E3EFE8 /* SupportFiles */,
 				E1724D0D1E5B732F00E71909 /* Products */,
 				5AC5D9F1019D9DFA19F65E45 /* Pods */,
 				F8B21205C7D1FB94CF6E84D9 /* Frameworks */,
@@ -143,18 +156,31 @@
 			path = ThriftStoreLocator;
 			sourceTree = "<group>";
 		};
+		E1D7D93D1EA94D3400E3EFE8 /* SupportFiles */ = {
+			isa = PBXGroup;
+			children = (
+				E1C9A0861E9EE9CF00EEE8A4 /* DropMenuButton.swift */,
+				E1EA9B781EA6BBB4007869E9 /* IJProgressView.swift */,
+				E1D7D93E1EA94DAB00E3EFE8 /* ErrorHandler.swift */,
+				E14659EE1EAA68B300ED1FFD /* Logger.swift */,
+				E10E287A1EABA433009C1F13 /* StoreAnnotation.swift */,
+			);
+			name = SupportFiles;
+			path = ThriftStoreLocator;
+			sourceTree = "<group>";
+		};
 		E1F93D0F1E6618E100660A36 /* Controllers */ = {
 			isa = PBXGroup;
 			children = (
 				E1724D241E5B741000E71909 /* MainViewController.swift */,
-				E1F93D111E66293200660A36 /* StoresViewModel.swift */,
 				E173E9881E5BA850001FF201 /* MenuViewController.swift */,
 				E1724D261E5B7BAC00E71909 /* DetailViewController.swift */,
 				E16BFB671E6777E8007438C8 /* FavoritesViewController.swift */,
 				E121A4E01E7F1833009AB717 /* LoginViewController.swift */,
-				E1C20C431E7842F5004CEEDD /* StoreCell.swift */,
+				E1C20C431E7842F5004CEEDD /* StoreCellMapView.swift */,
+				E14659F01EAAB07E00ED1FFD /* StoreCellListView.swift */,
 				E1C9A0841E9E84B300EEE8A4 /* FavoriteStoreCell.swift */,
-				E1C9A0861E9EE9CF00EEE8A4 /* DropMenuButton.swift */,
+				E166FCC61EC27B8F00F59F30 /* ResetPwViewController.swift */,
 			);
 			name = Controllers;
 			sourceTree = "<group>";
@@ -175,6 +201,7 @@
 			isa = PBXGroup;
 			children = (
 				E1F93D141E662A7100660A36 /* ModelManager.swift */,
+				E1F93D111E66293200660A36 /* StoresViewModel.swift */,
 			);
 			name = ModelLayer;
 			sourceTree = "<group>";
@@ -323,8 +350,11 @@
 				E1C9A0851E9E84B300EEE8A4 /* FavoriteStoreCell.swift in Sources */,
 				E1724D101E5B732F00E71909 /* AppDelegate.swift in Sources */,
 				E1724D181E5B732F00E71909 /* ThriftStoreLocator.xcdatamodeld in Sources */,
+				E14659EF1EAA68B300ED1FFD /* Logger.swift in Sources */,
 				E12F1C911E66304B006371A9 /* DataLayer.swift in Sources */,
+				E14659F11EAAB07E00ED1FFD /* StoreCellListView.swift in Sources */,
 				E1F920A61E95B6A400BA67AA /* Favorite+CoreDataProperties.swift in Sources */,
+				E1EA9B791EA6BBB4007869E9 /* IJProgressView.swift in Sources */,
 				E173E9891E5BA850001FF201 /* MenuViewController.swift in Sources */,
 				E1C9A0871E9EE9CF00EEE8A4 /* DropMenuButton.swift in Sources */,
 				E1724D251E5B741000E71909 /* MainViewController.swift in Sources */,
@@ -333,10 +363,13 @@
 				E121A4E11E7F1833009AB717 /* LoginViewController.swift in Sources */,
 				E16BFB681E6777E8007438C8 /* FavoritesViewController.swift in Sources */,
 				E1F920A41E95B67E00BA67AA /* Favorite.swift in Sources */,
-				E1C20C441E7842F5004CEEDD /* StoreCell.swift in Sources */,
+				E10E287B1EABA433009C1F13 /* StoreAnnotation.swift in Sources */,
+				E1C20C441E7842F5004CEEDD /* StoreCellMapView.swift in Sources */,
 				E12F1C981E664D87006371A9 /* Store+CoreDataProperties.swift in Sources */,
+				E1D7D93F1EA94DAB00E3EFE8 /* ErrorHandler.swift in Sources */,
 				E12F1C971E664D87006371A9 /* Store.swift in Sources */,
 				E1F93D121E66293200660A36 /* StoresViewModel.swift in Sources */,
+				E166FCC71EC27B8F00F59F30 /* ResetPwViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

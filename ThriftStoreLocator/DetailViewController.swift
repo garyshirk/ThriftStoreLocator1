@@ -44,6 +44,8 @@ class DetailViewController: UIViewController {
         
         if let unwrappedCityStr = cityStr {
             cityLabel.text = ("\(unwrappedCityStr),")
+        } else {
+            cityLabel.text = ""
         }
 
         stateLabel.text = stateStr
@@ -64,7 +66,6 @@ class DetailViewController: UIViewController {
     
     
     @IBAction func getDirectionsButton(_ sender: Any) {
-        print("getDirectionsButton pressed")
         openMapForPlace()
     }
     

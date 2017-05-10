@@ -12,7 +12,7 @@ import MapKit
 
 protocol StoresViewModelDelegate: class {
     
-    func handleStoresUpdated(forLocation location: CLLocationCoordinate2D, withZoomDistance zoomDistance: Double)
+    func handleStoresUpdated(forLocation location: CLLocationCoordinate2D)
     
     func handleFavoritesLoaded()
     
@@ -24,12 +24,18 @@ protocol StoresViewModelDelegate: class {
     
     func getSortType() -> StoreSortType?
     
-    func getMapZoomDistance() -> Double?
+    func getMapAreaLatLongDeltas() -> (Double, Double)
+    
+    func showActivityIndicator()
+    
+    func hideActivityIndicator()
+    
+    func handleError(type: ErrorType)
 }
 
 class StoresViewModel {
     
-    var isLoadByState = false
+    var isLoadByState = true
     
     private var modelManager: ModelManager
     
@@ -44,9 +50,7 @@ class StoresViewModel {
     var state: String = ""
     
     var query: String = ""
-    
-    var showStoreRadius: Double = 25.0 // Constant - filter stores loaded from server to 25 mile radius of location (in miles)
-    
+   
     var storeLocationPredicate: NSPredicate?
     
     var locationLoadedFromServer: String?
@@ -60,7 +64,7 @@ class StoresViewModel {
     
     init(delegate: StoresViewModelDelegate?) {
         self.delegate = delegate
-        self.modelManager = ModelManager.sharedInstance
+        self.modelManager = ModelManager.shareManager
     }
     
     // MARK - public functions
@@ -74,23 +78,31 @@ class StoresViewModel {
         statePreviouslyLoaded = ""
     }
     
-    func setMapZoomArea(radius: Double) {
-        
-    }
-    
     func postFavorite(forStore store: Store, user: String) {
         
-        modelManager.postFavoriteToServer(store: store, forUser: user, modelManagerPostFavUpdater: {
+        modelManager.postFavoriteToServer(store: store, forUser: user, modelManagerPostFavUpdater: { [weak self] error in
         
-            self.delegate?.handleFavoriteUpdated()
+            guard let strongSelf = self else { return }
+            
+            if error == .none {
+                strongSelf.delegate?.handleFavoriteUpdated()
+            } else {
+                strongSelf.delegate?.handleError(type: error)
+            }
         })
     }
     
     func removeFavorite(forStore store: Store, user: String) {
         
-        modelManager.removeFavoriteFromServer(store: store, forUser: user, modelManagerPostFavUpdater: {
+        modelManager.removeFavoriteFromServer(store: store, forUser: user, modelManagerPostFavUpdater: { [weak self] error in
             
-            self.delegate?.handleFavoriteUpdated()            
+            guard let strongSelf = self else { return }
+            
+            if error == .none {
+                strongSelf.delegate?.handleFavoriteUpdated()
+            } else {
+                strongSelf.delegate?.handleError(type: error)
+            }
         })
     }
     
@@ -98,9 +110,7 @@ class StoresViewModel {
         
         modelManager.listFavorites(modelManagerListFavoritesUpdater: { [weak self] storeEntities -> Void in
         
-            guard let strongSelf = self else {
-                return
-            }
+            guard let strongSelf = self else { return }
             
             let sortType = strongSelf.delegate?.getSortType()
             strongSelf.favoriteStores = strongSelf.setStoreSortOrder(by: sortType!, forStores: storeEntities)
@@ -111,13 +121,18 @@ class StoresViewModel {
     
     func loadFavorites(forUser user: String) {
         
-        modelManager.loadFavoritesFromServer(forUser: user, modelManagerLoadFavoritesUpdater: { [weak self] storeEntities -> Void in
+        self.delegate?.showActivityIndicator()
         
-            guard let strongSelf = self else {
-                return
-            }
+        modelManager.loadFavoritesFromServer(forUser: user, modelManagerLoadFavoritesUpdater: { [weak self] (storeEntities, error) -> Void in
+        
+            guard let strongSelf = self else { return }
             
-            strongSelf.delegate?.handleFavoritesLoaded()
+            if error == .none {
+                strongSelf.delegate?.handleFavoritesLoaded()
+            } else {
+                strongSelf.delegate?.handleError(type: error)
+                strongSelf.delegate?.hideActivityIndicator()
+            }
         })
     }
     
@@ -170,15 +185,20 @@ class StoresViewModel {
                 filterStoresAndInformMainController(stores: stores)
                 
             } else {
+                
+                self.delegate?.showActivityIndicator()
             
-                modelManager.loadStoresFromServer(forQuery: query, withDeleteOld: deleteOld, modelManagerStoresUpdater: { [weak self] storeEntities -> Void in
+                modelManager.loadStoresFromServer(forQuery: query, withDeleteOld: deleteOld, modelManagerStoresUpdater: { [weak self] (storeEntities, error) -> Void in
                     
-                    guard let strongSelf = self else {
-                        return
+                    guard let strongSelf = self else { return }
+                    
+                    if error == .none {
+                        strongSelf.countyPreviouslyLoadedDict[strongSelf.county] = strongSelf.locationLoadedFromServer
+                        strongSelf.filterStoresAndInformMainController(stores: storeEntities)
+                    } else {
+                        strongSelf.delegate?.handleError(type: error)
                     }
-                    
-                    strongSelf.countyPreviouslyLoadedDict[strongSelf.county] = strongSelf.locationLoadedFromServer
-                    strongSelf.filterStoresAndInformMainController(stores: storeEntities)
+                    strongSelf.delegate?.hideActivityIndicator()
                 })
             }
             
@@ -191,19 +211,28 @@ class StoresViewModel {
                 
             } else {
                 
-                modelManager.deleteAllStoresFromCoreDataExceptFavs( modelManagerDeleteAllCoreDataExceptFavsUpdater: { [weak self] in
+                self.delegate?.showActivityIndicator()
+                
+                modelManager.deleteAllStoresFromCoreDataExceptFavs( modelManagerDeleteAllCoreDataExceptFavsUpdater: { [weak self] dataLayerError in
                     
                     guard let strongSelf = self else { return }
                     
-                    strongSelf.modelManager.loadStoresFromServer(forQuery: strongSelf.query, withDeleteOld: deleteOld, withLocationPred: strongSelf.storeLocationPredicate!, modelManagerStoresUpdater: { [weak self] storeEntities -> Void in
+                    if dataLayerError == .none {
                         
-                        guard let strongSelf = self else {
-                            return
-                        }
+                        strongSelf.modelManager.loadStoresFromServer(forQuery: strongSelf.query, withDeleteOld: deleteOld, withLocationPred: strongSelf.storeLocationPredicate!, modelManagerStoresUpdater: { (storeEntities, error) -> Void in
+                            
+                            if error == .none {
+                                strongSelf.statePreviouslyLoaded = strongSelf.query
+                                strongSelf.updateMainController(stores: storeEntities)
+                            } else {
+                                strongSelf.delegate?.handleError(type: error)
+                            }
+                        })
                         
-                        strongSelf.statePreviouslyLoaded = strongSelf.query
-                        strongSelf.updateMainController(stores: storeEntities)
-                    })
+                    } else {
+                        strongSelf.delegate?.handleError(type: dataLayerError)
+                    }
+                    strongSelf.delegate?.hideActivityIndicator()
                 })
             }
         }
@@ -218,8 +247,7 @@ class StoresViewModel {
         let sortType = self.delegate?.getSortType()
         self.stores = self.setStoreSortOrder(by: sortType!, forStores: stores)
         
-        let mapZoomDistance = delegate?.getMapZoomDistance()
-        self.delegate?.handleStoresUpdated(forLocation: self.mapLocation!, withZoomDistance: mapZoomDistance!)
+        self.delegate?.handleStoresUpdated(forLocation: self.mapLocation!)
     }
     
     private func updateMainController(stores: [Store]) {
@@ -230,8 +258,7 @@ class StoresViewModel {
         let sortType = self.delegate?.getSortType()
         self.stores = self.setStoreSortOrder(by: sortType!, forStores: stores)
         
-        let mapZoomDistance = delegate?.getMapZoomDistance()
-        self.delegate?.handleStoresUpdated(forLocation: self.mapLocation!, withZoomDistance: mapZoomDistance!)
+        self.delegate?.handleStoresUpdated(forLocation: self.mapLocation!)
     }
 
     
@@ -268,7 +295,7 @@ class StoresViewModel {
     }
     
     // Get the approximate area (expects radius to be in units of miles)
-    private func setStoreFilters(forLocation location: CLLocationCoordinate2D, withRadiusInMiles radius:Double, andZip zip:String) {
+    private func setStoreFilters(forLocation location: CLLocationCoordinate2D, forMapAreaInMiles mapArea: (Double, Double), andZip zip:String) {
         
         // TODO - Not ready for this yet, but once you start notifying user about geofence entries, will need to use CLCircularRegion
         // let region = CLCircularRegion.init(center: location, radius: radius, identifier: "region")
@@ -280,8 +307,8 @@ class StoresViewModel {
             // Approximate a region based on location and radius, does not account for curvature of earth but ok for short distances
             let locLat = location.latitude
             let locLong = location.longitude
-            let degreesLatDelta = milesToLatDegrees(for: radius)
-            let degreesLongDelta = milesToLongDegrees(for: radius, atLatitude: locLat)
+            let degreesLatDelta = milesToLatDegrees(for: mapArea.0) // .0 is lat distance, .1 is long distance
+            let degreesLongDelta = milesToLongDegrees(for: mapArea.1 , atLatitude: locLat)
             
             let eastLong = locLong + degreesLongDelta
             let westLong = locLong - degreesLongDelta
@@ -324,6 +351,7 @@ class StoresViewModel {
             
             if error != nil {
                 print("Reverse geocoder failed with error" + (error?.localizedDescription)!)
+                // TODO - Needs error handling
                 return
             }
             
@@ -337,7 +365,8 @@ class StoresViewModel {
                         
                         strongSelf.county = county.lowercased().replacingOccurrences(of: " ", with: "+")
                         
-                        strongSelf.setStoreFilters(forLocation: location, withRadiusInMiles: strongSelf.showStoreRadius, andZip: "")
+                        let mapArea = strongSelf.delegate?.getMapAreaLatLongDeltas()
+                        strongSelf.setStoreFilters(forLocation: location, forMapAreaInMiles: mapArea!, andZip: "")
                         
                         if let state = placemark.administrativeArea {
                             
@@ -361,7 +390,8 @@ class StoresViewModel {
                         
                         strongSelf.locationLoadedFromServer = strongSelf.state
                         
-                        strongSelf.setStoreFilters(forLocation: location, withRadiusInMiles: strongSelf.showStoreRadius, andZip: "")
+                        let mapArea = strongSelf.delegate?.getMapAreaLatLongDeltas()
+                        strongSelf.setStoreFilters(forLocation: location, forMapAreaInMiles: mapArea!, andZip: "")
                         
                         strongSelf.doLoadStores(deleteOld: deleteOld)
                     
@@ -423,7 +453,9 @@ class StoresViewModel {
                             
                         }
                         
-                        strongSelf.setStoreFilters(forLocation: strongSelf.mapLocation!, withRadiusInMiles: strongSelf.showStoreRadius, andZip: zip)
+                        let mapArea = strongSelf.delegate?.getMapAreaLatLongDeltas()
+                        strongSelf.setStoreFilters(forLocation: strongSelf.mapLocation!, forMapAreaInMiles: mapArea!, andZip: zip)
+                        
                         strongSelf.doLoadStores(deleteOld: false)
                     }
                 
@@ -451,7 +483,9 @@ class StoresViewModel {
                             
                         }
                         
-                        strongSelf.setStoreFilters(forLocation: strongSelf.mapLocation!, withRadiusInMiles: strongSelf.showStoreRadius, andZip: zip)
+                        let mapArea = strongSelf.delegate?.getMapAreaLatLongDeltas()
+                        strongSelf.setStoreFilters(forLocation: strongSelf.mapLocation!, forMapAreaInMiles: mapArea!, andZip: zip)
+                        
                         strongSelf.doLoadStores(deleteOld: false)
                     }
                 }
@@ -494,6 +528,10 @@ extension StoresViewModel {
         return miles / 69.0
     }
     
+    func latDegreesToMiles(for degrees: Double) -> Double {
+        return degrees * 69.0
+    }
+    
     func milesToLongDegrees(for miles:Double, atLatitude lat:Double) -> Double {
         
         // Approximations for long degree deltas based on lat found at www.csgnetwork.com/degreelenllavcalc.html
@@ -533,4 +571,45 @@ extension StoresViewModel {
         
         return miles / milesPerDeg
     }
+    
+    func longDegreesToMiles(for degrees:Double, atLatitude lat:Double) -> Double {
+        
+        // Approximations for long degree deltas based on lat found at www.csgnetwork.com/degreelenllavcalc.html
+        
+        let degPerMile:Double
+        
+        switch lat {
+            
+        case 0..<25.0:
+            degPerMile = 1 / 62.7 // lat: 25.0
+            break
+            
+        case 25.0..<30.0:
+            degPerMile = 1 / 61.4 // lat: 27.5
+            break
+            
+        case 30.0..<35.0:
+            degPerMile = 1 / 58.4 // lat: 32.5
+            break
+            
+        case 35.0..<40.0:
+            degPerMile = 1 / 55.0 // lat: 37.5
+            break
+            
+        case 40.0..<45.0:
+            degPerMile = 1 / 51.1 // lat: 42.5
+            break
+            
+        case 45.0..<60.0:
+            degPerMile = 1 / 47.3 // lat: 47.0
+            break
+            
+        default:
+            degPerMile = 1 / 55.0 // lat:
+            break
+        }
+        
+        return degrees / degPerMile
+    }
+
 }
