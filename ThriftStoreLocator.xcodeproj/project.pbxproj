@@ -17,6 +17,7 @@
 		E14659EF1EAA68B300ED1FFD /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = E14659EE1EAA68B300ED1FFD /* Logger.swift */; };
 		E14659F11EAAB07E00ED1FFD /* StoreCellListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E14659F01EAAB07E00ED1FFD /* StoreCellListView.swift */; };
 		E160B1641E808BE800D9C2FC /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = E160B1631E808BE800D9C2FC /* GoogleService-Info.plist */; };
+		E166FCC71EC27B8F00F59F30 /* ResetPwViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E166FCC61EC27B8F00F59F30 /* ResetPwViewController.swift */; };
 		E16BFB681E6777E8007438C8 /* FavoritesViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E16BFB671E6777E8007438C8 /* FavoritesViewController.swift */; };
 		E1724D101E5B732F00E71909 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1724D0F1E5B732F00E71909 /* AppDelegate.swift */; };
 		E1724D151E5B732F00E71909 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = E1724D131E5B732F00E71909 /* Main.storyboard */; };
@@ -53,6 +54,7 @@
 		E14659EE1EAA68B300ED1FFD /* Logger.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
 		E14659F01EAAB07E00ED1FFD /* StoreCellListView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StoreCellListView.swift; sourceTree = "<group>"; };
 		E160B1631E808BE800D9C2FC /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		E166FCC61EC27B8F00F59F30 /* ResetPwViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ResetPwViewController.swift; sourceTree = "<group>"; };
 		E16BFB671E6777E8007438C8 /* FavoritesViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FavoritesViewController.swift; sourceTree = "<group>"; };
 		E1724D0C1E5B732F00E71909 /* ThriftStoreLocator.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ThriftStoreLocator.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E1724D0F1E5B732F00E71909 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -178,6 +180,7 @@
 				E1C20C431E7842F5004CEEDD /* StoreCellMapView.swift */,
 				E14659F01EAAB07E00ED1FFD /* StoreCellListView.swift */,
 				E1C9A0841E9E84B300EEE8A4 /* FavoriteStoreCell.swift */,
+				E166FCC61EC27B8F00F59F30 /* ResetPwViewController.swift */,
 			);
 			name = Controllers;
 			sourceTree = "<group>";
@@ -366,6 +369,7 @@
 				E1D7D93F1EA94DAB00E3EFE8 /* ErrorHandler.swift in Sources */,
 				E12F1C971E664D87006371A9 /* Store.swift in Sources */,
 				E1F93D121E66293200660A36 /* StoresViewModel.swift in Sources */,
+				E166FCC71EC27B8F00F59F30 /* ResetPwViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

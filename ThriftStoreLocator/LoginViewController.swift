@@ -84,7 +84,7 @@ class LoginViewController: UITableViewController, UITextFieldDelegate {
     func handleError(errorType: ErrorType) {
         let errorHandler = ErrorHandler.sharedManager
         if let errorAlert = errorHandler.handleError(ofType: errorType) {
-            self.present(errorAlert, animated: true, completion: nil)
+            self.present(errorAlert, animated: true, completion: {})
         }
     }
     
@@ -112,7 +112,22 @@ class LoginViewController: UITableViewController, UITextFieldDelegate {
         return errorType
     }
     
+    
+    @IBAction func resetPwButtonClicked(_ sender: Any) {
+        performSegue(withIdentifier: "presentResetPwVc", sender: nil)
+
+    }
+    
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if segue.identifier == "presentResetPwVc" {
+
+        }
+    }
+    
     @IBAction func userNameLoginPressed(_ sender: Any) {
+        
+        self.emailTextfield.resignFirstResponder()
+        self.passwordTextfield.resignFirstResponder()
         
         FIRAuth.auth()?.signIn(withEmail: emailTextfield.text!, password: passwordTextfield.text!) { [weak self] (user, error) in
             
