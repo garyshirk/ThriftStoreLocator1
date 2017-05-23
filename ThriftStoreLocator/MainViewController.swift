@@ -118,10 +118,10 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
             locationManager.desiredAccuracy = kCLLocationAccuracyHundredMeters // KCLLocationAccuracyNearestTenMeters
         }
         
-        let user = FIRAuth.auth()?.currentUser
+        let user = Auth.auth().currentUser
         updateLoginStatus(forUser: user)
         
-        FIRAuth.auth()!.addStateDidChangeListener() { [weak self] auth, user in
+        Auth.auth().addStateDidChangeListener() { [weak self] auth, user in
             guard let strongSelf = self else { return }
             strongSelf.updateLoginStatus(forUser: user)
         }
@@ -158,7 +158,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     func doInitialLoad() {
         viewModel.resetStoresViewModel()
         // nil user is not logged in, so not necessary to load stores
-        if let user = FIRAuth.auth()?.currentUser {
+        if let user = Auth.auth().currentUser {
             viewModel.loadFavorites(forUser: user.uid)
         }
     }
@@ -829,7 +829,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     
     func favoriteButtonPressed(forStore index: Int, isFav: Bool, isCallFromFavoritesVC: Bool) {
         
-        let user = FIRAuth.auth()?.currentUser
+        let user = Auth.auth().currentUser
         let uid = (user?.uid)!
         
         var store: Store?
@@ -874,7 +874,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
                 loginType == LogInType.email as String)
     }
     
-    func updateLoginStatus(forUser user: FIRUser?) {
+    func updateLoginStatus(forUser user: User?) {
         
         self.username = ""
         
@@ -926,9 +926,9 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
                 fbLoginManager.logOut()
             }
             
-            let firebaseAuth = FIRAuth.auth()
+            let firebaseAuth = Auth.auth()
             do {
-                try firebaseAuth?.signOut()
+                try firebaseAuth.signOut()
                 loginType = LogInType.isNotLoggedIn as String
             } catch let signOutError as NSError {
                 Logger.print("Error logging out: \(signOutError)")

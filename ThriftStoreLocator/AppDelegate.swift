@@ -29,7 +29,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // This method along with some changes to color attributes on storyboard and MainViewController can be used to change nav bar appearance
         // setNavBarAppearance()
         
-        FIRApp.configure()
+        FirebaseApp.configure()
         
         return FBSDKApplicationDelegate.sharedInstance().application(application, didFinishLaunchingWithOptions: launchOptions)
     }

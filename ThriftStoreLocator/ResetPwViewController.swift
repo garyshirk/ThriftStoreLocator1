@@ -32,7 +32,7 @@ class ResetPwViewController: UIViewController, UITextFieldDelegate {
     
     @IBAction func sendResetPwButtonClicked(_ sender: Any) {
         let username = self.usernameTextfield.text!
-        FIRAuth.auth()?.sendPasswordReset(withEmail: username) { error in
+        Auth.auth().sendPasswordReset(withEmail: username) { error in
             if error == nil {
                 self.presentAlert(email: username)
             } else {

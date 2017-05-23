@@ -11,14 +11,14 @@ import Alamofire
 import SwiftyJSON
 import FirebaseDatabase
 
-private let firebaseThriftStoreBaseURL = "https://thrift-store-locator.firebaseio.com/thriftstores/<QUERY>.json?auth="
-private let firebaseFavoritesBaseURL = "https://thrift-store-locator.firebaseio.com/favorites/<QUERY>.json?auth="
+private let firebaseThriftStoreBaseURL = "https://thrift-store-locator.firebaseio.com/thriftstores/<QUERY>.json?auth=Llvl7BLMTOMPVWjtMCtj8QM9vX9A1UVuHOyvFu56"
+private let firebaseFavoritesBaseURL = "https://thrift-store-locator.firebaseio.com/favorites/<QUERY>.json?auth=Llvl7BLMTOMPVWjtMCtj8QM9vX9A1UVuHOyvFu56"
 private let locationInfoBaseURL = "http://maps.googleapis.com/maps/api/geocode/json?address=<location>&sensor=false"
 
 class NetworkLayer {
     
-    var dbFavoritesRef: FIRDatabaseReference?
-    var rootRef = FIRDatabase.database().reference()
+    var dbFavoritesRef: DatabaseReference?
+    var rootRef = Database.database().reference()
     var favoritesArrayOfDicts = [[String: Any]]()
     var storesArrayOfDicts = [[String: Any]]()
     var atLeastOneFoundFavSuccessfullyLoaded: Bool?
@@ -27,7 +27,7 @@ class NetworkLayer {
         
         var errorType: ErrorType = .none
         
-        dbFavoritesRef = FIRDatabase.database().reference(withPath: "favorites")
+        dbFavoritesRef = Database.database().reference(withPath: "favorites")
         let userRef = dbFavoritesRef!.child(user)
         if let stateStr = store.state {
             let stateRef = userRef.child(stateStr)
@@ -55,7 +55,7 @@ class NetworkLayer {
         
         var errorType: ErrorType = .none
         
-        dbFavoritesRef = FIRDatabase.database().reference(withPath: "favorites")
+        dbFavoritesRef = Database.database().reference(withPath: "favorites")
         
         // Set json user uid key
         let userRef = dbFavoritesRef!.child(user)
@@ -96,7 +96,7 @@ class NetworkLayer {
     
     func loadFavoritesFromServer(forUser user: String, networkLayerLoadFavoritesUpdater: @escaping ([[String: Any]], ErrorType) -> Void) {
         
-        dbFavoritesRef = FIRDatabase.database().reference(withPath: "favorites")
+        dbFavoritesRef = Database.database().reference(withPath: "favorites")
         
         self.favoritesArrayOfDicts.removeAll()
         
@@ -137,7 +137,7 @@ class NetworkLayer {
                     // Next: Use firebase event observer to load favorite stores based on references above and pass back to model manager
                     strongSelf.storesArrayOfDicts.removeAll()
                     
-                    let dbStoresRef = FIRDatabase.database().reference(withPath: "thriftstores")
+                    let dbStoresRef = Database.database().reference(withPath: "thriftstores")
                     
                     var favoritesCount = strongSelf.favoritesArrayOfDicts.count
                     

@@ -94,20 +94,23 @@ class LoginViewController: UITableViewController, UITextFieldDelegate {
         
         let debugStr = String(describing: error)
         
-        if let errCode = FIRAuthErrorCode(rawValue: error._code) {
+        if let errCode = AuthErrorCode(rawValue: error._code) {
             
-            switch errCode {
-            case .errorCodeInvalidEmail:
-                errorType = ErrorType.regInvalidEmail(debugStr)
-            case .errorCodeEmailAlreadyInUse:
-                errorType = ErrorType.regExistingUser(debugStr)
-            case .errorCodeNetworkError:
-                errorType = ErrorType.serverError(debugStr)
-            case .errorCodeWeakPassword:
-                errorType = ErrorType.regWeakPassword(debugStr)
-            default:
-                errorType = ErrorType.loginDefault(debugStr)
-            }
+            // TODO - Firebase pod update resulted in no longer used firebase error enums
+            errorType = ErrorType.loginDefault(debugStr)
+            
+//            switch errCode {
+//            case .errorCodeInvalidEmail:
+//                errorType = ErrorType.regInvalidEmail(debugStr)
+//            case .errorCodeEmailAlreadyInUse:
+//                errorType = ErrorType.regExistingUser(debugStr)
+//            case .errorCodeNetworkError:
+//                errorType = ErrorType.serverError(debugStr)
+//            case .errorCodeWeakPassword:
+//                errorType = ErrorType.regWeakPassword(debugStr)
+//            default:
+//                errorType = ErrorType.loginDefault(debugStr)
+//            }
         }
         return errorType
     }
@@ -129,7 +132,7 @@ class LoginViewController: UITableViewController, UITextFieldDelegate {
         self.emailTextfield.resignFirstResponder()
         self.passwordTextfield.resignFirstResponder()
         
-        FIRAuth.auth()?.signIn(withEmail: emailTextfield.text!, password: passwordTextfield.text!) { [weak self] (user, error) in
+        Auth.auth().signIn(withEmail: emailTextfield.text!, password: passwordTextfield.text!) { [weak self] (user, error) in
             
             guard let strongSelf = self else { return }
             
@@ -156,7 +159,7 @@ class LoginViewController: UITableViewController, UITextFieldDelegate {
                                         let emailField = alert.textFields![0]
                                         let passwordField = alert.textFields![1]
                                         
-                                        if let currentUser = FIRAuth.auth()?.currentUser {
+                                        if let currentUser = Auth.auth().currentUser {
                                             
                                             // An anonymous user is registering
                                             if currentUser.isAnonymous {
@@ -199,9 +202,9 @@ class LoginViewController: UITableViewController, UITextFieldDelegate {
         present(alert, animated: true, completion: nil)
     }
     
-    func registerAnonymous(currentUser: FIRUser, email: String, password: String) {
+    func registerAnonymous(currentUser: User, email: String, password: String) {
         
-        let credential = FIREmailPasswordAuthProvider.credential(withEmail: email, password: password)
+        let credential = EmailAuthProvider.credential(withEmail: email, password: password)
         currentUser.link(with: credential) { [weak self] (user, error) in
             
             guard let strongSelf = self else { return }
@@ -220,13 +223,13 @@ class LoginViewController: UITableViewController, UITextFieldDelegate {
     
     func registerNewUser(email: String, password: String) {
         
-        FIRAuth.auth()!.createUser(withEmail: email, password: password) { [weak self] user, error in
+        Auth.auth().createUser(withEmail: email, password: password) { [weak self] user, error in
             
             guard let strongSelf = self else { return }
             
             if error == nil {
                 strongSelf.logInDelegate?.setRegistrationType(with: RegistrationType.registered)
-                FIRAuth.auth()?.signIn(withEmail: email, password: password) { (user, error) in
+                Auth.auth().signIn(withEmail: email, password: password) { (user, error) in
                     if error == nil {
                         Logger.print("\(String(describing: user?.email)), \(String(describing: user?.uid)) successfully registered first time in app")
                         strongSelf.logInDelegate?.handleUserLoggedIn(via: (LogInType.email as String))
@@ -248,7 +251,7 @@ class LoginViewController: UITableViewController, UITextFieldDelegate {
         
         if regType == RegistrationType.firstTimeInApp {
             
-            FIRAuth.auth()?.signInAnonymously() { [weak self] (user, error) in
+            Auth.auth().signInAnonymously() { [weak self] (user, error) in
                 
                 guard let strongSelf = self else { return }
                 
@@ -292,9 +295,9 @@ class LoginViewController: UITableViewController, UITextFieldDelegate {
                         
                         strongSelf.getFBUserData()
                         
-                        let credential = FIRFacebookAuthProvider.credential(withAccessToken: FBSDKAccessToken.current().tokenString)
+                        let credential = FacebookAuthProvider.credential(withAccessToken: FBSDKAccessToken.current().tokenString)
                         
-                        if let currentUser = FIRAuth.auth()?.currentUser {
+                        if let currentUser = Auth.auth().currentUser {
                             
                             if currentUser.isAnonymous {
                                 
@@ -315,7 +318,7 @@ class LoginViewController: UITableViewController, UITextFieldDelegate {
         }
     }
     
-    func registerAnonymousUserToFacebook(currentUser: FIRUser, credential: FIRAuthCredential) {
+    func registerAnonymousUserToFacebook(currentUser: User, credential: AuthCredential) {
         
         currentUser.link(with: credential) { [weak self] (user, error) in
             
@@ -330,27 +333,32 @@ class LoginViewController: UITableViewController, UITextFieldDelegate {
                 
             } else {
 
-                if let errCode = FIRAuthErrorCode(rawValue: error!._code) {
+                if let errCode = AuthErrorCode(rawValue: error!._code) {
                     
-                    switch errCode {
-                        
-                    case .errorCodeCredentialAlreadyInUse:
-                        // User logged in with a previously used facebook crendential. The anonymouse user credential was ignored, and user was logged in
-                        strongSelf.logInDelegate?.setRegistrationType(with: RegistrationType.registered)
-                        strongSelf.logInDelegate?.handleUserLoggedIn(via: (LogInType.facebook as String))
-
-                    default:
-                        let errorType = strongSelf.errorType(firAuthError: error!)
-                        strongSelf.handleError(errorType: errorType)
-                    }    
+                    // TODO - Firebase pod update resulted in no longer used firebase error enums
+                    let errorType = strongSelf.errorType(firAuthError: error!)
+                    strongSelf.handleError(errorType: errorType)
+                    
+                    
+//                    switch errCode {
+//                        
+//                    case .errorCodeCredentialAlreadyInUse:
+//                        // User logged in with a previously used facebook crendential. The anonymouse user credential was ignored, and user was logged in
+//                        strongSelf.logInDelegate?.setRegistrationType(with: RegistrationType.registered)
+//                        strongSelf.logInDelegate?.handleUserLoggedIn(via: (LogInType.facebook as String))
+//
+//                    default:
+//                        let errorType = strongSelf.errorType(firAuthError: error!)
+//                        strongSelf.handleError(errorType: errorType)
+//                    }    
                 }
             }
         }
     }
     
-    func registerNewUserToFacebook(credential: FIRAuthCredential) {
+    func registerNewUserToFacebook(credential: AuthCredential) {
         
-        FIRAuth.auth()?.signIn(with: credential) { [weak self] (user, error) in
+        Auth.auth().signIn(with: credential) { [weak self] (user, error) in
             
             guard let strongSelf = self else { return }
             
@@ -362,19 +370,23 @@ class LoginViewController: UITableViewController, UITextFieldDelegate {
                 
             } else {
                 
-                if let errCode = FIRAuthErrorCode(rawValue: error!._code) {
+                if let errCode = AuthErrorCode(rawValue: error!._code) {
                     
-                    switch errCode {
-                        
-                    case .errorCodeCredentialAlreadyInUse:
-                        // User logged in with a previously used facebook crendential. The anonymouse user credential was ignored, and user was logged in
-                        strongSelf.logInDelegate?.setRegistrationType(with: RegistrationType.registered)
-                        strongSelf.logInDelegate?.handleUserLoggedIn(via: (LogInType.facebook as String))
-                        
-                    default:
-                        let errorType = strongSelf.errorType(firAuthError: error!)
-                        strongSelf.handleError(errorType: errorType)
-                    }
+                    // TODO - Firebase pod update resulted in no longer used error enums. Need to refactor
+                    let errorType = strongSelf.errorType(firAuthError: error!)
+                    strongSelf.handleError(errorType: errorType)
+                    
+//                    switch errCode {
+//                        
+//                    case .errorCodeCredentialAlreadyInUse:
+//                        // User logged in with a previously used facebook crendential. The anonymouse user credential was ignored, and user was logged in
+//                        strongSelf.logInDelegate?.setRegistrationType(with: RegistrationType.registered)
+//                        strongSelf.logInDelegate?.handleUserLoggedIn(via: (LogInType.facebook as String))
+//                        
+//                    default:
+//                        let errorType = strongSelf.errorType(firAuthError: error!)
+//                        strongSelf.handleError(errorType: errorType)
+//                    }
                 }
             }
         }
