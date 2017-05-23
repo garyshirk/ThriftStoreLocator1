@@ -823,6 +823,29 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         let locLat = selectedStore.locLat as! Double
         let locLong = selectedStore.locLong as! Double
         detailViewController.storeLocation = (locLat, locLong)
+        
+        takeSnapshot(withCallback: { image, error in
+            if error == nil {
+                detailViewController.mapImageView.image = image
+            } else {
+                print("error taking map view snapshot")
+            }
+        })
+    }
+    
+    func takeSnapshot(withCallback: @escaping (UIImage?, NSError?) -> ()) {
+        let options = MKMapSnapshotOptions()
+        options.region = mapView.region
+        options.size = mapView.frame.size
+        options.scale = UIScreen.main.scale
+        let snapshotter = MKMapSnapshotter(options: options)
+        snapshotter.start() { snapshot, error in
+            guard snapshot != nil else {
+                withCallback(nil, error as NSError?)
+                return
+            }
+            withCallback(snapshot!.image, nil)
+        }
     }
     
     // MARK - FavoriteButtonPressedDelegate

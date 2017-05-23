@@ -539,7 +539,7 @@
                                     <action selector="favButtonPressed:" destination="CxU-8a-578" eventType="touchUpInside" id="py2-5V-36A"/>
                                 </connections>
                             </button>
-                            <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="Map-50" translatesAutoresizingMaskIntoConstraints="NO" id="vEz-y7-vFM">
+                            <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="vEz-y7-vFM">
                                 <rect key="frame" x="6" y="295" width="70" height="70"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="70" id="1dR-EK-eXE"/>
@@ -576,6 +576,7 @@
                         <outlet property="cityLabel" destination="5zN-Wu-uGg" id="IHt-nm-gt1"/>
                         <outlet property="distanceLabel" destination="SDZ-jM-iIT" id="dwO-HV-wjb"/>
                         <outlet property="favButton" destination="p4G-X3-llY" id="uBH-Ir-C0l"/>
+                        <outlet property="mapImageView" destination="vEz-y7-vFM" id="lzg-sa-SvL"/>
                         <outlet property="stateLabel" destination="b9s-jt-SLM" id="tZp-5m-fl0"/>
                         <outlet property="storeName" destination="nuV-89-Dg9" id="NfW-ME-0XT"/>
                         <outlet property="streetLabel" destination="k8a-H1-KDg" id="ZBF-h6-Rne"/>

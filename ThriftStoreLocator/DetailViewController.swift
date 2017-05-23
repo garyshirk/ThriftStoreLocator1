@@ -30,6 +30,7 @@ class DetailViewController: UIViewController {
     @IBOutlet weak var stateLabel: UILabel!
     @IBOutlet weak var zipLabel: UILabel!
     @IBOutlet weak var favButton: UIButton!
+    @IBOutlet weak var mapImageView: UIImageView!
     
     
     override func viewDidLoad() {
