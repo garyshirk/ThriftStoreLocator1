@@ -49,6 +49,8 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     
     var favoritesViewController: FavoritesViewController?
     
+    var detailViewController: DetailViewController?
+    
     var sortType: StoreSortType?
     
     var mapArea: (latDelta: Double? , longDelta: Double?)
@@ -445,14 +447,12 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     }
     
     func handleError(type: ErrorType) {
-        // TODO - Receiving runtime warning when attempting to present alert view for Favorite post/delete errors:
-        // "Presenting VC on detached VC is discouraged". It's working ok for Favorites view controller,
-        // but presenting error dialog when error occurs in DetailedViewController gives this warning
-        // (I don't have a reference to DetailedViewController here
         let errorHandler = ErrorHandler()
         if let errorAlert = errorHandler.handleError(ofType: type) {
             if let favViewController = self.favoritesViewController {
                 favViewController.present(errorAlert, animated: true, completion: nil)
+            } else if let detailViewController = self.detailViewController {
+                detailViewController.present(errorAlert, animated: true, completion: nil)
             } else {
                 self.present(errorAlert, animated: true, completion: nil)
             }
@@ -810,6 +810,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     }
     
     func configure(detailViewController: DetailViewController, forStoreIndex index: Int) {
+        self.detailViewController = detailViewController
         let selectedStore = self.viewModel.stores[index]
         detailViewController.delegate = self
         detailViewController.selectedStoreIndex = index
@@ -824,7 +825,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         let locLong = selectedStore.locLong as! Double
         detailViewController.storeLocation = (locLat, locLong)
         
-        takeSnapshot(withCallback: { image, error in
+        takeSnapshot(store: selectedStore, withCallback: { image, error in
             if error == nil {
                 detailViewController.mapImageView.image = image
             } else {
@@ -833,10 +834,13 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         })
     }
     
-    func takeSnapshot(withCallback: @escaping (UIImage?, NSError?) -> ()) {
+    func takeSnapshot(store: Store, withCallback: @escaping (UIImage?, NSError?) -> ()) {
         let options = MKMapSnapshotOptions()
-        options.region = mapView.region
-        options.size = mapView.frame.size
+        let location = CLLocationCoordinate2DMake(store.locLat as! CLLocationDegrees, store.locLong as! CLLocationDegrees)
+        let region = MKCoordinateRegionMakeWithDistance(location, milesToMeters(for: 2), milesToMeters(for: 2))
+        options.region = region
+        let size = CGSize(width: 150, height: 150)
+        options.size = size
         options.scale = UIScreen.main.scale
         let snapshotter = MKMapSnapshotter(options: options)
         snapshotter.start() { snapshot, error in
