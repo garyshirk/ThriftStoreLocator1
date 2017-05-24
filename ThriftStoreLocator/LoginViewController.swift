@@ -33,8 +33,6 @@ enum LogInType {
     static let anonymousLogin = "anonymous_login"
 }
 
-// TODO add fb App Events after you get login working
-
 class LoginViewController: UITableViewController, UITextFieldDelegate {
     
     weak var logInDelegate: LogInDelegate?
@@ -96,21 +94,22 @@ class LoginViewController: UITableViewController, UITextFieldDelegate {
         
         if let errCode = AuthErrorCode(rawValue: error._code) {
             
-            // TODO - Firebase pod update resulted in no longer used firebase error enums
             errorType = ErrorType.loginDefault(debugStr)
             
-//            switch errCode {
-//            case .errorCodeInvalidEmail:
-//                errorType = ErrorType.regInvalidEmail(debugStr)
-//            case .errorCodeEmailAlreadyInUse:
-//                errorType = ErrorType.regExistingUser(debugStr)
-//            case .errorCodeNetworkError:
-//                errorType = ErrorType.serverError(debugStr)
-//            case .errorCodeWeakPassword:
-//                errorType = ErrorType.regWeakPassword(debugStr)
-//            default:
-//                errorType = ErrorType.loginDefault(debugStr)
-//            }
+            switch errCode {
+            case .invalidEmail:
+                errorType = ErrorType.regInvalidEmail(debugStr)
+            case .emailAlreadyInUse:
+                errorType = ErrorType.regExistingUser(debugStr)
+            case .networkError:
+                errorType = ErrorType.serverError(debugStr)
+            case .weakPassword:
+                errorType = ErrorType.regWeakPassword(debugStr)
+            case .wrongPassword:
+                errorType = ErrorType.regWrongPassword(debugStr)
+            default:
+                errorType = ErrorType.loginDefault(debugStr)
+            }
         }
         return errorType
     }
@@ -335,22 +334,21 @@ class LoginViewController: UITableViewController, UITextFieldDelegate {
 
                 if let errCode = AuthErrorCode(rawValue: error!._code) {
                     
-                    // TODO - Firebase pod update resulted in no longer used firebase error enums
                     let errorType = strongSelf.errorType(firAuthError: error!)
                     strongSelf.handleError(errorType: errorType)
                     
                     
-//                    switch errCode {
-//                        
-//                    case .errorCodeCredentialAlreadyInUse:
-//                        // User logged in with a previously used facebook crendential. The anonymouse user credential was ignored, and user was logged in
-//                        strongSelf.logInDelegate?.setRegistrationType(with: RegistrationType.registered)
-//                        strongSelf.logInDelegate?.handleUserLoggedIn(via: (LogInType.facebook as String))
-//
-//                    default:
-//                        let errorType = strongSelf.errorType(firAuthError: error!)
-//                        strongSelf.handleError(errorType: errorType)
-//                    }    
+                    switch errCode {
+                        
+                    case .credentialAlreadyInUse:
+                        // User logged in with a previously used facebook crendential. The anonymouse user credential was ignored, and user was logged in
+                        strongSelf.logInDelegate?.setRegistrationType(with: RegistrationType.registered)
+                        strongSelf.logInDelegate?.handleUserLoggedIn(via: (LogInType.facebook as String))
+
+                    default:
+                        let errorType = strongSelf.errorType(firAuthError: error!)
+                        strongSelf.handleError(errorType: errorType)
+                    }    
                 }
             }
         }
@@ -372,21 +370,20 @@ class LoginViewController: UITableViewController, UITextFieldDelegate {
                 
                 if let errCode = AuthErrorCode(rawValue: error!._code) {
                     
-                    // TODO - Firebase pod update resulted in no longer used error enums. Need to refactor
                     let errorType = strongSelf.errorType(firAuthError: error!)
                     strongSelf.handleError(errorType: errorType)
                     
-//                    switch errCode {
-//                        
-//                    case .errorCodeCredentialAlreadyInUse:
-//                        // User logged in with a previously used facebook crendential. The anonymouse user credential was ignored, and user was logged in
-//                        strongSelf.logInDelegate?.setRegistrationType(with: RegistrationType.registered)
-//                        strongSelf.logInDelegate?.handleUserLoggedIn(via: (LogInType.facebook as String))
-//                        
-//                    default:
-//                        let errorType = strongSelf.errorType(firAuthError: error!)
-//                        strongSelf.handleError(errorType: errorType)
-//                    }
+                    switch errCode {
+                        
+                    case .credentialAlreadyInUse:
+                        // User logged in with a previously used facebook crendential. The anonymouse user credential was ignored, and user was logged in
+                        strongSelf.logInDelegate?.setRegistrationType(with: RegistrationType.registered)
+                        strongSelf.logInDelegate?.handleUserLoggedIn(via: (LogInType.facebook as String))
+                        
+                    default:
+                        let errorType = strongSelf.errorType(firAuthError: error!)
+                        strongSelf.handleError(errorType: errorType)
+                    }
                 }
             }
         }
@@ -410,7 +407,6 @@ class LoginViewController: UITableViewController, UITextFieldDelegate {
 
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
     }
 
 }
