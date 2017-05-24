@@ -821,6 +821,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         detailViewController.stateStr = selectedStore.state
         detailViewController.zipStr = selectedStore.zip
         detailViewController.phoneStr = selectedStore.phone
+        detailViewController.webStr = selectedStore.website
         detailViewController.distanceStr = ("\(distanceFromMyLocation(toLat: selectedStore.locLat!, long: selectedStore.locLong!)) away")
         let locLat = selectedStore.locLat as! Double
         let locLong = selectedStore.locLong as! Double
@@ -835,23 +836,23 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         })
     }
     
-    func takeSnapshot(store: Store, withCallback: @escaping (UIImage?, NSError?) -> ()) {
-        let options = MKMapSnapshotOptions()
-        let location = CLLocationCoordinate2DMake(store.locLat as! CLLocationDegrees, store.locLong as! CLLocationDegrees)
-        let region = MKCoordinateRegionMakeWithDistance(location, milesToMeters(for: 2), milesToMeters(for: 2))
-        options.region = region
-        let size = CGSize(width: 75, height: 75)
-        options.size = size
-        options.scale = UIScreen.main.scale
-        let snapshotter = MKMapSnapshotter(options: options)
-        snapshotter.start() { snapshot, error in
-            guard snapshot != nil else {
-                withCallback(nil, error as NSError?)
-                return
-            }
-            withCallback(snapshot!.image, nil)
-        }
-    }
+//    func takeSnapshot(store: Store, withCallback: @escaping (UIImage?, NSError?) -> ()) {
+//        let options = MKMapSnapshotOptions()
+//        let location = CLLocationCoordinate2DMake(store.locLat as! CLLocationDegrees, store.locLong as! CLLocationDegrees)
+//        let region = MKCoordinateRegionMakeWithDistance(location, milesToMeters(for: 2), milesToMeters(for: 2))
+//        options.region = region
+//        let size = CGSize(width: 71, height: 71)
+//        options.size = size
+//        options.scale = UIScreen.main.scale
+//        let snapshotter = MKMapSnapshotter(options: options)
+//        snapshotter.start() { snapshot, error in
+//            guard snapshot != nil else {
+//                withCallback(nil, error as NSError?)
+//                return
+//            }
+//            withCallback(snapshot!.image, nil)
+//        }
+//    }
     
     // MARK - FavoriteButtonPressedDelegate
     
@@ -1005,7 +1006,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     
 }
 
-extension MainViewController {
+extension UIViewController {
     func metersToMiles(for meters: Double) -> Double {
         // TODO - Add to a constants class
         return meters * 0.000621371
@@ -1013,6 +1014,24 @@ extension MainViewController {
     
     func milesToMeters(for miles: Double) -> Double {
         return miles / 0.000621371
+    }
+    
+    func takeSnapshot(store: Store, withCallback: @escaping (UIImage?, NSError?) -> ()) {
+        let options = MKMapSnapshotOptions()
+        let location = CLLocationCoordinate2DMake(store.locLat as! CLLocationDegrees, store.locLong as! CLLocationDegrees)
+        let region = MKCoordinateRegionMakeWithDistance(location, milesToMeters(for: 2), milesToMeters(for: 2))
+        options.region = region
+        let size = CGSize(width: 71, height: 71)
+        options.size = size
+        options.scale = UIScreen.main.scale
+        let snapshotter = MKMapSnapshotter(options: options)
+        snapshotter.start() { snapshot, error in
+            guard snapshot != nil else {
+                withCallback(nil, error as NSError?)
+                return
+            }
+            withCallback(snapshot!.image, nil)
+        }
     }
 }
 

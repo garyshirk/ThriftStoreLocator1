@@ -135,10 +135,20 @@ class FavoritesViewController: UIViewController, UITableViewDataSource, UITableV
                     detailViewController.cityStr = selectedFav.city
                     detailViewController.stateStr = selectedFav.state
                     detailViewController.zipStr = selectedFav.zip
+                    detailViewController.phoneStr = selectedFav.phone
+                    detailViewController.webStr = selectedFav.website
                     detailViewController.distanceStr = ("\(distanceFromMyLocation(toLat: selectedFav.locLat!, long: selectedFav.locLong!)) away")
                     let locLat = selectedFav.locLat as! Double
                     let locLong = selectedFav.locLong as! Double
                     detailViewController.storeLocation = (locLat, locLong)
+                    
+                    self.takeSnapshot(store: selectedFav, withCallback: { image, error in
+                        if error == nil {
+                            detailViewController.mapImageView.image = image
+                        } else {
+                            print("error taking map view snapshot")
+                        }
+                    })
                 }
             }
             
