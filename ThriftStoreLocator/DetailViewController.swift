@@ -21,6 +21,7 @@ class DetailViewController: UIViewController {
     var cityStr: String!
     var stateStr: String!
     var zipStr: String!
+    var phoneStr: String?
     var storeLocation: (lat: Double, long: Double)?
 
     @IBOutlet weak var storeName: UILabel!
@@ -31,7 +32,8 @@ class DetailViewController: UIViewController {
     @IBOutlet weak var zipLabel: UILabel!
     @IBOutlet weak var favButton: UIButton!
     @IBOutlet weak var mapImageView: UIImageView!
-    
+    @IBOutlet weak var callView: UIView!
+    @IBOutlet weak var phoneLabel: UILabel!
     
     override func viewDidLoad() {
         
@@ -59,6 +61,13 @@ class DetailViewController: UIViewController {
             favImg = UIImage(named: "fav_off")
         }
         favButton.setBackgroundImage(favImg, for: .normal)
+        
+        if let _ = self.phoneStr {
+            callView.isHidden = false
+            phoneLabel.text = self.phoneStr
+        } else {
+            callView.isHidden = true
+        }
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -70,6 +79,12 @@ class DetailViewController: UIViewController {
         openMapForPlace()
     }
     
+    @IBAction func callButtonPressed(_ sender: Any) {
+        if let phoneStr = self.phoneStr {
+            let number = URL(string: "telprompt://" + phoneStr)
+            UIApplication.shared.open(number!)
+        }
+    }
     
     @IBAction func favButtonPressed(_ sender: Any) {
         if isFav == true {

@@ -820,6 +820,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         detailViewController.cityStr = selectedStore.city
         detailViewController.stateStr = selectedStore.state
         detailViewController.zipStr = selectedStore.zip
+        detailViewController.phoneStr = selectedStore.phone
         detailViewController.distanceStr = ("\(distanceFromMyLocation(toLat: selectedStore.locLat!, long: selectedStore.locLong!)) away")
         let locLat = selectedStore.locLat as! Double
         let locLong = selectedStore.locLong as! Double
@@ -839,7 +840,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         let location = CLLocationCoordinate2DMake(store.locLat as! CLLocationDegrees, store.locLong as! CLLocationDegrees)
         let region = MKCoordinateRegionMakeWithDistance(location, milesToMeters(for: 2), milesToMeters(for: 2))
         options.region = region
-        let size = CGSize(width: 150, height: 150)
+        let size = CGSize(width: 75, height: 75)
         options.size = size
         options.scale = UIScreen.main.scale
         let snapshotter = MKMapSnapshotter(options: options)
