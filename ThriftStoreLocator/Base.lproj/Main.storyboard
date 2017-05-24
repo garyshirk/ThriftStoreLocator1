@@ -32,22 +32,6 @@
                                     <constraint firstAttribute="height" constant="202" id="Syz-MY-Luo"/>
                                 </constraints>
                             </mapView>
-                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="nti-Rm-l5s" userLabel="locArrowButton">
-                                <rect key="frame" x="278" y="220" width="40" height="40"/>
-                                <constraints>
-                                    <constraint firstAttribute="height" constant="40" id="qVV-Ge-6re"/>
-                                    <constraint firstAttribute="width" constant="40" id="srM-oL-vJc"/>
-                                </constraints>
-                                <state key="normal" image="arrow-1"/>
-                                <userDefinedRuntimeAttributes>
-                                    <userDefinedRuntimeAttribute type="number" keyPath="layer.cornerRadius">
-                                        <integer key="value" value="5"/>
-                                    </userDefinedRuntimeAttribute>
-                                </userDefinedRuntimeAttributes>
-                                <connections>
-                                    <action selector="didPressLocArrow:" destination="NLN-iD-Puq" eventType="touchUpInside" id="ZVQ-Lj-5R2"/>
-                                </connections>
-                            </button>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="28" sectionFooterHeight="28" translatesAutoresizingMaskIntoConstraints="NO" id="wgO-5x-fvO">
                                 <rect key="frame" x="-4" y="266" width="328" height="302"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
@@ -71,7 +55,7 @@
                                                         <constraint firstAttribute="height" constant="40" id="T4H-D1-aBb"/>
                                                         <constraint firstAttribute="width" constant="40" id="UbP-rX-7U4"/>
                                                     </constraints>
-                                                    <state key="normal" backgroundImage="test-img"/>
+                                                    <state key="normal" backgroundImage="locationMarker"/>
                                                 </button>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="kLs-sd-jMa">
                                                     <rect key="frame" x="20" y="11" width="49" height="24"/>
@@ -227,14 +211,30 @@
                                     <action selector="didPressSearchAreaBtn:" destination="NLN-iD-Puq" eventType="touchUpInside" id="RzZ-pG-iTb"/>
                                 </connections>
                             </button>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="nti-Rm-l5s" userLabel="locArrowButton">
+                                <rect key="frame" x="270" y="211" width="50" height="50"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="50" id="qVV-Ge-6re"/>
+                                    <constraint firstAttribute="width" constant="50" id="srM-oL-vJc"/>
+                                </constraints>
+                                <state key="normal" image="locHome"/>
+                                <userDefinedRuntimeAttributes>
+                                    <userDefinedRuntimeAttribute type="number" keyPath="layer.cornerRadius">
+                                        <integer key="value" value="5"/>
+                                    </userDefinedRuntimeAttribute>
+                                </userDefinedRuntimeAttributes>
+                                <connections>
+                                    <action selector="didPressLocArrow:" destination="NLN-iD-Puq" eventType="touchUpInside" id="ZVQ-Lj-5R2"/>
+                                </connections>
+                            </button>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                         <constraints>
                             <constraint firstItem="seq-PN-rGT" firstAttribute="centerY" secondItem="wgO-5x-fvO" secondAttribute="centerY" id="05t-EU-ubG"/>
-                            <constraint firstItem="nti-Rm-l5s" firstAttribute="trailing" secondItem="2RY-6e-AG0" secondAttribute="trailing" constant="-8" id="0WS-EZ-7jn"/>
+                            <constraint firstItem="nti-Rm-l5s" firstAttribute="trailing" secondItem="2RY-6e-AG0" secondAttribute="trailing" constant="-6" id="0WS-EZ-7jn"/>
                             <constraint firstItem="CVk-pW-mq5" firstAttribute="centerX" secondItem="2RY-6e-AG0" secondAttribute="centerX" id="3Ha-nd-yb8"/>
                             <constraint firstItem="EoC-M1-kV4" firstAttribute="leading" secondItem="Mcc-wQ-TYf" secondAttribute="leadingMargin" constant="-20" id="3Lg-y4-XOM"/>
-                            <constraint firstItem="nti-Rm-l5s" firstAttribute="bottom" secondItem="2RY-6e-AG0" secondAttribute="bottom" constant="-6" id="8sw-DC-ggx"/>
+                            <constraint firstItem="nti-Rm-l5s" firstAttribute="bottom" secondItem="2RY-6e-AG0" secondAttribute="bottom" constant="-5" id="8sw-DC-ggx"/>
                             <constraint firstItem="0An-q4-uzr" firstAttribute="bottom" secondItem="2RY-6e-AG0" secondAttribute="bottom" constant="-6" id="AdR-9h-RPy"/>
                             <constraint firstAttribute="trailingMargin" secondItem="EoC-M1-kV4" secondAttribute="trailing" constant="-22" id="DlN-qE-9Vu"/>
                             <constraint firstItem="seq-PN-rGT" firstAttribute="trailing" secondItem="wgO-5x-fvO" secondAttribute="trailing" id="Ft0-4F-hfa"/>
@@ -262,7 +262,7 @@
                             </connections>
                         </barButtonItem>
                         <view key="titleView" clipsSubviews="YES" contentMode="scaleToFill" id="fsL-CZ-vjs">
-                            <rect key="frame" x="105" y="5.5" width="204" height="33"/>
+                            <rect key="frame" x="58" y="5.5" width="204" height="33"/>
                             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                             <subviews>
                                 <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" placeholder="Search" textAlignment="natural" minimumFontSize="17" clearButtonMode="whileEditing" translatesAutoresizingMaskIntoConstraints="NO" id="LIg-BT-skl" userLabel="SearchTextField">
@@ -509,7 +509,7 @@
                                             </userDefinedRuntimeAttribute>
                                         </userDefinedRuntimeAttributes>
                                     </imageView>
-                                    <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="test-img" translatesAutoresizingMaskIntoConstraints="NO" id="g92-gf-2zO">
+                                    <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="locationMarker" translatesAutoresizingMaskIntoConstraints="NO" id="g92-gf-2zO">
                                         <rect key="frame" x="20" y="14" width="35" height="35"/>
                                         <constraints>
                                             <constraint firstAttribute="height" constant="35" id="15o-vg-6Mj"/>
@@ -568,7 +568,7 @@
                                             <action selector="callButtonPressed:" destination="CxU-8a-578" eventType="touchUpInside" id="UsM-W9-g9o"/>
                                         </connections>
                                     </button>
-                                    <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="06P-Bu-pVH" userLabel="CallImageView">
+                                    <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="johnny-automatic-NPS-map-pictographs-part-93-800px" translatesAutoresizingMaskIntoConstraints="NO" id="06P-Bu-pVH" userLabel="CallImageView">
                                         <rect key="frame" x="0.0" y="0.0" width="75" height="75"/>
                                         <constraints>
                                             <constraint firstAttribute="width" constant="75" id="lKy-cQ-0qu"/>
@@ -582,7 +582,7 @@
                                         </userDefinedRuntimeAttributes>
                                     </imageView>
                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="phone number" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="suK-gu-bsp">
-                                        <rect key="frame" x="83" y="27" width="117" height="21"/>
+                                        <rect key="frame" x="88" y="27" width="117" height="21"/>
                                         <constraints>
                                             <constraint firstAttribute="width" constant="117" id="Ub8-ZT-3Jx"/>
                                             <constraint firstAttribute="height" constant="21" id="v48-GD-Qgb"/>
@@ -600,7 +600,7 @@
                                     <constraint firstItem="CGM-YD-q34" firstAttribute="leading" secondItem="TUm-3D-eQh" secondAttribute="leading" id="Ivh-yv-AUR"/>
                                     <constraint firstAttribute="width" constant="200" id="MKW-oX-PyV"/>
                                     <constraint firstItem="06P-Bu-pVH" firstAttribute="leading" secondItem="TUm-3D-eQh" secondAttribute="leading" id="MPq-n4-kHe"/>
-                                    <constraint firstItem="suK-gu-bsp" firstAttribute="leading" secondItem="TUm-3D-eQh" secondAttribute="leading" constant="83" id="OyT-Gs-pb5"/>
+                                    <constraint firstItem="suK-gu-bsp" firstAttribute="leading" secondItem="TUm-3D-eQh" secondAttribute="leading" constant="88" id="OyT-Gs-pb5"/>
                                     <constraint firstAttribute="height" constant="75" id="VGn-ee-47f"/>
                                     <constraint firstItem="CGM-YD-q34" firstAttribute="top" secondItem="TUm-3D-eQh" secondAttribute="top" id="d6V-p1-8F9"/>
                                     <constraint firstAttribute="bottom" secondItem="CGM-YD-q34" secondAttribute="bottom" id="eiE-aK-TYp"/>
@@ -1231,12 +1231,13 @@
         </scene>
     </scenes>
     <resources>
-        <image name="arrow-1" width="112" height="112"/>
         <image name="fav_off" width="16" height="16"/>
         <image name="fav_on" width="16" height="16"/>
+        <image name="johnny-automatic-NPS-map-pictographs-part-93-800px" width="397" height="398"/>
+        <image name="locHome" width="60" height="60"/>
+        <image name="locationMarker" width="25" height="25"/>
         <image name="menuIcon" width="25" height="25"/>
         <image name="searchIcon" width="25" height="25"/>
-        <image name="test-img" width="25" height="25"/>
     </resources>
     <inferredMetricsTieBreakers>
         <segue reference="zQD-6D-ba5"/>
