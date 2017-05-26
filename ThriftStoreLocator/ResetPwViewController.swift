@@ -34,15 +34,15 @@ class ResetPwViewController: UIViewController, UITextFieldDelegate {
         let username = self.usernameTextfield.text!
         Auth.auth().sendPasswordReset(withEmail: username) { error in
             if error == nil {
-                self.presentAlert(email: username)
+                self.presentAlert(email: username, error: ErrorType.none)
             } else {
-                let errorType = ErrorType.loginError(String(describing: error))
-                NSLog("errorType: \(errorType)")
+                let errorType = ErrorType.regInvalidEmail(String(describing: error))
+                self.handleError(type: errorType)
             }
         }
     }
     
-    func presentAlert(email: String) {
+    func presentAlert(email: String, error: ErrorType) {
         
         self.usernameTextfield.resignFirstResponder()
         
@@ -61,7 +61,13 @@ class ResetPwViewController: UIViewController, UITextFieldDelegate {
         alert.addAction(okAction)
         
         present(alert, animated: true, completion: nil)
-        
+    }
+    
+    func handleError(type: ErrorType) {
+        let errorHandler = ErrorHandler()
+        if let errorAlert = errorHandler.handleError(ofType: type) {
+            self.present(errorAlert, animated: true, completion: nil)
+        }
     }
     
     override func didReceiveMemoryWarning() {

@@ -297,9 +297,6 @@ class StoresViewModel {
     // Get the approximate area (expects radius to be in units of miles)
     private func setStoreFilters(forLocation location: CLLocationCoordinate2D, forMapAreaInMiles mapArea: (Double, Double), andZip zip:String) {
         
-        // TODO - Not ready for this yet, but once you start notifying user about geofence entries, will need to use CLCircularRegion
-        // let region = CLCircularRegion.init(center: location, radius: radius, identifier: "region")
-        
         self.mapLocation = location
         
         if zip.isEmpty {
@@ -350,8 +347,7 @@ class StoresViewModel {
             }
             
             if error != nil {
-                print("Reverse geocoder failed with error" + (error?.localizedDescription)!)
-                // TODO - Needs error handling
+                strongSelf.delegate?.handleError(type: ErrorType.serverError((error?.localizedDescription)!))
                 return
             }
             
@@ -376,7 +372,8 @@ class StoresViewModel {
                             
                             strongSelf.doLoadStores(deleteOld: deleteOld)
                         } else {
-                            print("Problem getting state")
+                            strongSelf.delegate?.handleError(type: ErrorType.serverError("Problem getting state"))
+                            return
                         }
                     }
                 
@@ -396,12 +393,14 @@ class StoresViewModel {
                         strongSelf.doLoadStores(deleteOld: deleteOld)
                     
                     } else {
-                        print("Problem getting state")
+                        strongSelf.delegate?.handleError(type: ErrorType.serverError("Problem getting state"))
+                        return
                     }
                 }
             
             } else {
-                print("Problem getting county")
+                strongSelf.delegate?.handleError(type: ErrorType.serverError("Problem getting county"))
+                return
             }
         }
     }
@@ -415,7 +414,7 @@ class StoresViewModel {
             }
             
             if error != nil {
-                print("Geocoder failed with error" + (error?.localizedDescription)!)
+                strongSelf.delegate?.handleError(type: ErrorType.serverError((error?.localizedDescription)!))
                 return
             }
             
@@ -487,11 +486,15 @@ class StoresViewModel {
                         strongSelf.setStoreFilters(forLocation: strongSelf.mapLocation!, forMapAreaInMiles: mapArea!, andZip: zip)
                         
                         strongSelf.doLoadStores(deleteOld: false)
+                    } else {
+                        strongSelf.delegate?.handleError(type: ErrorType.serverError("Problem getting state"))
+                        return
                     }
                 }
                 
             } else {
-                print("Problem getting county")
+                strongSelf.delegate?.handleError(type: ErrorType.serverError("Problem getting county"))
+                return
             }
         }
     }
@@ -524,7 +527,6 @@ extension StoresViewModel {
     }
     
     func milesToLatDegrees(for miles:Double) -> Double {
-        // TODO - Add to constants class
         return miles / 69.0
     }
     

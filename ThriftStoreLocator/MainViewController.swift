@@ -57,6 +57,8 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     
     var mapChangedFromUserInteraction = false
     
+    var deltaMapDragDistance: Double = 0.0
+    
     @IBOutlet weak var tableView: UITableView!
     @IBOutlet weak var titleLabel: UILabel!
     @IBOutlet weak var searchView: UIView!
@@ -227,6 +229,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         setSearchEnabledMode(doSet: false)
         viewModel.prepareForZoomToMyLocation(location: myLocation!)
         searchThisAreaBtn.isHidden = true && self.displayType != .map
+        self.deltaMapDragDistance = 0.0
     }
     
     // TODO - Currently no longer getting location after I get it first time; need to change this to update every couple minutes
@@ -252,6 +255,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     @IBAction func didPressSearchAreaBtn(_ sender: Any) {
         viewModel.loadStores(forLocation: mapLocation!, withRefresh: false)
         searchThisAreaBtn.isHidden = true && self.displayType != .map
+        self.deltaMapDragDistance = 0.0
     }
 
     
@@ -299,6 +303,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     
     @IBAction func zoomOut(_ sender: Any) {
         searchThisAreaBtn.isHidden = false
+        self.deltaMapDragDistance = 0.0
         setMapRegionBy(delta: 2.0, animated: true)
     }
     
@@ -327,7 +332,6 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     
     // If map region changed because of search, just set the new location.
     // If map region changed because of user interaction (drag, pinch), then load stores for the new map region and radius
-    // Pinch or expanding map will cause mapRadiusActive to get set to the new region
     func mapView(_ mapView: MKMapView, regionDidChangeAnimated animated: Bool) {
         
         if mapChangedFromUserInteraction {
@@ -342,9 +346,12 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
                 // Display the showSearchArea depending on how far the map location changed
                 let newLoc = CLLocation(latitude: (mapLocation?.latitude)!, longitude: (mapLocation?.longitude)!)
                 let previousLoc = CLLocation(latitude: previousMapLocation.latitude, longitude: previousMapLocation.longitude)
-                let changeInDistance = newLoc.distance(from: previousLoc) * 0.000621371
+                self.deltaMapDragDistance += newLoc.distance(from: previousLoc) * 0.000621371
                 
-                if changeInDistance > 0.25 * mapArea.latDelta! { // miles
+                NSLog("delta drag distance: \(self.deltaMapDragDistance)")
+                NSLog(".25*mapLat: \(0.25*mapArea.latDelta!)")
+                
+                if self.deltaMapDragDistance > 0.25 * mapArea.latDelta! { // miles
                     searchThisAreaBtn.isHidden = false
                 } else {
                     searchThisAreaBtn.isHidden = true && self.displayType != .map
@@ -836,24 +843,6 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         })
     }
     
-//    func takeSnapshot(store: Store, withCallback: @escaping (UIImage?, NSError?) -> ()) {
-//        let options = MKMapSnapshotOptions()
-//        let location = CLLocationCoordinate2DMake(store.locLat as! CLLocationDegrees, store.locLong as! CLLocationDegrees)
-//        let region = MKCoordinateRegionMakeWithDistance(location, milesToMeters(for: 2), milesToMeters(for: 2))
-//        options.region = region
-//        let size = CGSize(width: 71, height: 71)
-//        options.size = size
-//        options.scale = UIScreen.main.scale
-//        let snapshotter = MKMapSnapshotter(options: options)
-//        snapshotter.start() { snapshot, error in
-//            guard snapshot != nil else {
-//                withCallback(nil, error as NSError?)
-//                return
-//            }
-//            withCallback(snapshot!.image, nil)
-//        }
-//    }
-    
     // MARK - FavoriteButtonPressedDelegate
     
     func favoriteButtonPressed(forStore index: Int, isFav: Bool, isCallFromFavoritesVC: Bool) {
@@ -987,6 +976,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
             self.searchThisAreaBtn.isHidden = true
             mapViewHeightConstraint.constant = availableScreenHt * 0.5
         }
+        self.deltaMapDragDistance = 0.0
         self.tableView.reloadData()
     }
     
