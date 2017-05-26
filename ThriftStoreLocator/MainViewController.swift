@@ -13,6 +13,10 @@ import SideMenu
 import FBSDKLoginKit
 import Firebase
 
+enum MainViewControllerConstants {
+    static let kDefaultMapAreaLen: Double = 40.0
+}
+
 // TODO - MapView initial height should be proportional to device height
 // TODO - Define a CLCicularRegion based on user's current location and update store map and list when user leaves that region
 class MainViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UITextFieldDelegate, MKMapViewDelegate, CLLocationManagerDelegate, StoresViewModelDelegate, LogInDelegate, MenuViewDelegate, FavoriteButtonPressedDelegate {
@@ -111,8 +115,8 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         let availableScreenHt = screenSize.height - 64.0
         self.mapViewYConstraint.constant = 0
         self.mapViewHeightConstraint.constant = availableScreenHt * 0.5
-        mapArea.latDelta = 40.0
-        mapArea.longDelta = 40.0
+        mapArea.latDelta = MainViewControllerConstants.kDefaultMapAreaLen
+        mapArea.longDelta = MainViewControllerConstants.kDefaultMapAreaLen
         mapView.mapType = .standard
         mapView.delegate = self
         
@@ -224,15 +228,14 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         present(SideMenuManager.menuLeftNavigationController!, animated: true, completion: nil)
     }
     
-    // TODO - Need new arrow location image; current one has white background
     @IBAction func didPressLocArrow(_ sender: Any) {
         setSearchEnabledMode(doSet: false)
         viewModel.prepareForZoomToMyLocation(location: myLocation!)
+        setMapRegionByMilesOf(latDist: MainViewControllerConstants.kDefaultMapAreaLen, longDist: MainViewControllerConstants.kDefaultMapAreaLen)
         searchThisAreaBtn.isHidden = true && self.displayType != .map
         self.deltaMapDragDistance = 0.0
     }
     
-    // TODO - Currently no longer getting location after I get it first time; need to change this to update every couple minutes
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         
         if let loc = manager.location?.coordinate {
@@ -347,9 +350,6 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
                 let newLoc = CLLocation(latitude: (mapLocation?.latitude)!, longitude: (mapLocation?.longitude)!)
                 let previousLoc = CLLocation(latitude: previousMapLocation.latitude, longitude: previousMapLocation.longitude)
                 self.deltaMapDragDistance += newLoc.distance(from: previousLoc) * 0.000621371
-                
-                NSLog("delta drag distance: \(self.deltaMapDragDistance)")
-                NSLog(".25*mapLat: \(0.25*mapArea.latDelta!)")
                 
                 if self.deltaMapDragDistance > 0.25 * mapArea.latDelta! { // miles
                     searchThisAreaBtn.isHidden = false
