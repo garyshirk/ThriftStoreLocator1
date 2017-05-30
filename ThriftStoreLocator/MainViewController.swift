@@ -506,8 +506,10 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     // May be called if forced even if shouldEndEditing returns NO (e.g. view removed from window) or endEditing:YES called
     func textFieldDidEndEditing(_ textField: UITextField) {
         
-        if let searchStr = searchTextField.text {
-            viewModel.loadStores(forSearchStr: searchStr)
+        if isSearching {
+            if let searchStr = searchTextField.text {
+                viewModel.loadStores(forSearchStr: searchStr)
+            }
         }
     }
     
