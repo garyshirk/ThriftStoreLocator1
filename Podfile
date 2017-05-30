@@ -10,14 +10,25 @@ target 'ThriftStoreLocator' do
   pod 'SideMenu'
   pod 'Alamofire', '~> 4.4'
   pod 'SwiftyJSON'
-  pod 'FacebookCore'
-  pod 'FacebookLogin'
-  pod 'FacebookShare'
+  
+  pod 'FBSDKCoreKit'
+  pod 'FBSDKLoginKit'
+  pod 'FBSDKShareKit'
+  
+  
+  
+  #pod 'FacebookCore'
+  #pod 'FacebookLogin'
+  #pod 'FacebookShare'
+  
   pod 'Firebase/Core'
-  pod 'FirebaseUI', '~> 3.0'
-  pod 'FirebaseUI/Database', '~> 3.0'
-  pod 'FirebaseUI/Facebook', '~> 3.0'
-  pod 'FirebaseUI/Auth', '~> 3.0'
+  #pod 'FirebaseUI'
+  pod 'FirebaseUI/Database'
+  pod 'FirebaseUI/Facebook'
+  pod 'FirebaseUI/Auth'
+  
+  #pod 'Fabric'
+  #pod 'TwitterKit', '~> 1.11.4'
 
 
 end

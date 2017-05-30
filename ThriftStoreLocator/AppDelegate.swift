@@ -8,11 +8,19 @@
 
 import UIKit
 import CoreData
-import FacebookLogin
-import FacebookCore
-import FBSDKCoreKit
+
 import Firebase
+
+/*
+ Trying to fix compile error. This was promising but didn't solve the problem:
+ https://stackoverflow.com/a/40243070
+ */
+
+//import FacebookLogin
+//import FacebookCore
+import FBSDKCoreKit
 import FBSDKLoginKit
+import FBSDKShareKit
 
 
 @UIApplicationMain

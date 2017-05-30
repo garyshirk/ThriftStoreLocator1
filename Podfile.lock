@@ -6,25 +6,11 @@ PODS:
   - Bolts/AppLinks (1.8.4):
     - Bolts/Tasks
   - Bolts/Tasks (1.8.4)
-  - Fabric (1.6.11)
-  - FacebookCore (0.2.0):
-    - Bolts (~> 1.8)
-    - FBSDKCoreKit (~> 4.15)
-  - FacebookLogin (0.2.0):
-    - Bolts (~> 1.8)
-    - FacebookCore (~> 0.2)
-    - FBSDKCoreKit (~> 4.15)
-    - FBSDKLoginKit (~> 4.15)
-  - FacebookShare (0.2.0):
-    - Bolts (~> 1.8)
-    - FacebookCore (~> 0.2)
-    - FBSDKCoreKit (~> 4.15)
-    - FBSDKShareKit (~> 4.15)
-  - FBSDKCoreKit (4.22.1):
+  - FBSDKCoreKit (4.23.0):
     - Bolts (~> 1.7)
-  - FBSDKLoginKit (4.22.1):
+  - FBSDKLoginKit (4.23.0):
     - FBSDKCoreKit
-  - FBSDKShareKit (4.22.1):
+  - FBSDKShareKit (4.23.0):
     - FBSDKCoreKit
   - Firebase/Auth (4.0.0):
     - Firebase/Core
@@ -35,9 +21,6 @@ PODS:
   - Firebase/Database (4.0.0):
     - Firebase/Core
     - FirebaseDatabase (= 4.0.0)
-  - Firebase/Storage (4.0.0):
-    - Firebase/Core
-    - FirebaseStorage (= 2.0.0)
   - FirebaseAnalytics (4.0.0):
     - FirebaseCore (~> 4.0)
     - FirebaseInstanceID (~> 2.0)
@@ -52,40 +35,13 @@ PODS:
     - FirebaseAnalytics (~> 4.0)
   - FirebaseInstanceID (2.0.0):
     - FirebaseCore (~> 4.0)
-  - FirebaseStorage (2.0.0):
-    - FirebaseAnalytics (~> 4.0)
-    - FirebaseCore (~> 4.0)
-    - GTMSessionFetcher/Core (~> 1.1)
-  - FirebaseUI (3.1.1):
-    - FirebaseUI/All (= 3.1.1)
-  - FirebaseUI/All (3.1.1):
-    - FirebaseUI/Auth
-    - FirebaseUI/Database
-    - FirebaseUI/Facebook
-    - FirebaseUI/Google
-    - FirebaseUI/Storage
-    - FirebaseUI/Twitter
-  - FirebaseUI/Auth (3.1.1):
+  - FirebaseUI/Auth (4.0.0):
     - Firebase/Auth
-  - FirebaseUI/Database (3.1.1):
+  - FirebaseUI/Database (4.0.0):
     - Firebase/Database
-  - FirebaseUI/Facebook (3.1.1):
+  - FirebaseUI/Facebook (4.0.0):
     - FBSDKLoginKit (~> 4.0)
     - FirebaseUI/Auth
-  - FirebaseUI/Google (3.1.1):
-    - FirebaseUI/Auth
-    - GoogleSignIn (~> 4.0)
-  - FirebaseUI/Storage (3.1.1):
-    - Firebase/Storage
-    - SDWebImage (~> 4.0)
-  - FirebaseUI/Twitter (3.1.1):
-    - FirebaseUI/Auth
-    - TwitterKit (~> 2.4)
-  - GoogleSignIn (4.0.2):
-    - GoogleToolboxForMac/NSDictionary+URLArguments (~> 2.1)
-    - GoogleToolboxForMac/NSString+URLArguments (~> 2.1)
-    - GTMOAuth2 (~> 1.0)
-    - GTMSessionFetcher/Core (~> 1.1)
   - GoogleToolboxForMac/DebugUtils (2.1.1):
     - GoogleToolboxForMac/Defines (= 2.1.1)
   - GoogleToolboxForMac/Defines (2.1.1)
@@ -96,64 +52,40 @@ PODS:
     - GoogleToolboxForMac/Defines (= 2.1.1)
     - GoogleToolboxForMac/NSString+URLArguments (= 2.1.1)
   - GoogleToolboxForMac/NSString+URLArguments (2.1.1)
-  - GTMOAuth2 (1.1.4):
-    - GTMSessionFetcher (~> 1.1)
-  - GTMSessionFetcher (1.1.10):
-    - GTMSessionFetcher/Full (= 1.1.10)
   - GTMSessionFetcher/Core (1.1.10)
-  - GTMSessionFetcher/Full (1.1.10):
-    - GTMSessionFetcher/Core (= 1.1.10)
-  - SDWebImage (4.0.0):
-    - SDWebImage/Core (= 4.0.0)
-  - SDWebImage/Core (4.0.0)
   - SideMenu (2.3.2)
   - SwiftyJSON (3.1.4)
-  - TwitterCore (2.8.0):
-    - Fabric
-  - TwitterKit (2.8.1):
-    - TwitterCore (>= 2.8)
 
 DEPENDENCIES:
   - Alamofire (~> 4.4)
-  - FacebookCore
-  - FacebookLogin
-  - FacebookShare
+  - FBSDKCoreKit
+  - FBSDKLoginKit
+  - FBSDKShareKit
   - Firebase/Core
-  - FirebaseUI (~> 3.0)
-  - FirebaseUI/Auth (~> 3.0)
-  - FirebaseUI/Database (~> 3.0)
-  - FirebaseUI/Facebook (~> 3.0)
+  - FirebaseUI/Auth
+  - FirebaseUI/Database
+  - FirebaseUI/Facebook
   - SideMenu
   - SwiftyJSON
 
 SPEC CHECKSUMS:
   Alamofire: dc44b1600b800eb63da6a19039a0083d62a6a62d
   Bolts: 8a7995239dbe724f9cba2248b766d48b7ebdd322
-  Fabric: 5911403591946b8228ab1c51d98f1d7137e863c6
-  FacebookCore: 2cb3f0fbff218e9d3119cec84bae983b232412de
-  FacebookLogin: c9d606504735780a9e3002465a615512e0a691a5
-  FacebookShare: 8e9ee8ea06505e6a1d3d719b0cc63e840fb8aaeb
-  FBSDKCoreKit: 9c2daf0162214d6d2e21cf8208a9c6c2a2e42b9c
-  FBSDKLoginKit: 00cf28916b9f0169763a3d61985d745b579fe304
-  FBSDKShareKit: 1cbd0fdc2bb3277dd3522512855dcf1f4088f734
+  FBSDKCoreKit: d7829f5a69901cd7296105328e4c3c3fc7da6518
+  FBSDKLoginKit: 6b92bd65f319d669d2b0730e49db495ef1660566
+  FBSDKShareKit: 65751c3b9937ab9d594e6c37611ecc115ceeb448
   Firebase: 284eea779b73fdff309791817da7c68bff8dd572
   FirebaseAnalytics: 6f08e746f7d66f5452931bc2e822b5df9c66b64a
   FirebaseAuth: ebb6abcbabae00fc47446d690c19ce68d8484fde
   FirebaseCore: 85ad466044c2f013cdb167f85d426d15b128114a
   FirebaseDatabase: d829b3a8c3e2ac7a16773c5df226966b0805dfc2
   FirebaseInstanceID: 9fbf536668f4d3f0880e7438456dabd1376e294b
-  FirebaseStorage: 8110a1ed2034c8fbfd83890d2acc9cdbbd99afec
-  FirebaseUI: 6e99ff95e369f5858232e4f65bff215458fe8469
-  GoogleSignIn: d7ad83f13480e1f30453471d00d19b5293ac46af
+  FirebaseUI: b9de05bfb4768db05f64ea90fc2f6a07b819118f
   GoogleToolboxForMac: 8e329f1b599f2512c6b10676d45736bcc2cbbeb0
-  GTMOAuth2: 7fc9c10f5c745f4d9850419ea88889fe3baa6b7d
   GTMSessionFetcher: 30d874b96d0d76028f61fbd122801e3f030d47db
-  SDWebImage: 76a6348bdc74eb5a55dd08a091ef298e56b55e41
   SideMenu: 3fa07dd05d4bade2b6f9889fb1877e312e1ba319
   SwiftyJSON: c2842d878f95482ffceec5709abc3d05680c0220
-  TwitterCore: e959987be23c767004d29eb7fab8d85d8585a2e5
-  TwitterKit: 3b6044a7320340326a4098f3e37aa1dbaeb94942
 
-PODFILE CHECKSUM: e3e34c8799d28fa7b3db6312722d694dbf4fa398
+PODFILE CHECKSUM: 61c3bd06755830d156c8c4d67950a18622fd79c4
 
 COCOAPODS: 1.2.0
