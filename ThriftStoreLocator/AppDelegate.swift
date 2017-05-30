@@ -8,23 +8,18 @@
 
 import UIKit
 import CoreData
-
 import Firebase
-
-/*
- Trying to fix compile error. This was promising but didn't solve the problem:
- https://stackoverflow.com/a/40243070
- */
-
-//import FacebookLogin
-//import FacebookCore
 import FBSDKCoreKit
 import FBSDKLoginKit
 import FBSDKShareKit
 
+import UserNotifications
+import FirebaseInstanceID
+import FirebaseMessaging
+
 
 @UIApplicationMain
-class AppDelegate: UIResponder, UIApplicationDelegate {
+class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterDelegate, MessagingDelegate {
     
     static let NAV_TINT_COLOR = 0xffffff
     static let NAV_BAR_TINT_COLOR = 0x034517 // green
@@ -36,6 +31,23 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         
         // This method along with some changes to color attributes on storyboard and MainViewController can be used to change nav bar appearance
         // setNavBarAppearance()
+        
+        if #available(iOS 10.0, *) {
+            // For iOS 10 display notification (sent via APNS)
+            UNUserNotificationCenter.current().delegate = self
+            let authOptions: UNAuthorizationOptions = [.alert, .badge, .sound]
+            UNUserNotificationCenter.current().requestAuthorization(
+                options: authOptions,
+                completionHandler: {_, _ in })
+            // For iOS 10 data message (sent via FCM
+            Messaging.messaging().remoteMessageDelegate = self
+        } else {
+            let settings: UIUserNotificationSettings =
+                UIUserNotificationSettings(types: [.alert, .badge, .sound], categories: nil)
+            application.registerUserNotificationSettings(settings)
+        }
+        
+        application.registerForRemoteNotifications()
         
         FirebaseApp.configure()
         
@@ -96,6 +108,30 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         
         // TODO - Once saveContext is working in DataLayer, need to access it from here
         //self.saveContext()
+    }
+    
+    // MARK: Firebase MessagingDelegate
+    /// This method will be called whenever FCM receives a new, default FCM token for your
+    /// Firebase project's Sender ID.
+    /// You can send this token to your application server to send notifications to this device.
+    public func messaging(_ messaging: Messaging, didRefreshRegistrationToken fcmToken: String) {
+        print("messaging: didRefreshRegistrationToken fcmToken: \(fcmToken)")
+    }
+    
+    
+    /// This method is called on iOS 10 devices to handle data messages received via FCM through its
+    /// direct channel (not via APNS). For iOS 9 and below, the FCM data message is delivered via the
+    /// UIApplicationDelegate's -application:didReceiveRemoteNotification: method.
+    @available(iOS 10.0, *)
+    public func messaging(_ messaging: Messaging, didReceive remoteMessage: MessagingRemoteMessage) {
+        print(remoteMessage.appData)
+    }
+    
+    
+    /// The callback to handle data message received via FCM for devices running iOS 10 or above
+    @available(*, deprecated, message: "Use FIRMessagingDelegate’s -messaging:didReceiveMessage:")
+    public func application(received remoteMessage: MessagingRemoteMessage) {
+        print(remoteMessage.appData)
     }
 
     // MARK: - Core Data stack

@@ -21,6 +21,9 @@ PODS:
   - Firebase/Database (4.0.0):
     - Firebase/Core
     - FirebaseDatabase (= 4.0.0)
+  - Firebase/Messaging (4.0.0):
+    - Firebase/Core
+    - FirebaseMessaging (= 2.0.0)
   - FirebaseAnalytics (4.0.0):
     - FirebaseCore (~> 4.0)
     - FirebaseInstanceID (~> 2.0)
@@ -35,6 +38,12 @@ PODS:
     - FirebaseAnalytics (~> 4.0)
   - FirebaseInstanceID (2.0.0):
     - FirebaseCore (~> 4.0)
+  - FirebaseMessaging (2.0.0):
+    - FirebaseAnalytics (~> 4.0)
+    - FirebaseCore (~> 4.0)
+    - FirebaseInstanceID (~> 2.0)
+    - GoogleToolboxForMac/Logger (~> 2.1)
+    - Protobuf (~> 3.1)
   - FirebaseUI/Auth (4.0.0):
     - Firebase/Auth
   - FirebaseUI/Database (4.0.0):
@@ -45,6 +54,8 @@ PODS:
   - GoogleToolboxForMac/DebugUtils (2.1.1):
     - GoogleToolboxForMac/Defines (= 2.1.1)
   - GoogleToolboxForMac/Defines (2.1.1)
+  - GoogleToolboxForMac/Logger (2.1.1):
+    - GoogleToolboxForMac/Defines (= 2.1.1)
   - GoogleToolboxForMac/NSData+zlib (2.1.1):
     - GoogleToolboxForMac/Defines (= 2.1.1)
   - GoogleToolboxForMac/NSDictionary+URLArguments (2.1.1):
@@ -53,6 +64,7 @@ PODS:
     - GoogleToolboxForMac/NSString+URLArguments (= 2.1.1)
   - GoogleToolboxForMac/NSString+URLArguments (2.1.1)
   - GTMSessionFetcher/Core (1.1.10)
+  - Protobuf (3.3.0)
   - SideMenu (2.3.2)
   - SwiftyJSON (3.1.4)
 
@@ -62,6 +74,7 @@ DEPENDENCIES:
   - FBSDKLoginKit
   - FBSDKShareKit
   - Firebase/Core
+  - Firebase/Messaging
   - FirebaseUI/Auth
   - FirebaseUI/Database
   - FirebaseUI/Facebook
@@ -80,12 +93,14 @@ SPEC CHECKSUMS:
   FirebaseCore: 85ad466044c2f013cdb167f85d426d15b128114a
   FirebaseDatabase: d829b3a8c3e2ac7a16773c5df226966b0805dfc2
   FirebaseInstanceID: 9fbf536668f4d3f0880e7438456dabd1376e294b
+  FirebaseMessaging: 227406c05b0dc9290702d2e9f18ab5528f0c2cf2
   FirebaseUI: b9de05bfb4768db05f64ea90fc2f6a07b819118f
   GoogleToolboxForMac: 8e329f1b599f2512c6b10676d45736bcc2cbbeb0
   GTMSessionFetcher: 30d874b96d0d76028f61fbd122801e3f030d47db
+  Protobuf: d582fecf68201eac3d79ed61369ef45734394b9c
   SideMenu: 3fa07dd05d4bade2b6f9889fb1877e312e1ba319
   SwiftyJSON: c2842d878f95482ffceec5709abc3d05680c0220
 
-PODFILE CHECKSUM: 61c3bd06755830d156c8c4d67950a18622fd79c4
+PODFILE CHECKSUM: 717e322e536d236a0dfe2b0d0ed171c43ee85dc8
 
 COCOAPODS: 1.2.0
