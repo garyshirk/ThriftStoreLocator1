@@ -17,6 +17,11 @@ import UserNotifications
 import FirebaseInstanceID
 import FirebaseMessaging
 
+enum ApnDeviceToken {
+    static let deviceToken = "device_token"
+    static let deviceTokenKey = "device_token_key"
+}
+
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterDelegate, MessagingDelegate {
     
@@ -104,11 +109,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     }
     
     // MARK: Firebase MessagingDelegate
-    /// This method will be called whenever FCM receives a new, default FCM token for your
-    /// Firebase project's Sender ID.
+    
+    /// This method will be called whenever FCM receives a new, default FCM token for your Firebase project's Sender ID
     /// You can send this token to your application server to send notifications to this device.
     public func messaging(_ messaging: Messaging, didRefreshRegistrationToken fcmToken: String) {
         print("messaging: didRefreshRegistrationToken fcmToken: \(fcmToken)")
+        
+        UserDefaults.standard.setValue(fcmToken, forKey: ApnDeviceToken.deviceToken)
     }
     
     // MARK: - Push Notifications
@@ -119,9 +126,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
         let deviceTokenString = deviceToken.reduce("", {$0 + String(format: "%02X", $1)})
         print("APNs device token: \(deviceTokenString)")
         
-        // TODO - Persist it in your backend in case it's and persist in UserDefaults
+        UserDefaults.standard.setValue(deviceTokenString, forKey: ApnDeviceToken.deviceToken)
         
-        Messaging.messaging().apnsToken = deviceToken
+        // TODO - Implement way to programmatically have Firebase send a notification to an individual device
+        // TODO - Determine whether to persist token on Firebase
+        
+        // NOTE - The below command is only needed if you disable swizzling
+        //Messaging.messaging().apnsToken = deviceToken
+        
     }
     
     

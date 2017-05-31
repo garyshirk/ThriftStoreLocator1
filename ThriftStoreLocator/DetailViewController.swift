@@ -25,7 +25,6 @@ class DetailViewController: UIViewController {
     var webStr: String!
     var storeLocation: (lat: Double, long: Double)?
 
-    @IBOutlet weak var storeName: UILabel!
     @IBOutlet weak var distanceLabel: UILabel!
     @IBOutlet weak var streetLabel: UILabel!
     @IBOutlet weak var cityLabel: UILabel!
@@ -37,12 +36,13 @@ class DetailViewController: UIViewController {
     @IBOutlet weak var phoneLabel: UILabel!
     @IBOutlet weak var webLinkView: UIView!
     @IBOutlet weak var webSiteLabel: UILabel!
+    @IBOutlet weak var nameTextView: UITextView!
     
     override func viewDidLoad() {
         
         super.viewDidLoad()
 
-        storeName.text = storeNameStr
+        nameTextView.text = storeNameStr
         
         distanceLabel.text = distanceStr
         
