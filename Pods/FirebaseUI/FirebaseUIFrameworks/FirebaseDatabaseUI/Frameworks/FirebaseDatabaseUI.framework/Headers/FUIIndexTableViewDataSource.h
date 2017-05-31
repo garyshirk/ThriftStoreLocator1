@@ -58,9 +58,16 @@ didFailLoadAtIndex:(NSUInteger)index
 @interface FUIIndexTableViewDataSource : NSObject <UITableViewDataSource>
 
 /**
- * The delegate that will receive events from this data source.
+ * The delegate that should receive updates from this data source. Implement this delegate
+ * to handle load errors and successes.
  */
 @property (nonatomic, readwrite, weak, nullable) id<FUIIndexTableViewDataSourceDelegate> delegate;
+
+/**
+ * The indexes that have finished loading in the data source. Returns an empty array if no indexes
+ * have loaded.
+ */
+@property (nonatomic, readonly, copy) NSArray<FIRDataSnapshot *> *indexes;
 
 - (instancetype)init NS_UNAVAILABLE;
 
@@ -92,7 +99,7 @@ didFailLoadAtIndex:(NSUInteger)index
  * Creates a data source, attaches it to the table view, and returns it.
  * The returned data source is not retained by the table view and must be
  * retained or it will be deallocated while still in use by the table view.
- * @param query A Firebase database query to bind the table view to.
+ * @param index A Firebase database query to bind the table view to.
  * @param data  The reference whose children correspond to the contents of the
  *   index query. This reference's children's contents are served as the contents
  *   of the table view.

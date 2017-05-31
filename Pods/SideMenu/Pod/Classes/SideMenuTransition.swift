@@ -304,6 +304,8 @@ open class SideMenuTransition: UIPercentDrivenInteractiveTransition {
         if statusBarOffset >= CGFloat.ulpOfOne {
             statusBarFrame.size.height = statusBarOffset
         }
+        SideMenuTransition.tapView?.transform = .identity
+        SideMenuTransition.tapView?.bounds = mainViewController.view.bounds
         SideMenuTransition.statusBarView?.frame = statusBarFrame
         SideMenuTransition.statusBarView?.alpha = 1
         
@@ -329,6 +331,9 @@ open class SideMenuTransition: UIPercentDrivenInteractiveTransition {
         
         if SideMenuManager.menuPresentMode != .viewSlideOut {
             mainViewController.view.transform = CGAffineTransform(scaleX: SideMenuManager.menuAnimationTransformScaleFactor, y: SideMenuManager.menuAnimationTransformScaleFactor)
+            if SideMenuManager.menuAnimationTransformScaleFactor > 1 {
+                SideMenuTransition.tapView?.transform = mainViewController.view.transform
+            }
             mainViewController.view.alpha = 1 - SideMenuManager.menuAnimationFadeStrength
         }
     }
@@ -360,7 +365,7 @@ open class SideMenuTransition: UIPercentDrivenInteractiveTransition {
         }
     }
     
-    internal func handleNotification() {
+    internal func handleNotification(notification: NSNotification) {
         guard let mainViewController = SideMenuTransition.presentingViewControllerForMenu,
             let menuViewController = SideMenuTransition.viewControllerForMenu,
             menuViewController.presentedViewController == nil && menuViewController.presentingViewController != nil else {
@@ -370,6 +375,14 @@ open class SideMenuTransition: UIPercentDrivenInteractiveTransition {
         if let originalSuperview = SideMenuTransition.originalSuperview {
             originalSuperview.addSubview(mainViewController.view)
         }
+        
+        if notification.name == NSNotification.Name.UIApplicationDidEnterBackground {
+            SideMenuTransition.hideMenuStart()
+            SideMenuTransition.hideMenuComplete()
+            menuViewController.dismiss(animated: false, completion: nil)
+            return
+        }
+        
         UIView.animate(withDuration: SideMenuManager.menuAnimationDismissDuration,
                        delay: 0,
                        usingSpringWithDamping: SideMenuManager.menuAnimationUsingSpringWithDamping,
@@ -478,6 +491,9 @@ extension SideMenuTransition: UIViewControllerAnimatedTransitioning {
                     container.insertSubview(tapView, aboveSubview: topView)
                     tapView.bounds = container.bounds
                     tapView.center = topView.center
+                    if SideMenuManager.menuAnimationTransformScaleFactor > 1 {
+                        tapView.transform = topView.transform
+                    }
                     SideMenuTransition.tapView = tapView
                 }
                 if let statusBarView = SideMenuTransition.statusBarView {

@@ -21,6 +21,8 @@ class DetailViewController: UIViewController {
     var cityStr: String!
     var stateStr: String!
     var zipStr: String!
+    var phoneStr: String!
+    var webStr: String!
     var storeLocation: (lat: Double, long: Double)?
 
     @IBOutlet weak var storeName: UILabel!
@@ -30,7 +32,11 @@ class DetailViewController: UIViewController {
     @IBOutlet weak var stateLabel: UILabel!
     @IBOutlet weak var zipLabel: UILabel!
     @IBOutlet weak var favButton: UIButton!
-    
+    @IBOutlet weak var mapImageView: UIImageView!
+    @IBOutlet weak var callView: UIView!
+    @IBOutlet weak var phoneLabel: UILabel!
+    @IBOutlet weak var webLinkView: UIView!
+    @IBOutlet weak var webSiteLabel: UILabel!
     
     override func viewDidLoad() {
         
@@ -58,6 +64,18 @@ class DetailViewController: UIViewController {
             favImg = UIImage(named: "fav_off")
         }
         favButton.setBackgroundImage(favImg, for: .normal)
+        
+        if phoneStr.isEmpty {
+            phoneLabel.text = "Not available"
+        } else {
+            phoneLabel.text = self.phoneStr
+        }
+        
+        if webStr.isEmpty {
+            webSiteLabel.text = "Not available"
+        } else {
+            webSiteLabel.text = self.webStr
+        }
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -69,6 +87,20 @@ class DetailViewController: UIViewController {
         openMapForPlace()
     }
     
+    @IBAction func callButtonPressed(_ sender: Any) {
+        if !(phoneStr.isEmpty) {
+            let number = URL(string: "telprompt://" + phoneStr)
+            UIApplication.shared.open(number!)
+        }
+    }
+    
+    @IBAction func webSiteButtonPressed(_ sender: Any) {
+        if !(webStr.isEmpty) {
+            if let url = URL(string: "http://" + webStr) {
+                UIApplication.shared.open(url, options: [:], completionHandler: nil)
+            }
+        }
+    }
     
     @IBAction func favButtonPressed(_ sender: Any) {
         if isFav == true {

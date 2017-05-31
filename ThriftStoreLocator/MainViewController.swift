@@ -13,6 +13,10 @@ import SideMenu
 import FBSDKLoginKit
 import Firebase
 
+enum MainViewControllerConstants {
+    static let kDefaultMapAreaLen: Double = 40.0
+}
+
 // TODO - MapView initial height should be proportional to device height
 // TODO - Define a CLCicularRegion based on user's current location and update store map and list when user leaves that region
 class MainViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UITextFieldDelegate, MKMapViewDelegate, CLLocationManagerDelegate, StoresViewModelDelegate, LogInDelegate, MenuViewDelegate, FavoriteButtonPressedDelegate {
@@ -49,11 +53,15 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     
     var favoritesViewController: FavoritesViewController?
     
+    var detailViewController: DetailViewController?
+    
     var sortType: StoreSortType?
     
     var mapArea: (latDelta: Double? , longDelta: Double?)
     
     var mapChangedFromUserInteraction = false
+    
+    var deltaMapDragDistance: Double = 0.0
     
     @IBOutlet weak var tableView: UITableView!
     @IBOutlet weak var titleLabel: UILabel!
@@ -107,8 +115,8 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         let availableScreenHt = screenSize.height - 64.0
         self.mapViewYConstraint.constant = 0
         self.mapViewHeightConstraint.constant = availableScreenHt * 0.5
-        mapArea.latDelta = 40.0
-        mapArea.longDelta = 40.0
+        mapArea.latDelta = MainViewControllerConstants.kDefaultMapAreaLen
+        mapArea.longDelta = MainViewControllerConstants.kDefaultMapAreaLen
         mapView.mapType = .standard
         mapView.delegate = self
         
@@ -118,10 +126,10 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
             locationManager.desiredAccuracy = kCLLocationAccuracyHundredMeters // KCLLocationAccuracyNearestTenMeters
         }
         
-        let user = FIRAuth.auth()?.currentUser
+        let user = Auth.auth().currentUser
         updateLoginStatus(forUser: user)
         
-        FIRAuth.auth()!.addStateDidChangeListener() { [weak self] auth, user in
+        Auth.auth().addStateDidChangeListener() { [weak self] auth, user in
             guard let strongSelf = self else { return }
             strongSelf.updateLoginStatus(forUser: user)
         }
@@ -158,7 +166,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     func doInitialLoad() {
         viewModel.resetStoresViewModel()
         // nil user is not logged in, so not necessary to load stores
-        if let user = FIRAuth.auth()?.currentUser {
+        if let user = Auth.auth().currentUser {
             viewModel.loadFavorites(forUser: user.uid)
         }
     }
@@ -220,14 +228,14 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         present(SideMenuManager.menuLeftNavigationController!, animated: true, completion: nil)
     }
     
-    // TODO - Need new arrow location image; current one has white background
     @IBAction func didPressLocArrow(_ sender: Any) {
         setSearchEnabledMode(doSet: false)
         viewModel.prepareForZoomToMyLocation(location: myLocation!)
+        setMapRegionByMilesOf(latDist: MainViewControllerConstants.kDefaultMapAreaLen, longDist: MainViewControllerConstants.kDefaultMapAreaLen)
         searchThisAreaBtn.isHidden = true && self.displayType != .map
+        self.deltaMapDragDistance = 0.0
     }
     
-    // TODO - Currently no longer getting location after I get it first time; need to change this to update every couple minutes
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         
         if let loc = manager.location?.coordinate {
@@ -250,6 +258,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     @IBAction func didPressSearchAreaBtn(_ sender: Any) {
         viewModel.loadStores(forLocation: mapLocation!, withRefresh: false)
         searchThisAreaBtn.isHidden = true && self.displayType != .map
+        self.deltaMapDragDistance = 0.0
     }
 
     
@@ -297,6 +306,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     
     @IBAction func zoomOut(_ sender: Any) {
         searchThisAreaBtn.isHidden = false
+        self.deltaMapDragDistance = 0.0
         setMapRegionBy(delta: 2.0, animated: true)
     }
     
@@ -325,7 +335,6 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     
     // If map region changed because of search, just set the new location.
     // If map region changed because of user interaction (drag, pinch), then load stores for the new map region and radius
-    // Pinch or expanding map will cause mapRadiusActive to get set to the new region
     func mapView(_ mapView: MKMapView, regionDidChangeAnimated animated: Bool) {
         
         if mapChangedFromUserInteraction {
@@ -340,9 +349,9 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
                 // Display the showSearchArea depending on how far the map location changed
                 let newLoc = CLLocation(latitude: (mapLocation?.latitude)!, longitude: (mapLocation?.longitude)!)
                 let previousLoc = CLLocation(latitude: previousMapLocation.latitude, longitude: previousMapLocation.longitude)
-                let changeInDistance = newLoc.distance(from: previousLoc) * 0.000621371
+                self.deltaMapDragDistance += newLoc.distance(from: previousLoc) * 0.000621371
                 
-                if changeInDistance > 0.25 * mapArea.latDelta! { // miles
+                if self.deltaMapDragDistance > 0.25 * mapArea.latDelta! { // miles
                     searchThisAreaBtn.isHidden = false
                 } else {
                     searchThisAreaBtn.isHidden = true && self.displayType != .map
@@ -445,14 +454,12 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     }
     
     func handleError(type: ErrorType) {
-        // TODO - Receiving runtime warning when attempting to present alert view for Favorite post/delete errors:
-        // "Presenting VC on detached VC is discouraged". It's working ok for Favorites view controller,
-        // but presenting error dialog when error occurs in DetailedViewController gives this warning
-        // (I don't have a reference to DetailedViewController here
         let errorHandler = ErrorHandler()
         if let errorAlert = errorHandler.handleError(ofType: type) {
             if let favViewController = self.favoritesViewController {
                 favViewController.present(errorAlert, animated: true, completion: nil)
+            } else if let detailViewController = self.detailViewController {
+                detailViewController.present(errorAlert, animated: true, completion: nil)
             } else {
                 self.present(errorAlert, animated: true, completion: nil)
             }
@@ -499,8 +506,10 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     // May be called if forced even if shouldEndEditing returns NO (e.g. view removed from window) or endEditing:YES called
     func textFieldDidEndEditing(_ textField: UITextField) {
         
-        if let searchStr = searchTextField.text {
-            viewModel.loadStores(forSearchStr: searchStr)
+        if isSearching {
+            if let searchStr = searchTextField.text {
+                viewModel.loadStores(forSearchStr: searchStr)
+            }
         }
     }
     
@@ -810,6 +819,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     }
     
     func configure(detailViewController: DetailViewController, forStoreIndex index: Int) {
+        self.detailViewController = detailViewController
         let selectedStore = self.viewModel.stores[index]
         detailViewController.delegate = self
         detailViewController.selectedStoreIndex = index
@@ -819,17 +829,27 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         detailViewController.cityStr = selectedStore.city
         detailViewController.stateStr = selectedStore.state
         detailViewController.zipStr = selectedStore.zip
+        detailViewController.phoneStr = selectedStore.phone
+        detailViewController.webStr = selectedStore.website
         detailViewController.distanceStr = ("\(distanceFromMyLocation(toLat: selectedStore.locLat!, long: selectedStore.locLong!)) away")
         let locLat = selectedStore.locLat as! Double
         let locLong = selectedStore.locLong as! Double
         detailViewController.storeLocation = (locLat, locLong)
+        
+        takeSnapshot(store: selectedStore, withCallback: { image, error in
+            if error == nil {
+                detailViewController.mapImageView.image = image
+            } else {
+                print("error taking map view snapshot")
+            }
+        })
     }
     
     // MARK - FavoriteButtonPressedDelegate
     
     func favoriteButtonPressed(forStore index: Int, isFav: Bool, isCallFromFavoritesVC: Bool) {
         
-        let user = FIRAuth.auth()?.currentUser
+        let user = Auth.auth().currentUser
         let uid = (user?.uid)!
         
         var store: Store?
@@ -874,7 +894,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
                 loginType == LogInType.email as String)
     }
     
-    func updateLoginStatus(forUser user: FIRUser?) {
+    func updateLoginStatus(forUser user: User?) {
         
         self.username = ""
         
@@ -926,9 +946,9 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
                 fbLoginManager.logOut()
             }
             
-            let firebaseAuth = FIRAuth.auth()
+            let firebaseAuth = Auth.auth()
             do {
-                try firebaseAuth?.signOut()
+                try firebaseAuth.signOut()
                 loginType = LogInType.isNotLoggedIn as String
             } catch let signOutError as NSError {
                 Logger.print("Error logging out: \(signOutError)")
@@ -958,6 +978,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
             self.searchThisAreaBtn.isHidden = true
             mapViewHeightConstraint.constant = availableScreenHt * 0.5
         }
+        self.deltaMapDragDistance = 0.0
         self.tableView.reloadData()
     }
     
@@ -977,7 +998,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     
 }
 
-extension MainViewController {
+extension UIViewController {
     func metersToMiles(for meters: Double) -> Double {
         // TODO - Add to a constants class
         return meters * 0.000621371
@@ -985,6 +1006,24 @@ extension MainViewController {
     
     func milesToMeters(for miles: Double) -> Double {
         return miles / 0.000621371
+    }
+    
+    func takeSnapshot(store: Store, withCallback: @escaping (UIImage?, NSError?) -> ()) {
+        let options = MKMapSnapshotOptions()
+        let location = CLLocationCoordinate2DMake(store.locLat as! CLLocationDegrees, store.locLong as! CLLocationDegrees)
+        let region = MKCoordinateRegionMakeWithDistance(location, milesToMeters(for: 2), milesToMeters(for: 2))
+        options.region = region
+        let size = CGSize(width: 71, height: 71)
+        options.size = size
+        options.scale = UIScreen.main.scale
+        let snapshotter = MKMapSnapshotter(options: options)
+        snapshotter.start() { snapshot, error in
+            guard snapshot != nil else {
+                withCallback(nil, error as NSError?)
+                return
+            }
+            withCallback(snapshot!.image, nil)
+        }
     }
 }
 

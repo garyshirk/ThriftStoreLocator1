@@ -20,6 +20,7 @@ enum ErrorType: Equatable {
     case loginError(String)
     case loginDefault(String)
     case regWeakPassword(String)
+    case regWrongPassword(String)
     case regInvalidEmail(String)
     case regExistingUser(String)
     case regUnknown(String)
@@ -38,6 +39,7 @@ enum UserErrorMessage {
     static let login = "Incorrect username or password, please try again"
     static let loginDefault = "There was an error signing in to the app. Ensure email address is valid and password is at least 6 characters. If still getting error please try again later"
     static let loginWeakPw = "Password must be at least 6 characters"
+    static let loginWrongPw = "Incorrect password, please try again"
     static let loginInvalidEm = "The email address entered is invalid, please try again"
     static let loginExistingEm = "The email address is already in use"
     
@@ -124,6 +126,11 @@ class ErrorHandler {
             
         case .regWeakPassword(let debugMsg):
             displayMsg = UserErrorMessage.loginWeakPw
+            displayErrorDialog = true
+            Logger.print(debugMsg)
+            
+        case .regWrongPassword(let debugMsg):
+            displayMsg = UserErrorMessage.loginWrongPw
             displayErrorDialog = true
             Logger.print(debugMsg)
             

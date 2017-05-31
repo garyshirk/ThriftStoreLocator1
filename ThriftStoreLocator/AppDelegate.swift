@@ -8,15 +8,17 @@
 
 import UIKit
 import CoreData
-import FacebookLogin
-import FacebookCore
-import FBSDKCoreKit
 import Firebase
+import FBSDKCoreKit
 import FBSDKLoginKit
+import FBSDKShareKit
 
+import UserNotifications
+import FirebaseInstanceID
+import FirebaseMessaging
 
 @UIApplicationMain
-class AppDelegate: UIResponder, UIApplicationDelegate {
+class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterDelegate, MessagingDelegate {
     
     static let NAV_TINT_COLOR = 0xffffff
     static let NAV_BAR_TINT_COLOR = 0x034517 // green
@@ -29,7 +31,19 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // This method along with some changes to color attributes on storyboard and MainViewController can be used to change nav bar appearance
         // setNavBarAppearance()
         
-        FIRApp.configure()
+        if #available(iOS 10.0, *) {
+            // For iOS 10 display notification (sent via APNS)
+            UNUserNotificationCenter.current().delegate = self
+            UNUserNotificationCenter.current().requestAuthorization(options:[.badge, .alert, .sound]){ (granted, error) in }
+        } else {
+            // Never used since app is targeted at 10.0 and above
+            let settings: UIUserNotificationSettings = UIUserNotificationSettings(types: [.alert, .badge, .sound], categories: nil)
+            application.registerUserNotificationSettings(settings)
+        }
+        
+        application.registerForRemoteNotifications()
+        
+        FirebaseApp.configure()
         
         return FBSDKApplicationDelegate.sharedInstance().application(application, didFinishLaunchingWithOptions: launchOptions)
     }
@@ -37,7 +51,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func application(_ application: UIApplication, open url: URL, sourceApplication: String?, annotation: Any) -> Bool {
         return FBSDKApplicationDelegate.sharedInstance().application(application, open: url, sourceApplication: sourceApplication, annotation: annotation)
     }
-    
     
     func setNavBarAppearance() {
         // Set color of app's navigation bars
@@ -88,6 +101,40 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         
         // TODO - Once saveContext is working in DataLayer, need to access it from here
         //self.saveContext()
+    }
+    
+    // MARK: Firebase MessagingDelegate
+    /// This method will be called whenever FCM receives a new, default FCM token for your
+    /// Firebase project's Sender ID.
+    /// You can send this token to your application server to send notifications to this device.
+    public func messaging(_ messaging: Messaging, didRefreshRegistrationToken fcmToken: String) {
+        print("messaging: didRefreshRegistrationToken fcmToken: \(fcmToken)")
+    }
+    
+    // MARK: - Push Notifications
+    
+    // Called when APNs has assigned the device a unique token
+    func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+        
+        let deviceTokenString = deviceToken.reduce("", {$0 + String(format: "%02X", $1)})
+        print("APNs device token: \(deviceTokenString)")
+        
+        // TODO - Persist it in your backend in case it's and persist in UserDefaults
+        
+        Messaging.messaging().apnsToken = deviceToken
+    }
+    
+    
+    // Called when APNs failed to register the device for push notifications
+    func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
+        // Print the error to console
+        // TODO - alert the user that registration failed
+        print("APNs registration failed: \(error)")
+    }
+    
+    // Push notification received
+    func application(_ application: UIApplication, didReceiveRemoteNotification data: [AnyHashable : Any]) {
+        print("Push notification received: \(data)")
     }
 
     // MARK: - Core Data stack
