@@ -17,7 +17,6 @@ import UserNotifications
 import FirebaseInstanceID
 import FirebaseMessaging
 
-
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterDelegate, MessagingDelegate {
     
@@ -35,27 +34,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
         if #available(iOS 10.0, *) {
             // For iOS 10 display notification (sent via APNS)
             UNUserNotificationCenter.current().delegate = self
-            
-            //let authOptions: UNAuthorizationOptions = [.alert, .badge, .sound]
-            
-            
             UNUserNotificationCenter.current().requestAuthorization(options:[.badge, .alert, .sound]){ (granted, error) in }
-            
-            
-            
-//            UNUserNotificationCenter.current().requestAuthorization(
-//                options: authOptions,
-//                completionHandler: {_, _ in })
-            
-            // For iOS 10 data message (sent via FCM
-            Messaging.messaging().remoteMessageDelegate = self
         } else {
+            // Never used since app is targeted at 10.0 and above
             let settings: UIUserNotificationSettings = UIUserNotificationSettings(types: [.alert, .badge, .sound], categories: nil)
             application.registerUserNotificationSettings(settings)
         }
-        
-//        let settings: UIUserNotificationSettings = UIUserNotificationSettings(types: [.alert, .badge, .sound], categories: nil)
-//        application.registerUserNotificationSettings(settings)
         
         application.registerForRemoteNotifications()
         
@@ -67,7 +51,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     func application(_ application: UIApplication, open url: URL, sourceApplication: String?, annotation: Any) -> Bool {
         return FBSDKApplicationDelegate.sharedInstance().application(application, open: url, sourceApplication: sourceApplication, annotation: annotation)
     }
-    
     
     func setNavBarAppearance() {
         // Set color of app's navigation bars
@@ -128,39 +111,15 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
         print("messaging: didRefreshRegistrationToken fcmToken: \(fcmToken)")
     }
     
-    
-    /// This method is called on iOS 10 devices to handle data messages received via FCM through its
-    /// direct channel (not via APNS). For iOS 9 and below, the FCM data message is delivered via the
-    /// UIApplicationDelegate's -application:didReceiveRemoteNotification: method.
-//    @available(iOS 10.0, *)
-//    public func messaging(_ messaging: Messaging, didReceive remoteMessage: MessagingRemoteMessage) {
-//        print(remoteMessage.appData)
-//    }
-    
-    
-    /// The callback to handle data message received via FCM for devices running iOS 10 or above
-//    @available(*, deprecated, message: "Use FIRMessagingDelegate’s -messaging:didReceiveMessage:")
-//    public func application(received remoteMessage: MessagingRemoteMessage) {
-//        print(remoteMessage.appData)
-//    }
-    
-//    func application(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable : Any]) {
-//        let dict = userInfo["aps"] as! NSDictionary
-//        let message = dict["alert"]
-//        print("message: \(String(describing: message))")
-//    }
-    
-    ////////////////
+    // MARK: - Push Notifications
     
     // Called when APNs has assigned the device a unique token
     func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
-        // Convert token to string
-        let deviceTokenString = deviceToken.reduce("", {$0 + String(format: "%02X", $1)})
         
-        // Print it to console
+        let deviceTokenString = deviceToken.reduce("", {$0 + String(format: "%02X", $1)})
         print("APNs device token: \(deviceTokenString)")
         
-        // Persist it in your backend in case it's new
+        // TODO - Persist it in your backend in case it's and persist in UserDefaults
         
         Messaging.messaging().apnsToken = deviceToken
     }
@@ -168,13 +127,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     
     // Called when APNs failed to register the device for push notifications
     func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
-        // Print the error to console (you should alert the user that registration failed)
+        // Print the error to console
+        // TODO - alert the user that registration failed
         print("APNs registration failed: \(error)")
     }
     
     // Push notification received
     func application(_ application: UIApplication, didReceiveRemoteNotification data: [AnyHashable : Any]) {
-        // Print notification payload data
         print("Push notification received: \(data)")
     }
 
